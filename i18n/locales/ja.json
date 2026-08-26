@@ -1,0 +1,31 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "retry": "再試行",
+    "comingSoon": "近日公開"
+  },
+  "tabs": {
+    "home": "ホーム",
+    "property": "不動産",
+    "invest": "投資",
+    "ai": "AI",
+    "my": "マイページ"
+  },
+  "home": {
+    "title": "ホーム"
+  },
+  "property": {
+    "title": "不動産"
+  },
+  "invest": {
+    "title": "投資"
+  },
+  "ai": {
+    "title": "AI"
+  },
+  "my": {
+    "title": "マイページ"
+  }
+}

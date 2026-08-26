@@ -1,0 +1,31 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "cancel": "取消",
+    "confirm": "确认",
+    "retry": "重试",
+    "comingSoon": "即将推出"
+  },
+  "tabs": {
+    "home": "首页",
+    "property": "房产",
+    "invest": "投资",
+    "ai": "AI",
+    "my": "我的"
+  },
+  "home": {
+    "title": "首页"
+  },
+  "property": {
+    "title": "房产"
+  },
+  "invest": {
+    "title": "投资"
+  },
+  "ai": {
+    "title": "AI"
+  },
+  "my": {
+    "title": "我的"
+  }
+}

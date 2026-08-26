@@ -1,0 +1,31 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "comingSoon": "Coming soon"
+  },
+  "tabs": {
+    "home": "Home",
+    "property": "Property",
+    "invest": "Invest",
+    "ai": "AI",
+    "my": "My"
+  },
+  "home": {
+    "title": "Home"
+  },
+  "property": {
+    "title": "Property"
+  },
+  "invest": {
+    "title": "Invest"
+  },
+  "ai": {
+    "title": "AI"
+  },
+  "my": {
+    "title": "My"
+  }
+}

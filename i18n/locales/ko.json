@@ -1,0 +1,31 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "cancel": "취소",
+    "confirm": "확인",
+    "retry": "다시 시도",
+    "comingSoon": "준비 중입니다"
+  },
+  "tabs": {
+    "home": "홈",
+    "property": "부동산",
+    "invest": "투자",
+    "ai": "AI",
+    "my": "MY"
+  },
+  "home": {
+    "title": "홈"
+  },
+  "property": {
+    "title": "부동산"
+  },
+  "invest": {
+    "title": "투자"
+  },
+  "ai": {
+    "title": "AI"
+  },
+  "my": {
+    "title": "MY"
+  }
+}

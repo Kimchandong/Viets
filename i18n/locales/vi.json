@@ -1,0 +1,31 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "retry": "Thử lại",
+    "comingSoon": "Sắp ra mắt"
+  },
+  "tabs": {
+    "home": "Trang chủ",
+    "property": "Bất động sản",
+    "invest": "Đầu tư",
+    "ai": "AI",
+    "my": "Của tôi"
+  },
+  "home": {
+    "title": "Trang chủ"
+  },
+  "property": {
+    "title": "Bất động sản"
+  },
+  "invest": {
+    "title": "Đầu tư"
+  },
+  "ai": {
+    "title": "AI"
+  },
+  "my": {
+    "title": "Của tôi"
+  }
+}

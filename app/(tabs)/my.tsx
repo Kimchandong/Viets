@@ -17,12 +17,10 @@ import { StatTile } from "@/components/StatTile";
 import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles, ThemeColors, typography } from "@/constants/theme";
 import { GOOGLE_ICON_URI } from "@/constants/icons";
-import {
-  findMockInvestmentProduct,
-  findMockProperty,
-  type MockInvestmentProduct,
-  type MockProperty,
-} from "@/constants/mockData";
+import { type MockInvestmentProduct, type MockProperty } from "@/constants/mockData";
+import { getPropertiesByIds } from "@/services/properties";
+import { getInvestmentProductsByIds } from "@/services/investments";
+import { canManageInvestment, canRegisterProperty, isAdmin } from "@/services/roles";
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/i18n";
 import {
   getSession,
@@ -116,21 +114,84 @@ export default function MyScreen() {
     };
   }, []);
 
-  const favoriteProperties = useMemo(() => {
+  // [STEP 04] 관심 매물은 이제 Mock이 아니라 실제 properties 테이블에서 가져온다 —
+  // 찜 목록(favorites)은 DB에 저장된 매물 UUID이므로 findMockProperty로는 조회되지
+  // 않는다. 찜 목록이 바뀔 때마다 해당 id들을 한 번에 조회한다.
+  const favoritePropertyIds = useMemo(() => {
     const prefix = "property:";
     return Object.keys(favorites)
       .filter((key) => key.startsWith(prefix))
-      .map((key) => findMockProperty(key.slice(prefix.length)))
-      .filter((property): property is MockProperty => !!property);
+      .map((key) => key.slice(prefix.length));
   }, [favorites]);
 
-  const favoriteInvestments = useMemo(() => {
+  const [favoriteProperties, setFavoriteProperties] = useState<MockProperty[]>([]);
+
+  // [STEP 04] 매물 등록 진입점은 admin 계열에게만 노출한다(실제 차단은 properties
+  // RLS가 서버에서 수행 — 이건 UI 가드일 뿐이다). 로그인 상태가 바뀌면 다시 확인한다.
+  const [canRegister, setCanRegister] = useState(false);
+  const [canManageInvest, setCanManageInvest] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    if (!session) {
+      setCanRegister(false);
+      setCanManageInvest(false);
+      setIsAdminUser(false);
+      return;
+    }
+    canRegisterProperty().then((ok) => {
+      if (mounted) setCanRegister(ok);
+    });
+    canManageInvestment().then((ok) => {
+      if (mounted) setCanManageInvest(ok);
+    });
+    isAdmin().then((ok) => {
+      if (mounted) setIsAdminUser(ok);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [session]);
+
+  useEffect(() => {
+    let mounted = true;
+    if (favoritePropertyIds.length === 0) {
+      setFavoriteProperties([]);
+      return;
+    }
+    getPropertiesByIds(favoritePropertyIds).then((result) => {
+      if (mounted) setFavoriteProperties(result);
+    });
+    return () => {
+      mounted = false;
+    };
+    // favoritePropertyIds는 useMemo 결과라 찜 목록이 바뀔 때만 새 배열이 된다.
+  }, [favoritePropertyIds]);
+
+  // [STEP 06] 관심 투자상품도 실제 investment_products 테이블에서 가져온다.
+  const favoriteInvestmentIds = useMemo(() => {
     const prefix = "investment_product:";
     return Object.keys(favorites)
       .filter((key) => key.startsWith(prefix))
-      .map((key) => findMockInvestmentProduct(key.slice(prefix.length)))
-      .filter((product): product is MockInvestmentProduct => !!product);
+      .map((key) => key.slice(prefix.length));
   }, [favorites]);
+
+  const [favoriteInvestments, setFavoriteInvestments] = useState<MockInvestmentProduct[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    if (favoriteInvestmentIds.length === 0) {
+      setFavoriteInvestments([]);
+      return;
+    }
+    getInvestmentProductsByIds(favoriteInvestmentIds).then((result) => {
+      if (mounted) setFavoriteInvestments(result);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [favoriteInvestmentIds]);
 
   function showComingSoon() {
     setToast(t("common.comingSoon"));
@@ -249,6 +310,43 @@ export default function MyScreen() {
             />
           </Card>
         </View>
+
+        {/* [STEP 04] 매물 등록 — admin 계열 계정에만 노출되는 운영 진입점. */}
+        {canRegister || canManageInvest || isAdminUser ? (
+          <View style={styles.section}>
+            <SectionHeader title={t("my.adminTitle")} />
+            <Card style={styles.rowsCard}>
+              {canRegister ? (
+                <SettingsRow
+                  icon="add-circle-outline"
+                  label={t("my.registerProperty")}
+                  onPress={() => router.push("/property-register")}
+                  theme={theme}
+                  last={!canManageInvest}
+                />
+              ) : null}
+              {canManageInvest ? (
+                <SettingsRow
+                  icon="trending-up-outline"
+                  label={t("my.registerInvestment")}
+                  onPress={() => router.push("/invest-register")}
+                  theme={theme}
+                  last={!isAdminUser}
+                />
+              ) : null}
+              {/* 계정 권한 관리는 admin 전용 — 다른 계정에 기능 권한을 켜고 끈다. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="key-outline"
+                  label={t("my.managePermissions")}
+                  onPress={() => router.push("/admin-permissions")}
+                  theme={theme}
+                  last
+                />
+              ) : null}
+            </Card>
+          </View>
+        ) : null}
 
         <View style={styles.section}>
           <SectionHeader title={t("my.favoritesTitle")} />

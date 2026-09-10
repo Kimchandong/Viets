@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { Session } from "@supabase/supabase-js";
 import {
+  ActivityIndicator,
   Dimensions,
   Image,
   NativeScrollEvent,
@@ -22,18 +23,21 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { LoginPromptModal } from "@/components/LoginPromptModal";
 import { PropertyCard } from "@/components/PropertyCard";
+import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles, ThemeColors, typography } from "@/constants/theme";
 import {
-  findMockProperty,
   findSimilarPropertiesByArea,
   findSimilarPropertiesByPrice,
   findSimilarPropertiesByRooms,
   translateOption,
+  type MockProperty,
 } from "@/constants/mockData";
 import { localizedText, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
+import { getPropertyById } from "@/services/properties";
+import { canRegisterProperty } from "@/services/roles";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 
 // [FULL-DEV] Property 상세 화면 — app/(tabs)/property.tsx(리스트/카드)와 app/(tabs)/home.tsx
@@ -54,20 +58,55 @@ export default function PropertyDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const property = useMemo(() => (id ? findMockProperty(id) : undefined), [id]);
+  // [STEP 04] Mock(findMockProperty) → 실제 Supabase properties 연동.
+  const [property, setProperty] = useState<MockProperty | undefined>(undefined);
+  const [propertyLoading, setPropertyLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    setPropertyLoading(true);
+    if (!id) {
+      setProperty(undefined);
+      setPropertyLoading(false);
+      return;
+    }
+    getPropertyById(id).then((result) => {
+      if (mounted) {
+        setProperty(result);
+        setPropertyLoading(false);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
   // [STEP: 2026-09-09-8] 사용자 요청 — "연계 투자상품" 섹션 삭제, 대신 현재 매물과
   // 면적/방수/가격이 비슷한 다른 매물을 AI가 골라준 것처럼 3개 탭으로 보여준다.
   // mock 데이터가 11건뿐이라 조건에 맞는 매물이 없을 수 있는데, 이때 억지로
   // 결과를 만들지 않고 EmptyState를 그대로 노출한다(앱 전반의 "AI 정직성" 원칙).
+  // [STEP 04] 실제 DB 매물(isMock:false)은 비교 대상이 mock 11건뿐인 findSimilar*
+  // 결과가 실제로는 무관한 매물이라(같은 데이터셋이 아님) "AI 정직성" 원칙상
+  // 노출하지 않는다 — mock 매물(isMock:true)일 때만 기존 동작을 유지한다.
   const [aiTab, setAiTab] = useState<"area" | "rooms" | "price">("area");
-  const similarByArea = useMemo(() => (property ? findSimilarPropertiesByArea(property) : []), [property]);
-  const similarByRooms = useMemo(() => (property ? findSimilarPropertiesByRooms(property) : []), [property]);
-  const similarByPrice = useMemo(() => (property ? findSimilarPropertiesByPrice(property) : []), [property]);
+  const similarByArea = useMemo(
+    () => (property?.isMock ? findSimilarPropertiesByArea(property) : []),
+    [property],
+  );
+  const similarByRooms = useMemo(
+    () => (property?.isMock ? findSimilarPropertiesByRooms(property) : []),
+    [property],
+  );
+  const similarByPrice = useMemo(
+    () => (property?.isMock ? findSimilarPropertiesByPrice(property) : []),
+    [property],
+  );
   const aiTabResults =
     aiTab === "area" ? similarByArea : aiTab === "rooms" ? similarByRooms : similarByPrice;
 
   const [session, setSession] = useState<Session | null>(null);
+  // [STEP 04-수정] 매물 수정 진입점 노출 여부 — admin 또는 property_manage 권한 보유자.
+  const [canEdit, setCanEdit] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   // [STEP: 2026-09-09] 사용자 요청 — "문의하기"를 비로그인 상태에서 누르면
   // 전체 화면 전환 대신 팝업으로 Google/Apple 로그인을 바로 띄운다.
@@ -93,6 +132,10 @@ export default function PropertyDetailScreen() {
 
     const { unsubscribe } = onAuthStateChange((_event, nextSession) => {
       if (mounted) setSession(nextSession);
+    });
+
+    canRegisterProperty().then((ok) => {
+      if (mounted) setCanEdit(ok);
     });
 
     return () => {
@@ -131,6 +174,17 @@ export default function PropertyDetailScreen() {
     setGalleryIndex(index);
   }
 
+  if (propertyLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+        <Header title="" leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <View style={styles.loadingBox}>
+          <ActivityIndicator color={theme.accent} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!property) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
@@ -149,14 +203,28 @@ export default function PropertyDetailScreen() {
         title={property.title}
         leftAction={<BackButton onPress={() => router.back()} theme={theme} />}
         rightAction={
-          <Pressable
-            onPress={handleShare}
-            accessibilityRole="button"
-            accessibilityLabel={t("common.share")}
-            style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-          >
-            <Ionicons name="share-outline" size={22} color={theme.text} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            {/* [STEP 04-수정] 매물 관리 권한이 있는 계정에만 수정 진입점을 노출한다
+                (실제 차단은 properties RLS가 서버에서 수행). */}
+            {canEdit ? (
+              <Pressable
+                onPress={() => router.push({ pathname: "/property-register", params: { id: property.id } })}
+                accessibilityRole="button"
+                accessibilityLabel={t("propertyRegister.editTitle")}
+                style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
+              >
+                <Ionicons name="create-outline" size={22} color={theme.text} />
+              </Pressable>
+            ) : null}
+            <Pressable
+              onPress={handleShare}
+              accessibilityRole="button"
+              accessibilityLabel={t("common.share")}
+              style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
+            >
+              <Ionicons name="share-outline" size={22} color={theme.text} />
+            </Pressable>
+          </View>
         }
       />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -269,6 +337,24 @@ export default function PropertyDetailScreen() {
               {localizedText(property.description, i18n.language)}
             </Text>
           </View>
+
+          {/* [STEP 04-지도] 매물 위치 지도. 좌표(latitude/longitude)가 없는 매물은
+              지도에 찍을 수 없으므로 섹션 자체를 노출하지 않는다(빈 지도나 임의
+              좌표를 보여주지 않는다). 웹에서는 components/PropertyMap.tsx가 대신
+              렌더되어 안내 문구만 표시된다. */}
+          {property.latitude !== undefined && property.longitude !== undefined ? (
+            <View style={styles.section}>
+              <SectionHeader title={t("propertyDetail.locationTitle")} />
+              <PropertyMap
+                properties={[property]}
+                onSelectProperty={() => {}}
+                theme={theme}
+                emptyLabel={t("property.mapNoCoords")}
+                missingCoordsLabel={(count: number) => t("property.mapMissingCoords", { count })}
+                height={200}
+              />
+            </View>
+          ) : null}
 
           <View style={styles.section}>
             <SectionHeader title={t("propertyDetail.optionsTitle")} />
@@ -404,6 +490,11 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.xxl,
   },
+  loadingBox: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   gallery: {
     height: 260,
   },
@@ -434,6 +525,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
   favoriteButton: {
     width: 40,

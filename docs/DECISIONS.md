@@ -1,7 +1,7 @@
 # DECISIONS.md — 미결정 항목 분석
 
-버전: v0.5 · 작성일: 2026-08-26 · 최종수정: 2026-09-01
-7개 설계 문서(ARCHITECTURE/DATABASE/API/SECURITY/I18N/AI_RESEARCH/QA)의 "미결정 항목"을 전수 취합, 중복 항목은 통합했다. STEP 03 Pre-Audit에서 사용자의 내부개발회의 기획 스토리보드(PPTX)를 검토해 D28~D36을 추가했다. STEP 4-1B/4-1C(Database Foundation Pre-Audit)에서 발견된 신규 gap을 D37~D38로 추가했다. VIETS MASTER ARCHITECTURE 추가요구사항(2026-09-01, Agency Permission/Investor Customer Model/Investment Notification/Admin Push)을 검토해 D39~D48을 추가했다. 사용자의 "FINAL IMMUTABLE RULE — ORIGINAL PROPERTY DATA" 지시(2026-09-09)를 반영해 D49를 추가했다. 총 49개 항목.
+버전: v0.7 · 작성일: 2026-08-26 · 최종수정: 2026-09-10 (D10 범위 확정 / D47 확정, D50·D51 편입)
+7개 설계 문서(ARCHITECTURE/DATABASE/API/SECURITY/I18N/AI_RESEARCH/QA)의 "미결정 항목"을 전수 취합, 중복 항목은 통합했다. STEP 03 Pre-Audit에서 사용자의 내부개발회의 기획 스토리보드(PPTX)를 검토해 D28~D36을 추가했다. STEP 4-1B/4-1C(Database Foundation Pre-Audit)에서 발견된 신규 gap을 D37~D38로 추가했다. VIETS MASTER ARCHITECTURE 추가요구사항(2026-09-01, Agency Permission/Investor Customer Model/Investment Notification/Admin Push)을 검토해 D39~D48을 추가했다. 사용자의 "FINAL IMMUTABLE RULE — ORIGINAL PROPERTY DATA" 지시(2026-09-09)를 반영해 D49를 추가했다. 같은 날 MASTER_PROJECT_AUDIT(전체 프로젝트 종합 감사)에서 발견한 신규 리스크를 D50~D51로 추가했다. **2026-09-10 사용자 결정으로 D10(범위)과 D47이 확정되어 Investment 도메인 구현에 착수했다.** 총 51개 항목.
 
 ## 변경 이력
 
@@ -20,6 +20,9 @@
 | 2026-09-01 | D39~D45 | 신규 등록 및 **ACCEPTED** — VIETS MASTER ARCHITECTURE 추가요구사항(Agency Permission/Investor Model/Investment Notification/Admin Push/Chat)의 구조적 설계 결정. 상세는 본 문서 최하단 "VIETS MASTER ARCHITECTURE — 추가요구사항 반영" 섹션 참조 | DATABASE.md §7/§12/§13, ARCHITECTURE.md §7, DEVELOPMENT_MASTER_CHECKLIST.md(신규) |
 | 2026-09-01 | D46~D48 | 신규 등록(PENDING) — Agency 온보딩 플로우/Investor 전환 조건/TTS-Voice 확장은 사업 결정 필요, 구조만 준비 | DEVELOPMENT_MASTER_CHECKLIST.md(신규) |
 | 2026-09-09 | D49 | 신규 등록 및 **ACCEPTED** — 매물명(Property Name)/매물 주소(Property Address)는 언어 변경과 무관하게 자동번역 금지(원본 값 그대로 유지)하는 불변 규칙 확정. D17(properties 자동 번역 적용)의 범위를 이름/주소와 설명/옵션으로 분리 — 이름/주소는 이번 건으로 확정, 설명/옵션은 계속 PENDING | I18N.md §3.2/§3.4, DEVELOPMENT_MASTER_CHECKLIST.md |
+| 2026-09-09 | D50~D51 | 신규 등록 및 **ACCEPTED**(방향만 — 실행은 사용자 승인 필요) — MASTER_PROJECT_AUDIT에서 발견된 Git 백업 부재(D50)와 Chat DB의 migration 외부 생성(D51)을 프로젝트 최우선 리스크로 공식 등록. **2026-09-10 갱신: D50은 STEP 00 실행으로 해소됨**(로컬 커밋 + `github.com/Kimchandong/Viets` 원격 연결 완료) | MASTER_PROJECT_AUDIT.md, DEVELOPMENT_STORYBOARD.md STEP 00/STEP 07 |
+| 2026-09-10 | D10 | **범위 부분 PENDING → ACCEPTED** — 1차 범위를 "투자 의향 접수만"(금액·연락처 저장, 실제 결제/정산 없음)으로 확정. PG 사업자 선정·정산 구조는 2차 작업으로 분리(PENDING 유지). 이 결정에 따라 `investment_transactions`/`investment_holdings`/`dividends` 3개 테이블을 이번 migration에서 제외했고, `investment_orders`는 Edge Function(Server-Only) 대신 클라이언트가 `status='pending'` 행만 직접 생성하도록 구현했다 | DATABASE.md §3, `supabase/migrations/20260910070155_investment_domain.sql`, DEVELOPMENT_STORYBOARD.md STEP 05/06 |
+| 2026-09-10 | D47 | **PENDING → ACCEPTED** — "첫 투자 신청 시 investors 자동 생성"(심사 없음, 위 (b)안). `investment_orders` AFTER INSERT 트리거 `ensure_investor_on_order()`(SECURITY DEFINER)로 구현. investors 테이블에는 클라이언트 INSERT 정책을 두지 않아 이 트리거로만 행이 생성된다 | DATABASE.md §1(investors), `supabase/migrations/20260910070155_investment_domain.sql` |
 
 D1~D27 중 D5, D24를 제외한 나머지는 2026-08-26 시점 결정에서 변경되지 않았다(사용자 지시 4, 당시 기준). 2026-08-27 STEP 4-1D에서 D9/D6/D8/D4(차원 부분)이 추가로 ACCEPTED되었고, 신규 항목 D37/D38이 등록과 동시에 ACCEPTED되었다. 2026-09-01 VIETS MASTER ARCHITECTURE 추가요구사항 검토에서 D39~D45가 등록과 동시에 ACCEPTED, D46~D48은 PENDING으로 등록되었다. D2(Admin 프레임워크), D4 Provider 부분(LLM/Embedding Provider 계약), D10(결제 PG)은 여전히 해당 Phase 착수 전까지 보류 상태를 유지한다(사용자 지시 5).
 
@@ -38,7 +41,7 @@ D1~D27 중 D5, D24를 제외한 나머지는 2026-08-26 시점 결정에서 변�
 | D7 | investment_terms 구조화 수준 | ⚪ | 우선 jsonb |
 | D8 | user_devices vs push_tokens 중복 | ✅ ACCEPTED | 통합(push_tokens 제거) — 확정 |
 | D9 | investment_holdings 재계산 방식 | ✅ ACCEPTED | Edge Function 트랜잭션(PRIMARY), DB 트리거는 SECONDARY — 확정 |
-| D10 | 결제(PG) 연동 방식 | ⚪(사업결정) | 추천 불가 — 사용자/사업팀 결정 필요 |
+| D10 | 결제(PG) 연동 방식 | 범위: ✅ ACCEPTED(2026-09-10) / PG 선정: ⚪(사업결정) | **1차 = "투자 의향 접수만"**(금액·연락처 저장, 결제 없음) 확정. 실제 PG·정산은 2차로 분리 |
 | D11 | ai-property-search 익명 허용 | ⚪ | 허용 + 낮은 quota |
 | D12 | Rate limit 저장소 | ⚪ | 우선 Postgres |
 | D13 | Secret 보관/로테이션 절차 | ⚪ | Supabase Secrets |
@@ -75,9 +78,11 @@ D1~D27 중 D5, D24를 제외한 나머지는 2026-08-26 시점 결정에서 변�
 | D44 | Property 1:1 상담(Chat) 최초 스키마 | ✅ ACCEPTED | property_conversations/property_messages 신규 도입, chat 권한은 agency_permissions로 게이팅 |
 | D45 | notification_preferences NULL 중복 방지 | ✅ ACCEPTED | partial unique index 2개(product_id IS NULL / NOT NULL)로 구현 예정(설계 노트) |
 | D46 | Agency 가입/온보딩 플로우 | ⚪(사업결정) | 추천 불가 — Admin 대행등록 vs 자체가입 신청, 사업 프로세스 결정 필요 |
-| D47 | Investor 전환 조건 | ⚪(사업결정) | 추천 불가 — KYC 통과 시점/최초 투자신청 시점/별도 신청 플로우 중 결정 필요 |
+| D47 | Investor 전환 조건 | ✅ ACCEPTED(2026-09-10) | **첫 투자 신청 시 자동 생성**(심사 없음) — investment_orders INSERT 트리거로 구현 완료 |
 | D48 | TTS/Voice Push 확장 범위 | ⚪ | 지금 스키마 변경 없음 — notification_channel enum에 향후 'voice' 추가 여지만 남김 |
 | D49 | Property Name/Address 자동번역 금지(불변 규칙) | ✅ ACCEPTED | 매물명/주소는 언어 변경과 무관하게 원본 값 그대로 — 언어별 사본 컬럼(property_name_ko 등) 생성 금지 |
+| D50 | Git 저장소 백업 부재 — 최우선 리스크 | ✅ ACCEPTED · **2026-09-10 해소 완료** | 로컬 커밋 + 원격 저장소(`github.com/Kimchandong/Viets`) 연결/push 완료 |
+| D51 | Chat DB를 migration으로 편입 | ✅ ACCEPTED(방향) | SQL Editor 1회 실행분을 정식 migration으로 전환 — STORYBOARD STEP 07에서 실행 예정 |
 
 ---
 
@@ -176,11 +181,23 @@ D1~D27 중 D5, D24를 제외한 나머지는 2026-08-26 시점 결정에서 변�
 
 ### D10. create-investment-order 결제(PG) 연동 방식
 - **영향 파일**: API.md(2번, 7-1), DATABASE.md(investment_orders/transactions 상태값)
-- **지금 결정 필요**: 아니오(지금 당장 블로킹 아님), 그러나 Phase 5 착수 전까지는 반드시 필요
-- **나중 결정 가능**: Phase 5 전까지
-- **미결정 시 문제**: 이게 없으면 실제 투자 주문 기능 자체를 구현할 수 없음(전체 투자 도메인의 전제조건)
-- **추천안**: 제공 불가 — 베트남 현지 결제/외환 규제, 실명확인(KYC), 계좌이체 방식은 법적·사업적 결정이라 추측하지 않음(원칙 1)
-- **추천 근거**: 해외송금·현지 PG 연동은 국가별 금융 라이선스/규제가 걸려 있어 기술적 판단만으로 정할 수 없는 영역
+- **상태**: **범위 = ✅ ACCEPTED (2026-09-10)** / **PG 사업자 선정 = ⚪ PENDING(사업 결정)**
+- **2026-09-10 확정 내용(사용자 결정)**: 1차 구현 범위를 **"투자 의향 접수만"**으로 확정한다 — 신청 금액과 연락처를
+  저장하되 실제 결제·정산·자금이동은 하지 않는다(스토리보드 슬라이드 31의 "실제 자금이동은 2차 이후" 방향과 일치).
+- **이 결정이 구현에 미친 영향(STEP 05, 2026-09-10 실행)**:
+  1. DATABASE.md §3의 `investment_transactions` / `investment_holdings` / `dividends` 3개 테이블을 **생성하지 않았다** —
+     결제가 없으면 행이 생길 수 없는 테이블이라, 빈 스키마를 미리 만들어 두지 않는다.
+  2. `investment_orders`의 write 경로를 원안(Edge Function Server-Only, 원칙 13)이 아니라 **클라이언트 직접 INSERT**로
+     구현했다. 금전 이동이 없어 원칙 13이 방지하려는 "잔액을 단순 UPDATE로 조작" 위험 자체가 없기 때문이다. 대신
+     RLS로 "본인 명의 + status='pending'"만 허용해 사용자가 자기 신청을 승인 상태로 만들 수 없게 막았고, 상태
+     전이(승인/취소)는 admin만 가능하다.
+  3. 신청 폼의 배당금 수령 계좌(은행/계좌번호/예금주)는 **DB에 컬럼 자체를 두지 않았다** — 금융 정보를 결제 구조가
+     확정되기 전에 저장하지 않는다는 판단. 화면에서는 입력받되 담당자가 접수 후 별도 절차로 확인하는 것을 전제한다.
+- **2차(결제 도입) 시 되돌려야 할 것**: 위 3개 테이블 생성, `investment_orders`를 `create-investment-order`
+  Edge Function 경유(Server-Only write)로 전환, `raised_amount` 자동 집계 트리거 추가(현재는 관리자 입력값),
+  D38(거래시점 FX 컬럼) 재검토.
+- **여전히 PENDING인 부분**: 실제 PG 사업자/정산 방식 — 베트남 현지 결제·외환 규제, 실명확인(KYC), 계좌이체 방식은
+  법적·사업적 결정이라 추측하지 않는다(원칙 1). 국가별 금융 라이선스가 걸린 영역이라 기술 판단만으로 정할 수 없다.
 - **결정 후 변경 파일**: API.md(결제 단계 상세), DATABASE.md(investment_orders에 결제 참조 필드), SECURITY.md(PG 관련 키 관리)
 
 ### D11~D27
@@ -273,13 +290,17 @@ D36(MVP 출시 범위)은 사용자 자료(스토리보드)에 이미 정리된 
 - **추천안**: 제공 불가 — 순수 사업 프로세스 결정
 - **결정 필요 시점**: Agency/Permission 기능 UI 개발(체크리스트 개발순서 5번 단계) 착수 전
 
-### D47. Investor 전환 조건 (PENDING — 사업 결정 필요)
+### D47. Investor 전환 조건
 - **출처**: VIETS MASTER ARCHITECTURE §2 파생
-- **상태**: ⚪ PENDING
-- **미결정 내용**: 사용자가 언제 `investors` row를 갖게 되는가 — (a) KYC 통과 시점 자동 전환, (b) 최초 투자상품 신청(주문) 시점 자동 생성, (c) 별도의 명시적 "투자자 등록" 신청/약관동의 플로우. D10(결제 PG)/D29(법적 사업모델)와도 연동되는 문제라 그 결정들과 함께 확정하는 편이 안전.
-- **영향 파일**: DEVELOPMENT_MASTER_CHECKLIST.md, DATABASE.md §1(investors)
-- **추천안**: 제공 불가 — 법적/사업적 결정(KYC 요구 수준과 직결)
-- **결정 필요 시점**: Investor 기능 개발(체크리스트 개발순서 3번 단계) 착수 전
+- **상태**: ✅ **ACCEPTED (2026-09-10)**
+- **확정 내용(사용자 결정)**: **(b) 최초 투자 신청 시점에 자동 생성** — 심사/승인 단계를 두지 않는다. 같은 날 확정된
+  D10(투자 의향 접수만, 결제 없음)과 정합적이다 — 실제 자금이동이 없는 단계에서 KYC 심사를 요구할 근거가 없기 때문.
+- **구현(STEP 05, `20260910070155_investment_domain.sql`)**: `investment_orders`에 AFTER INSERT 트리거
+  `ensure_investor_on_order()`(SECURITY DEFINER, `on conflict (user_id) do nothing`)를 걸어 첫 신청 시 `investors`
+  행을 만든다. `investors`에는 클라이언트 INSERT 정책을 두지 않아 **이 트리거를 통해서만** 행이 생성된다(사용자가
+  임의로 투자자 자격을 만들 수 없다). 두 번째 신청부터는 UNIQUE(user_id)로 중복 생성되지 않는다 — 로컬 검증 완료.
+- **향후 KYC 도입 시**: `investors.status`(현재 text, 항상 'active')를 enum화하고 이 트리거의 생성 조건을 재검토한다.
+- **영향 파일**: DEVELOPMENT_MASTER_CHECKLIST.md, DATABASE.md §1(investors), `supabase/migrations/20260910070155_investment_domain.sql`
 
 ### D48. TTS/Voice Push 확장 범위 (PENDING — 우선순위 낮음)
 - **출처**: VIETS MASTER ARCHITECTURE §8 파생("향후 Voice/TTS 확장")
@@ -300,3 +321,23 @@ D36(MVP 출시 범위)은 사용자 자료(스토리보드)에 이미 정리된 
 - **영향 파일**: I18N.md §3.2(properties 표 갱신)/§3.4(신규 하위 섹션), DATABASE.md(향후 `properties` 테이블 설계 시 name/address 컬럼에 언어별 사본 컬럼을 두지 않는다는 스키마 주석으로 명시 — 테이블 자체는 아직 미생성, DEVELOPMENT_MASTER_CHECKLIST.md STEP 1 실행 결과 참조), DEVELOPMENT_MASTER_CHECKLIST.md, QA.md(향후 체크리스트 항목 추가 시)
 - **지금 결정 필요**: 아니오(문서화 + 현재 코드베이스 정합성 확인만) — `properties` 테이블 자체가 이 저장소의 어떤 migration에도 아직 존재하지 않는다(DEVELOPMENT_MASTER_CHECKLIST.md "STEP 1 실행 결과" 참조, 현재는 `constants/mockData.ts` Mock 데이터). 다만 현재 Mock 구현이 이미 이 규칙과 충돌하지 않는지 코드베이스를 확인했다: `components/PropertyCard.tsx`/`app/property-detail/[id].tsx`의 `property.title`/`property.location` 렌더링은 어디에서도 `t()`로 감싸지 않고 원본 문자열을 그대로 출력한다(i18n 번역 파이프라인을 아예 거치지 않음) — 확인 완료, 위반 없음.
 - **추천 근거**: 실거래 정보(매물명/주소)는 자동번역 시 법적·거래 신뢰성 리스크가 크다는 점이 I18N.md §3.2에 이미 "실거래 정보라 오역 리스크 존재(신중 검토 필요)"로 명시돼 있었다 — 이번 사용자 지시로 그 미결정 항목(D17) 중 "이름/주소"에 한해 확정하고, 그 외 콘텐츠(설명/옵션 등)의 번역 정책은 계속 PENDING으로 남긴다.
+
+---
+
+## MASTER_PROJECT_AUDIT — 신규 리스크 등록 (2026-09-09)
+
+### D50. Git 저장소 백업 부재 — 최우선 리스크
+- **출처**: MASTER_PROJECT_AUDIT.md §6.1 — 전체 코드베이스 감사에서 `git log`/`git status`/`git remote -v`를 직접 실행해 확인
+- **상태**: ✅ **ACCEPTED**(방향) · **2026-09-10 해소 완료**
+- **당시 확인된 사실**: 커밋 1개(`70489fb` 스캐폴드)뿐이고 원격 저장소 없음, `git status --short` 86줄. 미추적 파일에 `services/auth.ts`, `services/chat.ts`, `app/login.tsx`, `app/property-detail/`, `app/invest-detail/`, `app/invest-apply/`, `app/property-chat/`, `store/`, `supabase/migrations/` 등 애플리케이션 코드 사실상 전부가 포함되어 있었다(PC 손상 시 전체 소실).
+- **왜 반복 지적에도 남아 있었는가**: STEP 4-13-14(2026-08-31)와 STEP 4-14(2026-09-09)에서 각각 "P1"으로 지적됐으나 두 STEP 모두 "사용자 승인 필요, 범위 밖"으로 제외 — 세 번째 재발견에서야 STEP 00으로 공식 등록됐다.
+- **2026-09-10 실행 결과**: 로컬 커밋 2개(`70489fb`, `78c9968` — 104개 파일 추가) + `.gitignore`에 스크래치 파일 제외 반영 + 원격 저장소 `https://github.com/Kimchandong/Viets.git` 생성 및 `git push -u origin master` 성공. `git status` 클린. **단일 장애점 리스크 해소.**
+- **영향 파일**: DEVELOPMENT_STORYBOARD.md STEP 00, DEVELOPMENT_MASTER_CHECKLIST.md PART E-1
+
+### D51. Chat DB(property_conversations/property_messages) — migration 외부 생성 확인 및 편입 방향
+- **출처**: MASTER_PROJECT_AUDIT.md §6.2/§2-F — `services/chat.ts` 주석: "필요한 Supabase 테이블/정책/버킷(SQL Editor·Storage에서 1회 실행)"
+- **상태**: ✅ **ACCEPTED**(방향) — 실행은 STEP 07 예정(2026-09-10 기준 미실행)
+- **확인된 사실**: Chat 기능(D44)은 완성되어 동작 중이지만(STEP 4-15), 그 스키마(`property_conversations`/`property_messages`, `chat-images` 버킷)는 `supabase/migrations/`의 어떤 파일에도 없다 — Dashboard SQL Editor에서 1회성으로 실행됐다. "DB 변경은 반드시 migration SQL로 관리한다"(원칙 8)에서 벗어난 유일하게 확인된 사례다.
+- **결정 내용**: 이미 반영된 실제 스키마를 그대로 옮겨적는 형태로 정식 migration 파일을 작성해 편입한다(새로 만드는 것이 아니라 이미 있는 것을 기록으로 남기는 작업). STEP 07(Agency broker 배정 로직 추가와 함께 진행)로 배치 — 그 시점에 스키마도 확장(broker_id 등)해야 하므로 묶는 편이 효율적이다.
+- **참고(2026-09-10)**: 같은 부류의 GRANT 누락 사고가 Property Domain에서 재발했다(STEP 02c) — 이번 편입 작업 시 GRANT 문이 함께 들어가는지 반드시 확인할 것.
+- **영향 파일**: DEVELOPMENT_STORYBOARD.md STEP 07, DEVELOPMENT_MASTER_CHECKLIST.md PART E-2

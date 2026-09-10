@@ -39,3 +39,8 @@ eslint-effective-config.json
 Viets*.zip
 작업파일/
 supabase/.temp/
+
+# [2026-09-10] Cowork 세션에서 전달받은 파일 사본이 쌓이는 폴더 — 실제 코드는 이미
+# 프로젝트의 정상 경로(app/, services/, supabase/migrations/ 등)에 반영되어 있어
+# 중복이다.
+Claude outputs/

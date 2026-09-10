@@ -63,7 +63,9 @@
       "priceHigh": "Giá cao đến thấp",
       "areaLarge": "Diện tích lớn nhất"
     },
-    "categoryLabel": "Danh mục"
+    "categoryLabel": "Danh mục",
+    "mapNoCoords": "Không có vị trí bất động sản nào để hiển thị trên bản đồ.",
+    "mapMissingCoords": "{{count}} bất động sản không có dữ liệu vị trí nên không hiển thị trên bản đồ."
   },
   "propertyDetail": {
     "descriptionTitle": "Mô tả chi tiết",
@@ -82,7 +84,8 @@
     "tabRooms": "Số phòng",
     "tabPrice": "Giá",
     "expectedYieldLabel1": "AI Lợi nhuận dự kiến",
-    "expectedYieldLabel2": "Tỷ suất lợi nhuận dự kiến AI chỉ áp dụng cho bất động sản bán.\n(Chỉ mang tính tham khảo đầu tư)"
+    "expectedYieldLabel2": "Tỷ suất lợi nhuận dự kiến AI chỉ áp dụng cho bất động sản bán.\n(Chỉ mang tính tham khảo đầu tư)",
+    "locationTitle": "Vị trí"
   },
   "invest": {
     "title": "Đầu tư",
@@ -188,7 +191,8 @@
       "bankNameRequired": "Vui lòng nhập tên ngân hàng",
       "accountNumberRequired": "Vui lòng nhập số tài khoản",
       "accountHolderRequired": "Vui lòng nhập tên chủ tài khoản",
-      "agreementsRequired": "Vui lòng đồng ý các điều khoản bắt buộc"
+      "agreementsRequired": "Vui lòng đồng ý các điều khoản bắt buộc",
+      "submitFailed": "Không thể lưu đơn đăng ký. Vui lòng thử lại."
     },
     "submitButton": "Gửi đăng ký",
     "successTitle": "Đã gửi đăng ký đầu tư",
@@ -196,7 +200,8 @@
     "goToProduct": "Quay lại chi tiết sản phẩm",
     "goToInvestList": "Đến danh sách đầu tư",
     "confirmBeforeApplyTitle": "Lưu ý quan trọng trước khi đăng ký đầu tư",
-    "confirmBeforeApplyBody": "Sản phẩm này là sản phẩm đầu tư vào bất động sản và các tài sản liên quan, có thể mất một phần hoặc toàn bộ vốn gốc đầu tư, và lợi nhuận đầu tư không được đảm bảo.\nVui lòng chắc chắn xác nhận các nội dung dưới đây trước khi đầu tư.\n* Hãy cân nhắc kỹ mục đích đầu tư và thời gian đầu tư của bản thân.\n* Hãy kiểm tra xem số tiền đầu tư có phù hợp với tình hình tài chính của bạn hay không.\n* Không sử dụng tiền sinh hoạt phí, quỹ khẩn cấp, tiền trả nợ vay... để đầu tư.\n* Tùy theo tình hình thị trường bất động sản và sản phẩm đầu tư, lợi nhuận thực tế có thể thấp hơn dự kiến hoặc có thể phát sinh thua lỗ.\n* Việc thu hồi hoặc chuyển nhượng khoản đầu tư có thể mất một khoảng thời gian nhất định và có thể không được chuyển đổi thành tiền mặt ngay khi bạn muốn.\n* Tỷ suất lợi nhuận đầu tư và cổ tức dự kiến không có nghĩa là lợi nhuận đã được xác định.\n* Trước khi đầu tư, vui lòng kiểm tra kỹ cấu trúc đầu tư, bất động sản mục tiêu, lợi nhuận dự kiến, các yếu tố rủi ro, phí và các thông tin liên quan khác của sản phẩm.\nViệc đầu tư được thực hiện theo phán đoán và trách nhiệm của chính bạn.\nVui lòng tiến hành đăng ký đầu tư sau khi đã hiểu rõ và cân nhắc thận trọng."
+    "confirmBeforeApplyBody": "Sản phẩm này là sản phẩm đầu tư vào bất động sản và các tài sản liên quan, có thể mất một phần hoặc toàn bộ vốn gốc đầu tư, và lợi nhuận đầu tư không được đảm bảo.\nVui lòng chắc chắn xác nhận các nội dung dưới đây trước khi đầu tư.\n* Hãy cân nhắc kỹ mục đích đầu tư và thời gian đầu tư của bản thân.\n* Hãy kiểm tra xem số tiền đầu tư có phù hợp với tình hình tài chính của bạn hay không.\n* Không sử dụng tiền sinh hoạt phí, quỹ khẩn cấp, tiền trả nợ vay... để đầu tư.\n* Tùy theo tình hình thị trường bất động sản và sản phẩm đầu tư, lợi nhuận thực tế có thể thấp hơn dự kiến hoặc có thể phát sinh thua lỗ.\n* Việc thu hồi hoặc chuyển nhượng khoản đầu tư có thể mất một khoảng thời gian nhất định và có thể không được chuyển đổi thành tiền mặt ngay khi bạn muốn.\n* Tỷ suất lợi nhuận đầu tư và cổ tức dự kiến không có nghĩa là lợi nhuận đã được xác định.\n* Trước khi đầu tư, vui lòng kiểm tra kỹ cấu trúc đầu tư, bất động sản mục tiêu, lợi nhuận dự kiến, các yếu tố rủi ro, phí và các thông tin liên quan khác của sản phẩm.\nViệc đầu tư được thực hiện theo phán đoán và trách nhiệm của chính bạn.\nVui lòng tiến hành đăng ký đầu tư sau khi đã hiểu rõ và cân nhắc thận trọng.",
+    "submitting": "Đang gửi..."
   },
   "chat": {
     "headerTitle": "Tư vấn bất động sản",
@@ -262,7 +267,11 @@
     "currency": {
       "vnd": "Đồng Việt Nam (VND)",
       "usd": "Đô la Mỹ (USD)"
-    }
+    },
+    "adminTitle": "Quản trị",
+    "registerProperty": "Đăng bất động sản",
+    "registerInvestment": "Đăng sản phẩm đầu tư",
+    "managePermissions": "Quyền tài khoản"
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
@@ -317,6 +326,149 @@
       "industrial": "Nhà xưởng",
       "warehouse": "Kho",
       "other": "Khác"
+    }
+  },
+  "propertyRegister": {
+    "title": "Đăng bất động sản",
+    "basicSection": "Thông tin cơ bản",
+    "titleLabel": "Tên bất động sản",
+    "titlePlaceholder": "VD: Vinhomes Grand Park S1.01",
+    "descriptionLabel": "Mô tả chi tiết",
+    "descriptionPlaceholder": "Nhập mô tả bất động sản",
+    "categorySection": "Loại hình / Hình thức",
+    "priceSection": "Giá · Diện tích",
+    "priceSaleLabel": "Giá bán (VND)",
+    "priceRentLabel": "Giá thuê hàng tháng (VND)",
+    "priceHelper": "Chỉ nhập số (VD: 4200000000 = 4.2 tỷ)",
+    "areaLabel": "Diện tích (m²)",
+    "bedroomsLabel": "Số phòng ngủ",
+    "bathroomsLabel": "Số phòng tắm",
+    "locationSection": "Vị trí",
+    "addressLabel": "Địa chỉ",
+    "addressHelper": "Bao gồm tên thành phố (VD: TP. Hồ Chí Minh) để bộ lọc khu vực hoạt động",
+    "latitudeLabel": "Vĩ độ",
+    "longitudeLabel": "Kinh độ",
+    "optionsSection": "Tiện ích · Hiển thị",
+    "amenitiesLabel": "Tiện ích",
+    "amenitiesHelper": "Phân tách bằng dấu phẩy",
+    "featuredLabel": "Bất động sản nổi bật",
+    "featuredDescription": "Hiển thị trong mục nổi bật ở Trang chủ và Bất động sản",
+    "publishLabel": "Đăng ngay",
+    "publishDescription": "Tắt để lưu nháp riêng tư, không hiển thị trong danh sách",
+    "submit": "Đăng",
+    "submitting": "Đang đăng...",
+    "submitFailed": "Đăng thất bại. Vui lòng kiểm tra quyền và thông tin nhập.",
+    "savedAsDraft": "Đã lưu dưới dạng bản nháp riêng tư",
+    "errorTitleRequired": "Vui lòng nhập tên bất động sản",
+    "errorPriceRequired": "Vui lòng nhập giá hợp lệ",
+    "noPermissionTitle": "Không có quyền",
+    "noPermissionDescription": "Chỉ quản trị viên hoặc văn phòng môi giới có quyền đăng tin mới có thể đăng bất động sản.",
+    "photoNotice": "Nếu không có ảnh, ảnh mặc định theo loại hình sẽ được hiển thị.",
+    "dbCategory": {
+      "apartment": "Căn hộ",
+      "villa": "Biệt thự",
+      "townhouse": "Nhà phố",
+      "land": "Đất",
+      "office": "Văn phòng",
+      "retail": "Mặt bằng bán lẻ",
+      "hotel": "Khách sạn",
+      "industrial": "Nhà xưởng"
+    },
+    "photosSection": "Hình ảnh",
+    "addPhoto": "Thêm ảnh",
+    "removePhoto": "Xóa ảnh",
+    "mainPhoto": "Ảnh chính",
+    "photosHelper": "Ảnh đầu tiên được dùng làm ảnh đại diện (tối đa 10 ảnh).",
+    "photoPermissionDenied": "Cần quyền truy cập thư viện ảnh.",
+    "photoUploadFailed": "Tải ảnh lên thất bại. Vui lòng thử lại.",
+    "photoLinkFailed": "Đã đăng bất động sản nhưng không đính kèm được ảnh.",
+    "editTitle": "Sửa bất động sản",
+    "save": "Lưu",
+    "delete": "Xóa bất động sản",
+    "deleteTitle": "Bạn muốn xử lý tin này thế nào?",
+    "archiveOption": "Ẩn khỏi danh sách",
+    "archiveOptionDescription": "Không còn hiển thị trong danh sách và tìm kiếm, nhưng dữ liệu vẫn được giữ và có thể khôi phục.",
+    "hardDeleteOption": "Xóa vĩnh viễn",
+    "hardDeleteOptionDescription": "Xóa cùng hình ảnh và không thể hoàn tác. Chỉ quản trị viên.",
+    "archived": "Đã ẩn tin khỏi danh sách",
+    "deleted": "Đã xóa vĩnh viễn tin đăng",
+    "deleteFailed": "Xóa thất bại. Vui lòng kiểm tra quyền.",
+    "loadFailed": "Không tải được thông tin bất động sản."
+  },
+  "investRegister": {
+    "title": "Đăng sản phẩm",
+    "editTitle": "Sửa sản phẩm",
+    "basicSection": "Thông tin cơ bản",
+    "titleLabel": "Tên sản phẩm",
+    "descriptionLabel": "Mô tả sản phẩm",
+    "descriptionPlaceholder": "Mô tả cấu trúc sản phẩm và cách phân phối lợi nhuận",
+    "categorySection": "Phân loại",
+    "assetCategoryLabel": "Loại tài sản",
+    "productTypeLabel": "Cấu trúc sản phẩm",
+    "riskLabel": "Mức rủi ro",
+    "amountSection": "Huy động vốn",
+    "targetAmountLabel": "Mục tiêu huy động (VND)",
+    "minimumLabel": "Đầu tư tối thiểu (VND)",
+    "raisedAmountLabel": "Đã huy động (VND)",
+    "amountHelper": "Chỉ nhập số (VD: 15000000000 = 15 tỷ)",
+    "raisedAmountHelper": "Quản trị viên nhập thủ công cho đến khi tích hợp thanh toán",
+    "returnSection": "Lợi nhuận · Kỳ hạn",
+    "expectedReturnLabel": "Lợi nhuận kỳ vọng (%)",
+    "periodLabel": "Kỳ hạn (tháng)",
+    "dividendLabel": "Chu kỳ chia cổ tức",
+    "publishLabel": "Đăng ngay (đang huy động)",
+    "publishDescription": "Tắt để lưu nháp riêng tư, không hiển thị trong danh sách",
+    "submit": "Đăng",
+    "save": "Lưu",
+    "submitting": "Đang lưu...",
+    "submitFailed": "Lưu thất bại. Vui lòng kiểm tra quyền và thông tin nhập.",
+    "savedAsDraft": "Đã lưu dưới dạng bản nháp riêng tư",
+    "delete": "Xóa sản phẩm",
+    "deleteTitle": "Bạn muốn xử lý sản phẩm này thế nào?",
+    "closeOption": "Đóng huy động",
+    "closeOptionDescription": "Không hiển thị trong danh sách nhưng dữ liệu và đơn đăng ký vẫn được giữ.",
+    "hardDeleteOption": "Xóa vĩnh viễn",
+    "hardDeleteOptionDescription": "Không thể hoàn tác. Không thể xóa nếu đã có đơn đăng ký.",
+    "closed": "Đã đóng huy động",
+    "deleted": "Đã xóa vĩnh viễn sản phẩm",
+    "deleteFailed": "Thao tác thất bại. Vui lòng kiểm tra quyền.",
+    "hardDeleteBlocked": "Không thể xóa vì đã có đơn đăng ký. Hãy dùng \"Đóng huy động\".",
+    "loadFailed": "Không tải được thông tin sản phẩm.",
+    "errorTitleRequired": "Vui lòng nhập tên sản phẩm",
+    "errorTargetRequired": "Vui lòng nhập mục tiêu huy động hợp lệ",
+    "errorMinimumRequired": "Vui lòng nhập mức đầu tư tối thiểu hợp lệ",
+    "errorMinimumTooLarge": "Đầu tư tối thiểu không thể lớn hơn mục tiêu huy động",
+    "noPermissionTitle": "Không có quyền",
+    "noPermissionDescription": "Chỉ quản trị viên hoặc tài khoản được cấp quyền mới có thể đăng sản phẩm.",
+    "productType": {
+      "reit_share": "Cổ phần REIT",
+      "co_investment": "Đồng đầu tư",
+      "fund": "Quỹ",
+      "bond_like": "Dạng trái phiếu"
+    }
+  },
+  "adminPermissions": {
+    "title": "Quyền tài khoản",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm theo email hoặc tên",
+    "searchHelper": "Nhập ít nhất 2 ký tự. Hiển thị tối đa 20 kết quả.",
+    "searchTooShort": "Vui lòng nhập ít nhất 2 ký tự",
+    "noResultsTitle": "Không có kết quả",
+    "noResultsDescription": "Hãy thử email hoặc tên khác.",
+    "adminBadge": "Quản trị viên",
+    "adminHasAll": "Tài khoản quản trị viên đã có toàn bộ quyền.",
+    "granted": "Đã cấp quyền",
+    "revoked": "Đã thu hồi quyền",
+    "updateFailed": "Không thể cập nhật quyền.",
+    "noPermissionTitle": "Không có quyền truy cập",
+    "noPermissionDescription": "Chỉ quản trị viên mới có thể quản lý quyền tài khoản.",
+    "permission": {
+      "investment_manage": "Quản lý sản phẩm",
+      "property_manage": "Quản lý bất động sản"
+    },
+    "permissionDescription": {
+      "investment_manage": "Đăng, sửa và đóng sản phẩm đầu tư",
+      "property_manage": "Đăng, sửa và ẩn tin bất động sản"
     }
   }
 }

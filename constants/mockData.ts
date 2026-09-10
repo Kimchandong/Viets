@@ -54,8 +54,16 @@ export type MockProperty = {
   description: Partial<Record<string, string>>;
   /** 매물 옵션/편의시설 — 사용자 지시 §5 "옵션" 항목. */
   options: string[];
+  /** [STEP 04-지도] 지도 마커 좌표 — DB properties.latitude/longitude에서 온다.
+   * 좌표가 입력되지 않은 매물이 있을 수 있어(둘 다 NN이 아님) optional로 둔다 —
+   * 지도 화면은 좌표가 있는 매물만 마커로 표시한다. */
+  latitude?: number;
+  longitude?: number;
   images: (typeof MOCK_PROPERTY_IMAGES)[MockPropertyCategory];
-  isMock: true;
+  /** [STEP 04] 실제 Supabase 매물은 isMock:false — services/properties.ts가 채운다.
+   * 아래 MOCK_PROPERTIES 배열 원소는 전부 isMock:true로 그대로 유지(제거 대상이지만
+   * 아직 삭제하지 않음 — findSimilarProperties* 등 일부 화면이 계속 참조). */
+  isMock: boolean;
 };
 
 function propertyImages(category: MockPropertyCategory) {
@@ -380,7 +388,10 @@ export type MockInvestmentProduct = {
   /** [STEP: 2026-09-09-6] 다국어 상세설명 — 언어코드 → 번역문 맵(utils/format.ts localizedText 참고). */
   description: Partial<Record<string, string>>;
   images: (typeof MOCK_INVEST_IMAGES)[MockInvestmentCategory];
-  isMock: true;
+  /** [STEP 06] 실제 Supabase 투자상품은 isMock:false — services/investments.ts가 채운다.
+   * 아래 MOCK_INVESTMENT_PRODUCTS 배열 원소는 전부 isMock:true로 유지(제거 대상이지만
+   * findSimilarInvestments* 등이 아직 참조). */
+  isMock: boolean;
 };
 
 function investImages(category: MockInvestmentCategory) {

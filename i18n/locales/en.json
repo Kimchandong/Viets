@@ -63,7 +63,9 @@
       "priceHigh": "Price: High to Low",
       "areaLarge": "Area: Large to Small"
     },
-    "categoryLabel": "Category"
+    "categoryLabel": "Category",
+    "mapNoCoords": "No property locations available to show on the map.",
+    "mapMissingCoords": "{{count}} listing(s) without location data are not shown on the map."
   },
   "propertyDetail": {
     "descriptionTitle": "Description",
@@ -82,7 +84,8 @@
     "tabRooms": "Rooms",
     "tabPrice": "Price",
     "expectedYieldLabel1": "AI Expected Return",
-    "expectedYieldLabel2": "AI-estimated expected yield applies only to for-sale properties.\n(For investment reference only)"
+    "expectedYieldLabel2": "AI-estimated expected yield applies only to for-sale properties.\n(For investment reference only)",
+    "locationTitle": "Location"
   },
   "invest": {
     "title": "Invest",
@@ -188,7 +191,8 @@
       "bankNameRequired": "Please enter the bank name",
       "accountNumberRequired": "Please enter the account number",
       "accountHolderRequired": "Please enter the account holder's name",
-      "agreementsRequired": "Please agree to the required terms"
+      "agreementsRequired": "Please agree to the required terms",
+      "submitFailed": "Failed to save your application. Please try again."
     },
     "submitButton": "Submit Application",
     "successTitle": "Your application has been submitted",
@@ -196,7 +200,8 @@
     "goToProduct": "Back to product details",
     "goToInvestList": "Go to investment list",
     "confirmBeforeApplyTitle": "Important Notice Before Applying to Invest",
-    "confirmBeforeApplyBody": "This product invests in real estate and related assets, and part or all of your invested principal may be lost; investment returns are not guaranteed.\nPlease be sure to check the following before investing.\n* Carefully consider your investment purpose and investment period.\n* Make sure the investment amount does not strain your financial situation.\n* Do not use funds needed for living expenses, emergency funds, loan repayments, etc. for investment.\n* Depending on the real estate market and the status of this investment product, returns may be lower than expected or losses may occur.\n* Recovering or selling your investment may take a certain amount of time, and it may not be converted to cash immediately when you want.\n* The investment return rate and expected dividends do not represent a guaranteed return.\n* Before investing, please thoroughly review the product's investment structure, underlying property, expected returns, risk factors, fees, and other related information.\nInvestments are made based on your own judgment and responsibility.\nPlease proceed with your investment application only after fully understanding and carefully considering the above."
+    "confirmBeforeApplyBody": "This product invests in real estate and related assets, and part or all of your invested principal may be lost; investment returns are not guaranteed.\nPlease be sure to check the following before investing.\n* Carefully consider your investment purpose and investment period.\n* Make sure the investment amount does not strain your financial situation.\n* Do not use funds needed for living expenses, emergency funds, loan repayments, etc. for investment.\n* Depending on the real estate market and the status of this investment product, returns may be lower than expected or losses may occur.\n* Recovering or selling your investment may take a certain amount of time, and it may not be converted to cash immediately when you want.\n* The investment return rate and expected dividends do not represent a guaranteed return.\n* Before investing, please thoroughly review the product's investment structure, underlying property, expected returns, risk factors, fees, and other related information.\nInvestments are made based on your own judgment and responsibility.\nPlease proceed with your investment application only after fully understanding and carefully considering the above.",
+    "submitting": "Submitting..."
   },
   "chat": {
     "headerTitle": "Property Consultation",
@@ -262,7 +267,11 @@
     "currency": {
       "vnd": "Vietnamese Dong (VND)",
       "usd": "US Dollar (USD)"
-    }
+    },
+    "adminTitle": "Admin",
+    "registerProperty": "Register property",
+    "registerInvestment": "Register product",
+    "managePermissions": "Account permissions"
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",
@@ -317,6 +326,149 @@
       "industrial": "Factory",
       "warehouse": "Warehouse",
       "other": "Other"
+    }
+  },
+  "propertyRegister": {
+    "title": "Register property",
+    "basicSection": "Basic info",
+    "titleLabel": "Property name",
+    "titlePlaceholder": "e.g. Vinhomes Grand Park S1.01",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe this property",
+    "categorySection": "Category / Listing type",
+    "priceSection": "Price & area",
+    "priceSaleLabel": "Sale price (VND)",
+    "priceRentLabel": "Monthly rent (VND)",
+    "priceHelper": "Numbers only (e.g. 4200000000 = 4.2 tỷ)",
+    "areaLabel": "Area (m²)",
+    "bedroomsLabel": "Bedrooms",
+    "bathroomsLabel": "Bathrooms",
+    "locationSection": "Location",
+    "addressLabel": "Address",
+    "addressHelper": "Include the city name (e.g. TP. Hồ Chí Minh) so region filters work",
+    "latitudeLabel": "Latitude",
+    "longitudeLabel": "Longitude",
+    "optionsSection": "Amenities & visibility",
+    "amenitiesLabel": "Amenities",
+    "amenitiesHelper": "Separate with commas",
+    "featuredLabel": "Featured",
+    "featuredDescription": "Shown in the featured carousel on Home and Property",
+    "publishLabel": "Publish now",
+    "publishDescription": "Turn off to save as a private draft that does not appear in listings",
+    "submit": "Register",
+    "submitting": "Registering...",
+    "submitFailed": "Registration failed. Check your permission and inputs.",
+    "savedAsDraft": "Saved as a private draft",
+    "errorTitleRequired": "Please enter a property name",
+    "errorPriceRequired": "Please enter a valid price",
+    "noPermissionTitle": "No permission",
+    "noPermissionDescription": "Only admins or agencies with listing permission can register properties.",
+    "photoNotice": "Without photos, a default category image will be shown.",
+    "dbCategory": {
+      "apartment": "Apartment",
+      "villa": "Villa",
+      "townhouse": "Townhouse",
+      "land": "Land",
+      "office": "Office",
+      "retail": "Retail",
+      "hotel": "Hotel",
+      "industrial": "Industrial"
+    },
+    "photosSection": "Photos",
+    "addPhoto": "Add photo",
+    "removePhoto": "Remove photo",
+    "mainPhoto": "Main",
+    "photosHelper": "The first photo is used as the listing thumbnail (up to 10).",
+    "photoPermissionDenied": "Photo library permission is required.",
+    "photoUploadFailed": "Photo upload failed. Please try again.",
+    "photoLinkFailed": "The property was created but photos could not be attached.",
+    "editTitle": "Edit property",
+    "save": "Save",
+    "delete": "Delete property",
+    "deleteTitle": "How do you want to handle this listing?",
+    "archiveOption": "Hide from listings",
+    "archiveOptionDescription": "Removed from listings and search, but the data stays and can be restored.",
+    "hardDeleteOption": "Delete permanently",
+    "hardDeleteOptionDescription": "Deleted with its photos and cannot be undone. Admins only.",
+    "archived": "The listing is now hidden",
+    "deleted": "The listing was permanently deleted",
+    "deleteFailed": "Delete failed. Please check your permission.",
+    "loadFailed": "Could not load the property."
+  },
+  "investRegister": {
+    "title": "Register product",
+    "editTitle": "Edit product",
+    "basicSection": "Basic info",
+    "titleLabel": "Product name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the structure and how returns are distributed",
+    "categorySection": "Classification",
+    "assetCategoryLabel": "Asset type",
+    "productTypeLabel": "Product structure",
+    "riskLabel": "Risk level",
+    "amountSection": "Fundraising",
+    "targetAmountLabel": "Target amount (VND)",
+    "minimumLabel": "Minimum investment (VND)",
+    "raisedAmountLabel": "Raised so far (VND)",
+    "amountHelper": "Numbers only (e.g. 15000000000 = 15 tỷ)",
+    "raisedAmountHelper": "Managed manually until payment integration is in place",
+    "returnSection": "Return & period",
+    "expectedReturnLabel": "Expected return (%)",
+    "periodLabel": "Period (months)",
+    "dividendLabel": "Dividend frequency",
+    "publishLabel": "Publish now (open)",
+    "publishDescription": "Turn off to save as a private draft that does not appear in listings",
+    "submit": "Register",
+    "save": "Save",
+    "submitting": "Saving...",
+    "submitFailed": "Save failed. Check your permission and inputs.",
+    "savedAsDraft": "Saved as a private draft",
+    "delete": "Delete product",
+    "deleteTitle": "How do you want to handle this product?",
+    "closeOption": "Close fundraising",
+    "closeOptionDescription": "Removed from listings, but data and applications are kept.",
+    "hardDeleteOption": "Delete permanently",
+    "hardDeleteOptionDescription": "Cannot be undone. Not possible if applications exist.",
+    "closed": "Fundraising closed",
+    "deleted": "The product was permanently deleted",
+    "deleteFailed": "Action failed. Please check your permission.",
+    "hardDeleteBlocked": "Cannot delete: applications exist. Use \"Close fundraising\" instead.",
+    "loadFailed": "Could not load the product.",
+    "errorTitleRequired": "Please enter a product name",
+    "errorTargetRequired": "Please enter a valid target amount",
+    "errorMinimumRequired": "Please enter a valid minimum investment",
+    "errorMinimumTooLarge": "Minimum investment cannot exceed the target amount",
+    "noPermissionTitle": "No permission",
+    "noPermissionDescription": "Only admins or accounts granted permission can register products.",
+    "productType": {
+      "reit_share": "REIT share",
+      "co_investment": "Co-investment",
+      "fund": "Fund",
+      "bond_like": "Bond-like"
+    }
+  },
+  "adminPermissions": {
+    "title": "Account permissions",
+    "search": "Search",
+    "searchPlaceholder": "Search by email or name",
+    "searchHelper": "Enter at least 2 characters. Up to 20 results.",
+    "searchTooShort": "Enter at least 2 characters",
+    "noResultsTitle": "No results",
+    "noResultsDescription": "Try a different email or name.",
+    "adminBadge": "Admin",
+    "adminHasAll": "Admin accounts already have every permission.",
+    "granted": "Permission granted",
+    "revoked": "Permission revoked",
+    "updateFailed": "Could not update the permission.",
+    "noPermissionTitle": "No access",
+    "noPermissionDescription": "Only admins can manage account permissions.",
+    "permission": {
+      "investment_manage": "Manage products",
+      "property_manage": "Manage properties"
+    },
+    "permissionDescription": {
+      "investment_manage": "Create, edit and close investment products",
+      "property_manage": "Create, edit and hide property listings"
     }
   }
 }

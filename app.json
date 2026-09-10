@@ -25,7 +25,12 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.viets.app"
+      "package": "com.viets.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDVX3Qm-EzrVJ8Odw6eIvmdepxx_GBcchg"
+        }
+      }
     },
     "web": {
       "bundler": "metro",

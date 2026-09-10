@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,11 +19,13 @@ import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
 import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
 import { PropertyCard } from "@/components/PropertyCard";
+import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
 import { colors, layout, opacity, radius, spacing, textStyles, ThemeColors } from "@/constants/theme";
-import { MOCK_PROPERTIES, MOCK_REGIONS, type MockProperty, type MockPropertyStatus } from "@/constants/mockData";
+import { MOCK_REGIONS, type MockProperty, type MockPropertyStatus } from "@/constants/mockData";
 import type { PropertyImageCategory } from "@/constants/mockImages";
+import { listProperties } from "@/services/properties";
 
 // [STEP: 카테고리 재구성] 홈 화면 카테고리 아이콘 탭 시 이 화면으로 category 쿼리
 // param을 전달한다(app/(tabs)/home.tsx 참고) — 이 화면에서는 그 값을 서브카테고리
@@ -96,6 +99,24 @@ export default function PropertyScreen() {
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
+  // [STEP 04] Mock(MOCK_PROPERTIES) → 실제 Supabase properties 연동. 아래 filtered의
+  // 필터/정렬 로직 자체는 바뀌지 않는다 — 데이터 소스만 이 state로 교체했다.
+  const [properties, setProperties] = useState<MockProperty[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    listProperties().then((result) => {
+      if (mounted) {
+        setProperties(result);
+        setLoading(false);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   function showComingSoon() {
     setToast(t("common.comingSoon"));
     setTimeout(() => setToast(null), 1600);
@@ -105,7 +126,7 @@ export default function PropertyScreen() {
   const isSearching = normalizedSearch.length > 0;
 
   const filtered = useMemo(() => {
-    const base = MOCK_PROPERTIES.filter((property) => {
+    const base = properties.filter((property) => {
       const matchesRegion = !region || property.province === region || property.location.includes(region);
       const matchesStatus = status === "all" || property.status === status;
       const matchesCategory = !category || property.category === category;
@@ -116,7 +137,7 @@ export default function PropertyScreen() {
       return matchesRegion && matchesStatus && matchesCategory && matchesSearch;
     });
     return sortProperties(base, sort);
-  }, [region, status, category, normalizedSearch, isSearching, sort]);
+  }, [properties, region, status, category, normalizedSearch, isSearching, sort]);
 
   const featured = isSearching ? [] : filtered.filter((property) => property.featured);
   const listings = isSearching ? filtered : filtered.filter((property) => !property.featured);
@@ -339,11 +360,20 @@ export default function PropertyScreen() {
         </Modal>
 
         {viewMode === "map" ? (
-          <View style={[styles.mapPlaceholder, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <Ionicons name="map-outline" size={32} color={theme.secondaryText} />
-            <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
-              {t("property.mapComingSoon")}
-            </Text>
+          /* [STEP 04-지도] 자리표시 → 실제 Google 지도(react-native-maps). 웹에서는
+             react-native-maps가 동작하지 않아 components/PropertyMap.web.tsx가
+             자동으로 대체 렌더된다(안내 문구만 표시). 마커 대상은 현재 필터가
+             적용된 목록(filtered) 그대로다 — 목록/지도 뷰가 같은 결과를 본다. */
+          <PropertyMap
+            properties={filtered}
+            onSelectProperty={goToDetail}
+            theme={theme}
+            emptyLabel={t("property.mapNoCoords")}
+            missingCoordsLabel={(count: number) => t("property.mapMissingCoords", { count })}
+          />
+        ) : loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator color={theme.accent} />
           </View>
         ) : (
           <>
@@ -527,6 +557,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.xs,
+  },
+  loadingBox: {
+    height: 220,
+    alignItems: "center",
+    justifyContent: "center",
   },
   section: {
     gap: spacing.sm,

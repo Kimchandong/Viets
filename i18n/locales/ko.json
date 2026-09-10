@@ -63,7 +63,9 @@
       "priceHigh": "높은 가격순",
       "areaLarge": "넓은 면적순"
     },
-    "categoryLabel": "카테고리"
+    "categoryLabel": "카테고리",
+    "mapNoCoords": "지도에 표시할 매물 위치 정보가 없습니다.",
+    "mapMissingCoords": "위치 정보가 없는 매물 {{count}}건은 지도에 표시되지 않았습니다."
   },
   "propertyDetail": {
     "descriptionTitle": "상세 설명",
@@ -82,7 +84,8 @@
     "tabRooms": "방수",
     "tabPrice": "가격",
     "expectedYieldLabel1": "Ai 예상수익",
-    "expectedYieldLabel2": "부동산 매매 매물에만 Ai 예상 수익률 입니다.\n(투자 참고용)"
+    "expectedYieldLabel2": "부동산 매매 매물에만 Ai 예상 수익률 입니다.\n(투자 참고용)",
+    "locationTitle": "위치"
   },
   "invest": {
     "title": "투자",
@@ -188,7 +191,8 @@
       "bankNameRequired": "은행명을 입력해주세요",
       "accountNumberRequired": "계좌번호를 입력해주세요",
       "accountHolderRequired": "예금주명을 입력해주세요",
-      "agreementsRequired": "필수 약관에 동의해주세요"
+      "agreementsRequired": "필수 약관에 동의해주세요",
+      "submitFailed": "신청 저장에 실패했습니다. 잠시 후 다시 시도해 주세요."
     },
     "submitButton": "투자 신청하기",
     "successTitle": "투자 신청이 접수되었습니다",
@@ -196,7 +200,8 @@
     "goToProduct": "상품 상세로 돌아가기",
     "goToInvestList": "투자 상품 목록으로",
     "confirmBeforeApplyTitle": "투자신청 전 꼭 확인",
-    "confirmBeforeApplyBody": "본 상품은 부동산 및 관련 자산에 투자하는 상품으로 투자원금의 전부 또는 일부가 손실될 수 있으며, 투자수익이 보장되지 않습니다.\n투자 전 아래 사항을 반드시 확인하시기 바랍니다.\n* 본인의 투자목적과 투자기간을 충분히 고려해 주세요.\n* 투자금액이 본인의 재정상황에 무리가 없는지 확인해 주세요.\n* 생활비, 비상자금, 대출금 등 상환에 필요한 자금을 투자에 사용하지 마세요.\n* 부동산 시장 및 해당 투자상품의 상황에 따라 예상보다 낮은 수익이 발생하거나 손실이 발생할 수 있습니다.\n* 투자금의 회수 또는 매각에 일정 기간이 소요될 수 있으며, 원할 때 즉시 현금화되지 않을 수 있습니다.\n* 투자수익률 및 예상 배당금은 확정된 수익을 의미하지 않습니다.\n* 투자 전 상품의 투자구조, 대상 부동산, 예상 수익, 위험요소, 수수료 및 기타 관련 정보를 충분히 확인하시기 바랍니다.\n투자는 본인의 판단과 책임으로 이루어집니다.\n충분히 이해하고 신중하게 판단한 후 투자신청을 진행해 주세요."
+    "confirmBeforeApplyBody": "본 상품은 부동산 및 관련 자산에 투자하는 상품으로 투자원금의 전부 또는 일부가 손실될 수 있으며, 투자수익이 보장되지 않습니다.\n투자 전 아래 사항을 반드시 확인하시기 바랍니다.\n* 본인의 투자목적과 투자기간을 충분히 고려해 주세요.\n* 투자금액이 본인의 재정상황에 무리가 없는지 확인해 주세요.\n* 생활비, 비상자금, 대출금 등 상환에 필요한 자금을 투자에 사용하지 마세요.\n* 부동산 시장 및 해당 투자상품의 상황에 따라 예상보다 낮은 수익이 발생하거나 손실이 발생할 수 있습니다.\n* 투자금의 회수 또는 매각에 일정 기간이 소요될 수 있으며, 원할 때 즉시 현금화되지 않을 수 있습니다.\n* 투자수익률 및 예상 배당금은 확정된 수익을 의미하지 않습니다.\n* 투자 전 상품의 투자구조, 대상 부동산, 예상 수익, 위험요소, 수수료 및 기타 관련 정보를 충분히 확인하시기 바랍니다.\n투자는 본인의 판단과 책임으로 이루어집니다.\n충분히 이해하고 신중하게 판단한 후 투자신청을 진행해 주세요.",
+    "submitting": "제출 중..."
   },
   "chat": {
     "headerTitle": "부동산 상담",
@@ -262,7 +267,11 @@
     "currency": {
       "vnd": "베트남 동 (VND)",
       "usd": "미국 달러 (USD)"
-    }
+    },
+    "adminTitle": "운영",
+    "registerProperty": "매물 등록",
+    "registerInvestment": "투자상품 등록",
+    "managePermissions": "계정 권한 관리"
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",
@@ -317,6 +326,149 @@
       "industrial": "공장",
       "warehouse": "창고",
       "other": "기타"
+    }
+  },
+  "propertyRegister": {
+    "title": "매물 등록",
+    "basicSection": "기본 정보",
+    "titleLabel": "매물명",
+    "titlePlaceholder": "예: Vinhomes Grand Park S1.01",
+    "descriptionLabel": "상세 설명",
+    "descriptionPlaceholder": "매물 소개를 입력하세요",
+    "categorySection": "카테고리 / 거래 유형",
+    "priceSection": "가격 · 면적",
+    "priceSaleLabel": "매매가 (VND)",
+    "priceRentLabel": "월 임대료 (VND)",
+    "priceHelper": "숫자만 입력 (예: 4200000000 = 4.2 tỷ)",
+    "areaLabel": "면적 (m²)",
+    "bedroomsLabel": "침실 수",
+    "bathroomsLabel": "욕실 수",
+    "locationSection": "위치",
+    "addressLabel": "주소",
+    "addressHelper": "지역 필터가 동작하려면 도시명(TP. Hồ Chí Minh 등)을 포함해 주세요",
+    "latitudeLabel": "위도",
+    "longitudeLabel": "경도",
+    "optionsSection": "옵션 · 공개 설정",
+    "amenitiesLabel": "편의시설",
+    "amenitiesHelper": "쉼표(,)로 구분해 입력",
+    "featuredLabel": "추천 매물",
+    "featuredDescription": "홈/매물 화면 상단 캐러셀에 노출됩니다",
+    "publishLabel": "즉시 공개",
+    "publishDescription": "끄면 비공개(임시저장) 상태로 저장되어 목록에 보이지 않습니다",
+    "submit": "등록하기",
+    "submitting": "등록 중...",
+    "submitFailed": "등록에 실패했습니다. 권한 또는 입력값을 확인해 주세요.",
+    "savedAsDraft": "비공개(임시저장)로 저장되었습니다",
+    "errorTitleRequired": "매물명을 입력해 주세요",
+    "errorPriceRequired": "가격을 숫자로 입력해 주세요",
+    "noPermissionTitle": "등록 권한이 없습니다",
+    "noPermissionDescription": "매물 등록은 관리자 또는 등록 권한이 있는 중개업소 계정만 가능합니다.",
+    "photoNotice": "사진을 넣지 않으면 카테고리 기본 이미지로 표시됩니다.",
+    "dbCategory": {
+      "apartment": "아파트",
+      "villa": "빌라",
+      "townhouse": "단독/타운하우스",
+      "land": "토지",
+      "office": "오피스",
+      "retail": "상가",
+      "hotel": "호텔",
+      "industrial": "공장/창고"
+    },
+    "photosSection": "사진",
+    "addPhoto": "사진 추가",
+    "removePhoto": "사진 삭제",
+    "mainPhoto": "대표",
+    "photosHelper": "첫 번째 사진이 목록의 대표 이미지로 사용됩니다 (최대 10장).",
+    "photoPermissionDenied": "사진 접근 권한이 필요합니다.",
+    "photoUploadFailed": "사진 업로드에 실패했습니다. 다시 시도해 주세요.",
+    "photoLinkFailed": "매물은 등록됐지만 사진 연결에 실패했습니다.",
+    "editTitle": "매물 수정",
+    "save": "저장",
+    "delete": "매물 삭제",
+    "deleteTitle": "이 매물을 어떻게 처리할까요?",
+    "archiveOption": "목록에서 감추기",
+    "archiveOptionDescription": "앱 목록/검색에서 사라지지만 데이터는 남아 되돌릴 수 있습니다.",
+    "hardDeleteOption": "완전히 삭제",
+    "hardDeleteOptionDescription": "사진과 함께 영구 삭제되며 되돌릴 수 없습니다. 관리자만 가능합니다.",
+    "archived": "매물을 목록에서 감췄습니다",
+    "deleted": "매물을 완전히 삭제했습니다",
+    "deleteFailed": "삭제에 실패했습니다. 권한을 확인해 주세요.",
+    "loadFailed": "매물 정보를 불러오지 못했습니다."
+  },
+  "investRegister": {
+    "title": "투자상품 등록",
+    "editTitle": "투자상품 수정",
+    "basicSection": "기본 정보",
+    "titleLabel": "상품명",
+    "descriptionLabel": "상품 설명",
+    "descriptionPlaceholder": "상품 구조와 수익 배분 방식을 입력하세요",
+    "categorySection": "분류",
+    "assetCategoryLabel": "대상 자산",
+    "productTypeLabel": "상품 구조",
+    "riskLabel": "위험도",
+    "amountSection": "모집 금액",
+    "targetAmountLabel": "목표 모집액 (VND)",
+    "minimumLabel": "최소 투자금 (VND)",
+    "raisedAmountLabel": "현재 모집액 (VND)",
+    "amountHelper": "숫자만 입력 (예: 15000000000 = 15 tỷ)",
+    "raisedAmountHelper": "실제 결제 연동 전이라 관리자가 직접 관리하는 값입니다",
+    "returnSection": "수익 · 기간",
+    "expectedReturnLabel": "예상 수익률 (%)",
+    "periodLabel": "투자 기간 (개월)",
+    "dividendLabel": "배당 주기",
+    "publishLabel": "즉시 공개(모집중)",
+    "publishDescription": "끄면 비공개(임시저장)로 저장되어 목록에 보이지 않습니다",
+    "submit": "등록하기",
+    "save": "저장",
+    "submitting": "저장 중...",
+    "submitFailed": "저장에 실패했습니다. 권한 또는 입력값을 확인해 주세요.",
+    "savedAsDraft": "비공개(임시저장)로 저장되었습니다",
+    "delete": "상품 삭제",
+    "deleteTitle": "이 상품을 어떻게 처리할까요?",
+    "closeOption": "모집 마감",
+    "closeOptionDescription": "목록에서 사라지지만 데이터와 신청 이력은 그대로 남습니다.",
+    "hardDeleteOption": "완전히 삭제",
+    "hardDeleteOptionDescription": "영구 삭제되며 되돌릴 수 없습니다. 신청 이력이 있으면 삭제할 수 없습니다.",
+    "closed": "상품을 모집 마감 처리했습니다",
+    "deleted": "상품을 완전히 삭제했습니다",
+    "deleteFailed": "처리에 실패했습니다. 권한을 확인해 주세요.",
+    "hardDeleteBlocked": "신청 이력이 있어 완전 삭제할 수 없습니다. 모집 마감을 사용하세요.",
+    "loadFailed": "상품 정보를 불러오지 못했습니다.",
+    "errorTitleRequired": "상품명을 입력해 주세요",
+    "errorTargetRequired": "목표 모집액을 숫자로 입력해 주세요",
+    "errorMinimumRequired": "최소 투자금을 숫자로 입력해 주세요",
+    "errorMinimumTooLarge": "최소 투자금이 목표 모집액보다 클 수 없습니다",
+    "noPermissionTitle": "등록 권한이 없습니다",
+    "noPermissionDescription": "투자상품 등록은 관리자 또는 관리자가 권한을 부여한 계정만 가능합니다.",
+    "productType": {
+      "reit_share": "REIT 지분",
+      "co_investment": "공동투자",
+      "fund": "펀드",
+      "bond_like": "채권형"
+    }
+  },
+  "adminPermissions": {
+    "title": "계정 권한 관리",
+    "search": "검색",
+    "searchPlaceholder": "이메일 또는 이름으로 검색",
+    "searchHelper": "2자 이상 입력해 주세요. 최대 20건까지 표시됩니다.",
+    "searchTooShort": "2자 이상 입력해 주세요",
+    "noResultsTitle": "검색 결과가 없습니다",
+    "noResultsDescription": "다른 이메일이나 이름으로 다시 검색해 보세요.",
+    "adminBadge": "관리자",
+    "adminHasAll": "관리자 계정은 모든 기능 권한을 이미 가지고 있습니다.",
+    "granted": "권한을 부여했습니다",
+    "revoked": "권한을 회수했습니다",
+    "updateFailed": "권한 변경에 실패했습니다.",
+    "noPermissionTitle": "접근 권한이 없습니다",
+    "noPermissionDescription": "계정 권한 관리는 관리자만 사용할 수 있습니다.",
+    "permission": {
+      "investment_manage": "투자상품 관리",
+      "property_manage": "매물 관리"
+    },
+    "permissionDescription": {
+      "investment_manage": "투자상품 등록·수정·삭제(모집 마감)",
+      "property_manage": "매물 등록·수정·감추기"
     }
   }
 }

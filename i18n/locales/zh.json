@@ -63,7 +63,9 @@
       "priceHigh": "价格从高到低",
       "areaLarge": "面积从大到小"
     },
-    "categoryLabel": "分类"
+    "categoryLabel": "分类",
+    "mapNoCoords": "没有可在地图上显示的房源位置信息。",
+    "mapMissingCoords": "{{count}} 个缺少位置信息的房源未在地图上显示。"
   },
   "propertyDetail": {
     "descriptionTitle": "详细描述",
@@ -82,7 +84,8 @@
     "tabRooms": "房间数",
     "tabPrice": "价格",
     "expectedYieldLabel1": "AI预期收益",
-    "expectedYieldLabel2": "AI预期收益率仅适用于出售类房源。\n（仅供投资参考）"
+    "expectedYieldLabel2": "AI预期收益率仅适用于出售类房源。\n（仅供投资参考）",
+    "locationTitle": "位置"
   },
   "invest": {
     "title": "投资",
@@ -188,7 +191,8 @@
       "bankNameRequired": "请输入银行名称",
       "accountNumberRequired": "请输入账户号码",
       "accountHolderRequired": "请输入账户持有人姓名",
-      "agreementsRequired": "请同意必填条款"
+      "agreementsRequired": "请同意必填条款",
+      "submitFailed": "申请保存失败，请稍后再试。"
     },
     "submitButton": "提交申请",
     "successTitle": "投资申请已提交",
@@ -196,7 +200,8 @@
     "goToProduct": "返回产品详情",
     "goToInvestList": "前往投资列表",
     "confirmBeforeApplyTitle": "投资申请前请务必确认",
-    "confirmBeforeApplyBody": "本产品为投资不动产及相关资产的产品，投资本金可能部分或全部损失，投资收益不作保证。\n投资前请务必确认以下事项。\n* 请充分考虑本人的投资目的和投资期限。\n* 请确认投资金额是否会对本人的财务状况造成负担。\n* 请勿将生活费、应急资金、贷款偿还等所需资金用于投资。\n* 根据房地产市场及该投资产品的状况，可能出现低于预期的收益或发生亏损。\n* 投资款的回收或转让可能需要一定时间，可能无法在您需要时立即变现。\n* 投资收益率及预期分红并不代表已确定的收益。\n* 投资前请充分确认产品的投资结构、标的不动产、预期收益、风险因素、费用及其他相关信息。\n投资由本人自行判断并自行承担责任。\n请在充分理解并审慎判断后再进行投资申请。"
+    "confirmBeforeApplyBody": "本产品为投资不动产及相关资产的产品，投资本金可能部分或全部损失，投资收益不作保证。\n投资前请务必确认以下事项。\n* 请充分考虑本人的投资目的和投资期限。\n* 请确认投资金额是否会对本人的财务状况造成负担。\n* 请勿将生活费、应急资金、贷款偿还等所需资金用于投资。\n* 根据房地产市场及该投资产品的状况，可能出现低于预期的收益或发生亏损。\n* 投资款的回收或转让可能需要一定时间，可能无法在您需要时立即变现。\n* 投资收益率及预期分红并不代表已确定的收益。\n* 投资前请充分确认产品的投资结构、标的不动产、预期收益、风险因素、费用及其他相关信息。\n投资由本人自行判断并自行承担责任。\n请在充分理解并审慎判断后再进行投资申请。",
+    "submitting": "提交中..."
   },
   "chat": {
     "headerTitle": "房产咨询",
@@ -262,7 +267,11 @@
     "currency": {
       "vnd": "越南盾 (VND)",
       "usd": "美元 (USD)"
-    }
+    },
+    "adminTitle": "运营",
+    "registerProperty": "发布房源",
+    "registerInvestment": "发布投资产品",
+    "managePermissions": "账户权限管理"
   },
   "auth": {
     "tagline": "越南房地产与投资平台",
@@ -317,6 +326,149 @@
       "industrial": "工厂",
       "warehouse": "仓库",
       "other": "其他"
+    }
+  },
+  "propertyRegister": {
+    "title": "发布房源",
+    "basicSection": "基本信息",
+    "titleLabel": "房源名称",
+    "titlePlaceholder": "例如：Vinhomes Grand Park S1.01",
+    "descriptionLabel": "详细描述",
+    "descriptionPlaceholder": "请输入房源介绍",
+    "categorySection": "类别 / 交易类型",
+    "priceSection": "价格 · 面积",
+    "priceSaleLabel": "售价 (VND)",
+    "priceRentLabel": "月租金 (VND)",
+    "priceHelper": "仅输入数字（例如 4200000000 = 4.2 tỷ）",
+    "areaLabel": "面积 (m²)",
+    "bedroomsLabel": "卧室数",
+    "bathroomsLabel": "卫生间数",
+    "locationSection": "位置",
+    "addressLabel": "地址",
+    "addressHelper": "请包含城市名称（如 TP. Hồ Chí Minh）以便地区筛选生效",
+    "latitudeLabel": "纬度",
+    "longitudeLabel": "经度",
+    "optionsSection": "配套 · 公开设置",
+    "amenitiesLabel": "配套设施",
+    "amenitiesHelper": "用逗号分隔",
+    "featuredLabel": "推荐房源",
+    "featuredDescription": "将在首页和房源页顶部推荐栏中展示",
+    "publishLabel": "立即公开",
+    "publishDescription": "关闭则保存为私密草稿，不会出现在列表中",
+    "submit": "发布",
+    "submitting": "发布中...",
+    "submitFailed": "发布失败，请检查权限和输入内容。",
+    "savedAsDraft": "已保存为私密草稿",
+    "errorTitleRequired": "请输入房源名称",
+    "errorPriceRequired": "请输入有效的价格",
+    "noPermissionTitle": "没有权限",
+    "noPermissionDescription": "仅管理员或拥有发布权限的中介账户可以发布房源。",
+    "photoNotice": "未添加照片时将显示该类别的默认图片。",
+    "dbCategory": {
+      "apartment": "公寓",
+      "villa": "别墅",
+      "townhouse": "联排别墅",
+      "land": "土地",
+      "office": "办公楼",
+      "retail": "商铺",
+      "hotel": "酒店",
+      "industrial": "厂房/仓库"
+    },
+    "photosSection": "照片",
+    "addPhoto": "添加照片",
+    "removePhoto": "删除照片",
+    "mainPhoto": "封面",
+    "photosHelper": "第一张照片将作为列表封面图（最多10张）。",
+    "photoPermissionDenied": "需要相册访问权限。",
+    "photoUploadFailed": "照片上传失败，请重试。",
+    "photoLinkFailed": "房源已发布，但照片关联失败。",
+    "editTitle": "编辑房源",
+    "save": "保存",
+    "delete": "删除房源",
+    "deleteTitle": "要如何处理该房源？",
+    "archiveOption": "从列表中隐藏",
+    "archiveOptionDescription": "将从列表和搜索中消失，但数据保留且可恢复。",
+    "hardDeleteOption": "永久删除",
+    "hardDeleteOptionDescription": "连同照片一并永久删除，不可恢复。仅管理员可用。",
+    "archived": "已将房源从列表中隐藏",
+    "deleted": "已永久删除该房源",
+    "deleteFailed": "删除失败，请检查权限。",
+    "loadFailed": "无法加载房源信息。"
+  },
+  "investRegister": {
+    "title": "发布投资产品",
+    "editTitle": "编辑投资产品",
+    "basicSection": "基本信息",
+    "titleLabel": "产品名称",
+    "descriptionLabel": "产品说明",
+    "descriptionPlaceholder": "请输入产品结构与收益分配方式",
+    "categorySection": "分类",
+    "assetCategoryLabel": "标的资产",
+    "productTypeLabel": "产品结构",
+    "riskLabel": "风险等级",
+    "amountSection": "募集金额",
+    "targetAmountLabel": "目标募集额 (VND)",
+    "minimumLabel": "最低投资额 (VND)",
+    "raisedAmountLabel": "已募集金额 (VND)",
+    "amountHelper": "仅输入数字（例如 15000000000 = 15 tỷ）",
+    "raisedAmountHelper": "在接入支付前由管理员手动维护",
+    "returnSection": "收益 · 期限",
+    "expectedReturnLabel": "预期收益率 (%)",
+    "periodLabel": "投资期限（月）",
+    "dividendLabel": "分红周期",
+    "publishLabel": "立即公开（募集中）",
+    "publishDescription": "关闭则保存为私密草稿，不会出现在列表中",
+    "submit": "发布",
+    "save": "保存",
+    "submitting": "保存中...",
+    "submitFailed": "保存失败，请检查权限和输入内容。",
+    "savedAsDraft": "已保存为私密草稿",
+    "delete": "删除产品",
+    "deleteTitle": "要如何处理该产品？",
+    "closeOption": "结束募集",
+    "closeOptionDescription": "将从列表消失，但数据与申请记录保留。",
+    "hardDeleteOption": "永久删除",
+    "hardDeleteOptionDescription": "不可恢复。若已有申请记录则无法删除。",
+    "closed": "已结束募集",
+    "deleted": "已永久删除该产品",
+    "deleteFailed": "操作失败，请检查权限。",
+    "hardDeleteBlocked": "已有申请记录，无法永久删除。请使用“结束募集”。",
+    "loadFailed": "无法加载产品信息。",
+    "errorTitleRequired": "请输入产品名称",
+    "errorTargetRequired": "请输入有效的目标募集额",
+    "errorMinimumRequired": "请输入有效的最低投资额",
+    "errorMinimumTooLarge": "最低投资额不能超过目标募集额",
+    "noPermissionTitle": "没有权限",
+    "noPermissionDescription": "仅管理员或获授权的账户可以发布投资产品。",
+    "productType": {
+      "reit_share": "REIT份额",
+      "co_investment": "共同投资",
+      "fund": "基金",
+      "bond_like": "债券型"
+    }
+  },
+  "adminPermissions": {
+    "title": "账户权限管理",
+    "search": "搜索",
+    "searchPlaceholder": "按邮箱或姓名搜索",
+    "searchHelper": "请输入至少2个字符，最多显示20条结果。",
+    "searchTooShort": "请输入至少2个字符",
+    "noResultsTitle": "没有搜索结果",
+    "noResultsDescription": "请尝试其他邮箱或姓名。",
+    "adminBadge": "管理员",
+    "adminHasAll": "管理员账户已拥有全部权限。",
+    "granted": "已授予权限",
+    "revoked": "已收回权限",
+    "updateFailed": "权限更新失败。",
+    "noPermissionTitle": "无访问权限",
+    "noPermissionDescription": "仅管理员可管理账户权限。",
+    "permission": {
+      "investment_manage": "管理投资产品",
+      "property_manage": "管理房源"
+    },
+    "permissionDescription": {
+      "investment_manage": "发布、编辑及结束投资产品",
+      "property_manage": "发布、编辑及隐藏房源"
     }
   }
 }

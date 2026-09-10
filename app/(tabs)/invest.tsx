@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,11 +11,13 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
 import { InvestmentCard } from "@/components/InvestmentCard";
+import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StatTile } from "@/components/StatTile";
 import { colors, layout, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
-import { MOCK_INVESTMENT_PRODUCTS, MOCK_INVEST_OVERVIEW } from "@/constants/mockData";
+import { MOCK_INVEST_OVERVIEW, type MockInvestmentProduct } from "@/constants/mockData";
+import { listInvestmentProducts } from "@/services/investments";
 import { splitYieldText } from "@/utils/format";
 import type { InvestImageCategory } from "@/constants/mockImages";
 
@@ -63,13 +65,31 @@ export default function InvestScreen() {
   // 버튼 + Modal로 바꿨다 — my.tsx의 언어 선택 Modal(체크마크 목록)과 동일한 패턴.
   const [riskModalVisible, setRiskModalVisible] = useState(false);
 
+  // [STEP 06] Mock(MOCK_INVESTMENT_PRODUCTS) → 실제 investment_products 테이블.
+  // 필터 로직은 그대로 두고 데이터 소스만 교체했다.
+  const [products, setProducts] = useState<MockInvestmentProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    listInvestmentProducts().then((result) => {
+      if (mounted) {
+        setProducts(result);
+        setLoading(false);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const filtered = useMemo(
     () =>
-      MOCK_INVESTMENT_PRODUCTS.filter(
+      products.filter(
         (product) =>
           (risk === "all" || product.riskLevel === risk) && (!category || product.category === category),
       ),
-    [risk, category],
+    [products, risk, category],
   );
   const featured = filtered.filter((product) => product.featured);
   const others = filtered.filter((product) => !product.featured);
@@ -251,7 +271,9 @@ export default function InvestScreen() {
 
         <View style={styles.section}>
           <SectionHeader title={t("invest.allProductsTitle")} />
-          {filtered.length === 0 ? (
+          {loading ? (
+            <Loading />
+          ) : filtered.length === 0 ? (
             <EmptyState title={t("invest.emptyTitle")} description={t("invest.emptyDescription")} />
           ) : (
             <View style={styles.stack}>

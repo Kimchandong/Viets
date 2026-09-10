@@ -27,7 +27,8 @@ import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { colors, opacity, radius, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
-import { findMockInvestmentProduct } from "@/constants/mockData";
+import { type MockInvestmentProduct } from "@/constants/mockData";
+import { createInvestmentOrder, getInvestmentProductById } from "@/services/investments";
 import { VIETNAM_BANKS } from "@/constants/vietnamBanks";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { formatVndAmount, splitYieldText } from "@/utils/format";
@@ -74,7 +75,28 @@ export default function InvestApplyScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const product = useMemo(() => (id ? findMockInvestmentProduct(id) : undefined), [id]);
+  // [STEP 06] Mock → 실제 investment_products 테이블.
+  const [product, setProduct] = useState<MockInvestmentProduct | undefined>(undefined);
+  const [productLoading, setProductLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    setProductLoading(true);
+    if (!id) {
+      setProduct(undefined);
+      setProductLoading(false);
+      return;
+    }
+    getInvestmentProductById(id).then((result) => {
+      if (mounted) {
+        setProduct(result);
+        setProductLoading(false);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -119,6 +141,8 @@ export default function InvestApplyScreen() {
 
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
+  // [STEP 06] 실제 서버 저장 중 상태 — 제출 버튼 중복 탭 방지.
+  const [submitting, setSubmitting] = useState(false);
 
   // [STEP: 2026-09-09-8] 사용자 요청 — 신청 상품 요약 카드 이미지 슬라이드 현재
   // 페이지, "투자신청 전 꼭 확인" 아코디언 펼침 상태, 배당금 수령 계좌 은행
@@ -141,7 +165,7 @@ export default function InvestApplyScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
-  if (sessionLoading) {
+  if (sessionLoading || productLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
         <Header title={t("investApply.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
@@ -212,7 +236,7 @@ export default function InvestApplyScreen() {
     );
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const nextErrors: Errors = {};
 
     if (!amount || amountNumber <= 0) {
@@ -249,8 +273,26 @@ export default function InvestApplyScreen() {
       return;
     }
 
-    // [STEP: 2026-09-09] DB/제출 API가 아직 없으므로 실제 저장은 하지 않는다 —
-    // 화면 흐름만 "제출 완료" 상태로 전환한다(§6 원칙, 위 상단 주석 참고).
+    // [STEP 06, 2026-09-10] 실제 저장으로 전환. D10 확정(투자 의향 접수만)에 따라
+    // investment_orders에 status='pending' 행을 만든다 — 결제/체결은 없다.
+    // 계좌 정보(은행/계좌번호/예금주)는 금융 정보라 이번 범위의 테이블에 저장하지
+    // 않는다(DATABASE.md에 해당 컬럼 자체를 두지 않았다) — 담당자가 신청 접수 후
+    // 별도 절차로 확인하는 것을 전제로, 화면에서만 입력받는다.
+    if (!product) return;
+
+    setSubmitting(true);
+    const orderId = await createInvestmentOrder({
+      productId: product.id,
+      amountVnd: amountNumber,
+      contactPhone: phone.trim(),
+      note: memo.trim() || undefined,
+    });
+    setSubmitting(false);
+
+    if (!orderId) {
+      setErrors({ agreements: t("investApply.errors.submitFailed") });
+      return;
+    }
     setSubmitted(true);
   }
 
@@ -550,7 +592,12 @@ export default function InvestApplyScreen() {
       </KeyboardAvoidingView>
 
       <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
-        <Button title={t("investApply.submitButton")} onPress={handleSubmit} style={styles.footerButton} />
+        <Button
+          title={submitting ? t("investApply.submitting") : t("investApply.submitButton")}
+          onPress={handleSubmit}
+          disabled={submitting}
+          style={styles.footerButton}
+        />
       </View>
 
       {/* [STEP: 2026-09-09-8] 사용자 요청 — 은행명 셀렉트 모달. VIETNAM_BANKS

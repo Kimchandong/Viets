@@ -63,7 +63,9 @@
       "priceHigh": "価格が高い順",
       "areaLarge": "面積が広い順"
     },
-    "categoryLabel": "カテゴリー"
+    "categoryLabel": "カテゴリー",
+    "mapNoCoords": "地図に表示できる物件の位置情報がありません。",
+    "mapMissingCoords": "位置情報のない物件{{count}}件は地図に表示されていません。"
   },
   "propertyDetail": {
     "descriptionTitle": "詳細説明",
@@ -82,7 +84,8 @@
     "tabRooms": "部屋数",
     "tabPrice": "価格",
     "expectedYieldLabel1": "AI予想収益",
-    "expectedYieldLabel2": "AI予想収益率は売買物件にのみ適用されます。\n（投資参考用）"
+    "expectedYieldLabel2": "AI予想収益率は売買物件にのみ適用されます。\n（投資参考用）",
+    "locationTitle": "所在地"
   },
   "invest": {
     "title": "投資",
@@ -188,7 +191,8 @@
       "bankNameRequired": "銀行名を入力してください",
       "accountNumberRequired": "口座番号を入力してください",
       "accountHolderRequired": "口座名義を入力してください",
-      "agreementsRequired": "必須項目に同意してください"
+      "agreementsRequired": "必須項目に同意してください",
+      "submitFailed": "申請の保存に失敗しました。しばらくしてから再度お試しください。"
     },
     "submitButton": "投資を申込む",
     "successTitle": "投資申込みを受け付けました",
@@ -196,7 +200,8 @@
     "goToProduct": "商品詳細に戻る",
     "goToInvestList": "投資商品一覧へ",
     "confirmBeforeApplyTitle": "投資申込み前に必ずご確認ください",
-    "confirmBeforeApplyBody": "本商品は不動産および関連資産に投資する商品であり、投資元本の全部または一部が損失する可能性があり、投資収益は保証されません。\n投資前に以下の事項を必ずご確認ください。\n* ご自身の投資目的と投資期間を十分にご検討ください。\n* 投資金額がご自身の財政状況に無理のない範囲かご確認ください。\n* 生活費、緊急資金、ローン返済などに必要な資金を投資に使用しないでください。\n* 不動産市場および当該投資商品の状況により、予想より低い収益が発生したり、損失が発生する場合があります。\n* 投資金の回収または売却には一定期間を要する場合があり、希望する時にすぐに現金化できない場合があります。\n* 投資収益率および予想配当金は確定した収益を意味するものではありません。\n* 投資前に商品の投資構造、対象不動産、予想収益、リスク要因、手数料およびその他関連情報を十分にご確認ください。\n投資はご自身の判断と責任において行われます。\n十分に理解し、慎重にご判断の上、投資申込みを進めてください。"
+    "confirmBeforeApplyBody": "本商品は不動産および関連資産に投資する商品であり、投資元本の全部または一部が損失する可能性があり、投資収益は保証されません。\n投資前に以下の事項を必ずご確認ください。\n* ご自身の投資目的と投資期間を十分にご検討ください。\n* 投資金額がご自身の財政状況に無理のない範囲かご確認ください。\n* 生活費、緊急資金、ローン返済などに必要な資金を投資に使用しないでください。\n* 不動産市場および当該投資商品の状況により、予想より低い収益が発生したり、損失が発生する場合があります。\n* 投資金の回収または売却には一定期間を要する場合があり、希望する時にすぐに現金化できない場合があります。\n* 投資収益率および予想配当金は確定した収益を意味するものではありません。\n* 投資前に商品の投資構造、対象不動産、予想収益、リスク要因、手数料およびその他関連情報を十分にご確認ください。\n投資はご自身の判断と責任において行われます。\n十分に理解し、慎重にご判断の上、投資申込みを進めてください。",
+    "submitting": "送信中..."
   },
   "chat": {
     "headerTitle": "不動産相談",
@@ -262,7 +267,11 @@
     "currency": {
       "vnd": "ベトナムドン (VND)",
       "usd": "米ドル (USD)"
-    }
+    },
+    "adminTitle": "運営",
+    "registerProperty": "物件登録",
+    "registerInvestment": "投資商品登録",
+    "managePermissions": "アカウント権限管理"
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",
@@ -317,6 +326,149 @@
       "industrial": "工場",
       "warehouse": "倉庫",
       "other": "その他"
+    }
+  },
+  "propertyRegister": {
+    "title": "物件登録",
+    "basicSection": "基本情報",
+    "titleLabel": "物件名",
+    "titlePlaceholder": "例: Vinhomes Grand Park S1.01",
+    "descriptionLabel": "詳細説明",
+    "descriptionPlaceholder": "物件の説明を入力してください",
+    "categorySection": "カテゴリ / 取引形態",
+    "priceSection": "価格・面積",
+    "priceSaleLabel": "売買価格 (VND)",
+    "priceRentLabel": "月額賃料 (VND)",
+    "priceHelper": "数字のみ入力 (例: 4200000000 = 4.2 tỷ)",
+    "areaLabel": "面積 (m²)",
+    "bedroomsLabel": "寝室数",
+    "bathroomsLabel": "浴室数",
+    "locationSection": "所在地",
+    "addressLabel": "住所",
+    "addressHelper": "地域フィルターのため都市名(TP. Hồ Chí Minh など)を含めてください",
+    "latitudeLabel": "緯度",
+    "longitudeLabel": "経度",
+    "optionsSection": "設備・公開設定",
+    "amenitiesLabel": "設備",
+    "amenitiesHelper": "カンマ区切りで入力",
+    "featuredLabel": "おすすめ物件",
+    "featuredDescription": "ホーム/物件画面の上部カルーセルに表示されます",
+    "publishLabel": "すぐに公開",
+    "publishDescription": "オフにすると非公開(下書き)として保存され、一覧に表示されません",
+    "submit": "登録する",
+    "submitting": "登録中...",
+    "submitFailed": "登録に失敗しました。権限と入力内容をご確認ください。",
+    "savedAsDraft": "非公開(下書き)として保存しました",
+    "errorTitleRequired": "物件名を入力してください",
+    "errorPriceRequired": "価格を数字で入力してください",
+    "noPermissionTitle": "登録権限がありません",
+    "noPermissionDescription": "物件登録は管理者または登録権限のある仲介業者アカウントのみ可能です。",
+    "photoNotice": "写真がない場合はカテゴリ既定の画像が表示されます。",
+    "dbCategory": {
+      "apartment": "アパート",
+      "villa": "ヴィラ",
+      "townhouse": "タウンハウス",
+      "land": "土地",
+      "office": "オフィス",
+      "retail": "店舗",
+      "hotel": "ホテル",
+      "industrial": "工場・倉庫"
+    },
+    "photosSection": "写真",
+    "addPhoto": "写真を追加",
+    "removePhoto": "写真を削除",
+    "mainPhoto": "メイン",
+    "photosHelper": "最初の写真が一覧のサムネイルになります(最大10枚)。",
+    "photoPermissionDenied": "写真ライブラリへのアクセス権限が必要です。",
+    "photoUploadFailed": "写真のアップロードに失敗しました。もう一度お試しください。",
+    "photoLinkFailed": "物件は登録されましたが、写真の添付に失敗しました。",
+    "editTitle": "物件編集",
+    "save": "保存",
+    "delete": "物件を削除",
+    "deleteTitle": "この物件をどう処理しますか?",
+    "archiveOption": "一覧から非表示",
+    "archiveOptionDescription": "一覧・検索から消えますが、データは残り元に戻せます。",
+    "hardDeleteOption": "完全に削除",
+    "hardDeleteOptionDescription": "写真ごと永久に削除され、元に戻せません。管理者のみ可能です。",
+    "archived": "物件を一覧から非表示にしました",
+    "deleted": "物件を完全に削除しました",
+    "deleteFailed": "削除に失敗しました。権限をご確認ください。",
+    "loadFailed": "物件情報を読み込めませんでした。"
+  },
+  "investRegister": {
+    "title": "投資商品登録",
+    "editTitle": "投資商品編集",
+    "basicSection": "基本情報",
+    "titleLabel": "商品名",
+    "descriptionLabel": "商品説明",
+    "descriptionPlaceholder": "商品構造と収益分配方法を入力してください",
+    "categorySection": "分類",
+    "assetCategoryLabel": "対象資産",
+    "productTypeLabel": "商品構造",
+    "riskLabel": "リスク度",
+    "amountSection": "募集金額",
+    "targetAmountLabel": "目標募集額 (VND)",
+    "minimumLabel": "最低投資額 (VND)",
+    "raisedAmountLabel": "現在の募集額 (VND)",
+    "amountHelper": "数字のみ入力 (例: 15000000000 = 15 tỷ)",
+    "raisedAmountHelper": "決済連携前のため管理者が直接管理する値です",
+    "returnSection": "収益・期間",
+    "expectedReturnLabel": "予想利回り (%)",
+    "periodLabel": "投資期間 (ヶ月)",
+    "dividendLabel": "配当周期",
+    "publishLabel": "すぐに公開(募集中)",
+    "publishDescription": "オフにすると非公開(下書き)として保存され、一覧に表示されません",
+    "submit": "登録する",
+    "save": "保存",
+    "submitting": "保存中...",
+    "submitFailed": "保存に失敗しました。権限と入力内容をご確認ください。",
+    "savedAsDraft": "非公開(下書き)として保存しました",
+    "delete": "商品を削除",
+    "deleteTitle": "この商品をどう処理しますか?",
+    "closeOption": "募集終了",
+    "closeOptionDescription": "一覧から消えますが、データと申込履歴はそのまま残ります。",
+    "hardDeleteOption": "完全に削除",
+    "hardDeleteOptionDescription": "元に戻せません。申込履歴がある場合は削除できません。",
+    "closed": "募集を終了しました",
+    "deleted": "商品を完全に削除しました",
+    "deleteFailed": "処理に失敗しました。権限をご確認ください。",
+    "hardDeleteBlocked": "申込履歴があるため完全削除できません。募集終了をご利用ください。",
+    "loadFailed": "商品情報を読み込めませんでした。",
+    "errorTitleRequired": "商品名を入力してください",
+    "errorTargetRequired": "目標募集額を数字で入力してください",
+    "errorMinimumRequired": "最低投資額を数字で入力してください",
+    "errorMinimumTooLarge": "最低投資額が目標募集額を超えることはできません",
+    "noPermissionTitle": "登録権限がありません",
+    "noPermissionDescription": "投資商品の登録は管理者または権限を付与されたアカウントのみ可能です。",
+    "productType": {
+      "reit_share": "REIT持分",
+      "co_investment": "共同投資",
+      "fund": "ファンド",
+      "bond_like": "債券型"
+    }
+  },
+  "adminPermissions": {
+    "title": "アカウント権限管理",
+    "search": "検索",
+    "searchPlaceholder": "メールまたは名前で検索",
+    "searchHelper": "2文字以上入力してください。最大20件まで表示されます。",
+    "searchTooShort": "2文字以上入力してください",
+    "noResultsTitle": "検索結果がありません",
+    "noResultsDescription": "別のメールまたは名前でお試しください。",
+    "adminBadge": "管理者",
+    "adminHasAll": "管理者アカウントはすべての権限を既に持っています。",
+    "granted": "権限を付与しました",
+    "revoked": "権限を取り消しました",
+    "updateFailed": "権限の変更に失敗しました。",
+    "noPermissionTitle": "アクセス権限がありません",
+    "noPermissionDescription": "アカウント権限管理は管理者のみ利用できます。",
+    "permission": {
+      "investment_manage": "投資商品管理",
+      "property_manage": "物件管理"
+    },
+    "permissionDescription": {
+      "investment_manage": "投資商品の登録・編集・募集終了",
+      "property_manage": "物件の登録・編集・非表示"
     }
   }
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { setStatusBarBackgroundColor, setStatusBarStyle, setStatusBarTranslucent } from "expo-status-bar";
@@ -26,11 +26,13 @@ import { colors, layout, opacity, radius, spacing, textStyles, typography, Theme
 import {
   HOME_CATEGORIES,
   HOME_INVEST_CATEGORIES,
-  MOCK_INVESTMENT_PRODUCTS,
   MOCK_MARKET_INSIGHTS,
-  MOCK_PROPERTIES,
   MOCK_UNREAD_NOTIFICATION_COUNT,
+  type MockInvestmentProduct,
+  type MockProperty,
 } from "@/constants/mockData";
+import { listProperties } from "@/services/properties";
+import { listInvestmentProducts } from "@/services/investments";
 
 // STEP 4-9B — Home UI 레이아웃 기반. 실제 Property/Market 데이터 fetch는 하지 않는다
 // (constants/mockData.ts의 mock 값만 사용).
@@ -93,6 +95,25 @@ export default function HomeScreen() {
   // 실제 텍스트 입력이 가능한 검색창으로 바꿨다 — 커서가 실제로 동작해야 한다는 요청.
   const [homeSearch, setHomeSearch] = useState("");
 
+  // [STEP 04] 매물 목록 실DB 조회. 홈 탭은 다른 탭으로 이동해도 unmount되지 않으므로
+  // (§useFocusEffect 주석 참고) 마운트 시 1회 조회한다 — SQL/등록으로 매물이 추가된
+  // 경우 앱을 새로고침해야 반영된다(property.tsx와 동일한 정책).
+  const [properties, setProperties] = useState<MockProperty[]>([]);
+  const [investmentProducts, setInvestmentProducts] = useState<MockInvestmentProduct[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    listProperties().then((result) => {
+      if (mounted) setProperties(result);
+    });
+    listInvestmentProducts().then((result) => {
+      if (mounted) setInvestmentProducts(result);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   function submitHomeSearch() {
     const query = homeSearch.trim();
     router.push({ pathname: "/property", params: query ? { search: query } : {} });
@@ -103,14 +124,18 @@ export default function HomeScreen() {
     setTimeout(() => setToast(null), 1600);
   }
 
-  const featured = MOCK_PROPERTIES.filter((property) => property.featured);
-  const nearby = MOCK_PROPERTIES.filter((property) => !property.featured);
-  const recommendedInvestments = MOCK_INVESTMENT_PRODUCTS.filter((product) => product.featured);
+  // [STEP 04] 홈의 매물 섹션(추천/주변·최근)도 Mock(MOCK_PROPERTIES) 대신 실제
+  // Supabase properties 테이블을 읽는다 — app/(tabs)/property.tsx와 동일하게
+  // services/properties.ts의 listProperties()(status='active'만 조회)를 쓴다.
+  // [STEP 06] 투자상품도 실제 investment_products 테이블로 전환(시장동향은 DB 없음 — Mock 유지).
+  const featured = properties.filter((property) => property.featured);
+  const nearby = properties.filter((property) => !property.featured);
+  const recommendedInvestments = investmentProducts.filter((product) => product.featured);
   // [STEP: 2026-09-08] "전체상품" 섹션 — invest.tsx의 "전체상품"(전체보기 없이 항상
   // 노출되는 전체 목록) 섹션과 동일하게 featured가 아닌 상품만 별도로 나열한다
   // (featured 상품은 위 "추천 투자상품" 캐러셀에서 이미 보여주므로 중복 노출하지
   // 않는다 — invest.tsx의 featured/others 분리와 동일한 원칙).
-  const investAllProducts = MOCK_INVESTMENT_PRODUCTS.filter((product) => !product.featured);
+  const investAllProducts = investmentProducts.filter((product) => !product.featured);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -364,16 +389,23 @@ export default function HomeScreen() {
               actionLabel={t("common.seeAll")}
               onAction={() => router.push("/property")}
             />
-            <View style={styles.stack}>
-              {nearby.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  variant="list"
-                  onPress={() => router.push(`/property-detail/${property.id}`)}
-                />
-              ))}
-            </View>
+            {/* [STEP 04] 실DB 전환 후에는 등록된 매물이 0건일 수 있어(초기 운영
+                상태), 섹션 헤더만 덩그러니 남지 않도록 EmptyState를 노출한다 —
+                위 "투자 전체" 섹션과 동일한 패턴. */}
+            {nearby.length === 0 ? (
+              <EmptyState title={t("property.emptyTitle")} description={t("property.emptyDescription")} />
+            ) : (
+              <View style={styles.stack}>
+                {nearby.map((property) => (
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    variant="list"
+                    onPress={() => router.push(`/property-detail/${property.id}`)}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         ) : null}
 

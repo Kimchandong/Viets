@@ -23,18 +23,21 @@ import { buildGradientSteps, formatVndAmount, localizedText, splitYieldText } fr
 import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { InvestmentCard } from "@/components/InvestmentCard";
+import { Loading } from "@/components/Loading";
 import { LoginPromptModal } from "@/components/LoginPromptModal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { usePulsingColor } from "@/hooks/usePulsingColor";
 import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
 import {
-  findMockInvestmentProduct,
   findSimilarInvestmentsByMinAmount,
   findSimilarInvestmentsByPeriod,
   findSimilarInvestmentsByTarget,
+  type MockInvestmentProduct,
 } from "@/constants/mockData";
 import { getSession, onAuthStateChange } from "@/services/auth";
+import { getInvestmentProductById } from "@/services/investments";
+import { canManageInvestment } from "@/services/roles";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 
 // [FULL-DEV] Invest 상세 화면 — app/(tabs)/invest.tsx(리스트/카드)와 app/(tabs)/home.tsx
@@ -57,22 +60,53 @@ export default function InvestDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const product = useMemo(() => (id ? findMockInvestmentProduct(id) : undefined), [id]);
+  // [STEP 06] Mock(findMockInvestmentProduct) → 실제 investment_products 테이블.
+  const [product, setProduct] = useState<MockInvestmentProduct | undefined>(undefined);
+  const [productLoading, setProductLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    setProductLoading(true);
+    if (!id) {
+      setProduct(undefined);
+      setProductLoading(false);
+      return;
+    }
+    getInvestmentProductById(id).then((result) => {
+      if (mounted) {
+        setProduct(result);
+        setProductLoading(false);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
   // [STEP: 2026-09-09-8] 사용자 요청 — "연계 매물" 섹션 삭제, 대신 현재 투자상품과
   // 투자금/기간/목표액이 비슷한 다른 투자상품을 AI가 골라준 것처럼 3개 탭으로
   // 보여준다. app/property-detail/[id].tsx의 AI 매물 탭과 동일한 패턴이다.
+  // [STEP 06] 실DB 상품(isMock:false)은 비교 대상이 Mock 8건뿐인 findSimilar* 결과가
+  // 무관한 상품이라 노출하지 않는다 — property-detail과 동일한 "AI 정직성" 처리.
   const [aiTab, setAiTab] = useState<"amount" | "period" | "target">("amount");
   const similarByAmount = useMemo(
-    () => (product ? findSimilarInvestmentsByMinAmount(product) : []),
+    () => (product?.isMock ? findSimilarInvestmentsByMinAmount(product) : []),
     [product],
   );
-  const similarByPeriod = useMemo(() => (product ? findSimilarInvestmentsByPeriod(product) : []), [product]);
-  const similarByTarget = useMemo(() => (product ? findSimilarInvestmentsByTarget(product) : []), [product]);
+  const similarByPeriod = useMemo(
+    () => (product?.isMock ? findSimilarInvestmentsByPeriod(product) : []),
+    [product],
+  );
+  const similarByTarget = useMemo(
+    () => (product?.isMock ? findSimilarInvestmentsByTarget(product) : []),
+    [product],
+  );
   const aiTabResults =
     aiTab === "amount" ? similarByAmount : aiTab === "period" ? similarByPeriod : similarByTarget;
 
   const [session, setSession] = useState<Session | null>(null);
+  // [STEP 06] 투자상품 수정 진입점 노출 여부 — admin 또는 investment_manage 권한 보유자.
+  const [canEdit, setCanEdit] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   // [STEP: 2026-09-09] 사용자 요청 — "투자 신청"을 비로그인 상태에서 누르면
@@ -98,6 +132,10 @@ export default function InvestDetailScreen() {
 
     const { unsubscribe } = onAuthStateChange((_event, nextSession) => {
       if (mounted) setSession(nextSession);
+    });
+
+    canManageInvestment().then((ok) => {
+      if (mounted) setCanEdit(ok);
     });
 
     return () => {
@@ -136,6 +174,15 @@ export default function InvestDetailScreen() {
     setGalleryIndex(index);
   }
 
+  if (productLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+        <Header title="" leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Loading fullscreen />
+      </SafeAreaView>
+    );
+  }
+
   if (!product) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
@@ -157,14 +204,28 @@ export default function InvestDetailScreen() {
         title={product.title}
         leftAction={<BackButton onPress={() => router.back()} theme={theme} />}
         rightAction={
-          <Pressable
-            onPress={handleShare}
-            accessibilityRole="button"
-            accessibilityLabel={t("common.share")}
-            style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-          >
-            <Ionicons name="share-outline" size={22} color={theme.text} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            {/* [STEP 06] 투자상품 관리 권한(admin 또는 investment_manage)이 있는 계정에만
+                수정 진입점을 노출한다. 실제 차단은 investment_products RLS가 수행한다. */}
+            {canEdit ? (
+              <Pressable
+                onPress={() => router.push({ pathname: "/invest-register", params: { id: product.id } })}
+                accessibilityRole="button"
+                accessibilityLabel={t("investRegister.editTitle")}
+                style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
+              >
+                <Ionicons name="create-outline" size={22} color={theme.text} />
+              </Pressable>
+            ) : null}
+            <Pressable
+              onPress={handleShare}
+              accessibilityRole="button"
+              accessibilityLabel={t("common.share")}
+              style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
+            >
+              <Ionicons name="share-outline" size={22} color={theme.text} />
+            </Pressable>
+          </View>
         }
       />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -460,6 +521,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
   favoriteButton: {
     width: 40,

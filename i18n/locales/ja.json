@@ -4,7 +4,19 @@
     "cancel": "キャンセル",
     "confirm": "確認",
     "retry": "再試行",
-    "comingSoon": "近日公開"
+    "comingSoon": "近日公開",
+    "seeAll": "すべて見る",
+    "back": "戻る",
+    "share": "共有",
+    "loginRequired": "ログインが必要です",
+    "loginPromptBody": "Google または Apple アカウントでログインして続けてください。",
+    "notFoundTitle": "見つかりません",
+    "notFoundDescription": "リクエストされた項目が見つかりません。",
+    "mockNotice": "これはテスト用モックデータです",
+    "favoriteAdded": "お気に入りに追加しました",
+    "favoriteRemoved": "お気に入りから削除しました",
+    "noSimilarResultsTitle": "類似の項目がありません",
+    "noSimilarResultsDescription": "条件に合う物件・商品が見つかりませんでした"
   },
   "tabs": {
     "home": "ホーム",
@@ -14,18 +26,297 @@
     "my": "マイページ"
   },
   "home": {
-    "title": "ホーム"
+    "title": "ホーム",
+    "searchPlaceholder": "都市・プロジェクト・キーワードで検索",
+    "categoriesTitle": "カテゴリー",
+    "featuredTitle": "おすすめ",
+    "nearbyTitle": "近く・新着",
+    "marketTitle": "市場ニュース",
+    "recommendedInvestTitle": "おすすめ",
+    "allInvestProductsTitle": "全体",
+    "categoryTabs": {
+      "property": "物件",
+      "invest": "投資"
+    }
   },
   "property": {
-    "title": "不動産"
+    "title": "不動産",
+    "searchPlaceholder": "エリアまたは物件名で検索",
+    "allRegions": "すべての地域",
+    "filterAll": "すべて",
+    "status": {
+      "forSale": "売買",
+      "forRent": "賃貸"
+    },
+    "statusLabel": "取引タイプ",
+    "mapComingSoon": "マップ表示は近日公開予定です",
+    "featuredTitle": "おすすめ物件",
+    "listingsTitle": "新着物件",
+    "emptyTitle": "物件が見つかりません",
+    "emptyDescription": "別の地域やフィルターをお試しください。",
+    "yieldLabel": "想定利回り",
+    "distanceAway": "{{distance}} km",
+    "sortLabel": "並び替え",
+    "sort": {
+      "newest": "新着順",
+      "priceLow": "価格が低い順",
+      "priceHigh": "価格が高い順",
+      "areaLarge": "面積が広い順"
+    },
+    "categoryLabel": "カテゴリー"
+  },
+  "propertyDetail": {
+    "descriptionTitle": "詳細説明",
+    "optionsTitle": "オプション・設備",
+    "bedroomsLabel": "寝室",
+    "bathroomsLabel": "浴室",
+    "areaLabel": "面積",
+    "inquiryButton": "問い合わせる",
+    "inquiryModalTitle": "物件のお問い合わせ",
+    "inquiryModalBody": "担当者が確認後ご連絡します。\n（テスト画面 — 実際には送信されません）",
+    "inquiryModalSubmit": "問い合わせを送る",
+    "inquirySentToast": "お問い合わせを受け付けました（テスト）",
+    "relatedInvestTitle": "関連投資商品",
+    "aiPropertiesTitle": "AI物件",
+    "tabArea": "面積",
+    "tabRooms": "部屋数",
+    "tabPrice": "価格",
+    "expectedYieldLabel1": "AI予想収益",
+    "expectedYieldLabel2": "AI予想収益率は売買物件にのみ適用されます。\n（投資参考用）"
   },
   "invest": {
-    "title": "投資"
+    "title": "投資",
+    "overviewTitle": "投資概要",
+    "overview": {
+      "totalRaised": "累計調達額",
+      "activeProducts": "募集中の商品",
+      "avgReturn": "平均利回り"
+    },
+    "risk": {
+      "low": "低リスク",
+      "medium": "中リスク",
+      "high": "高リスク"
+    },
+    "featuredTitle": "おすすめ商品",
+    "allProductsTitle": "すべての商品",
+    "emptyTitle": "商品が見つかりません",
+    "emptyDescription": "別のリスクレベルをお試しください。",
+    "status": {
+      "fundraising": "募集中",
+      "closed": "募集終了",
+      "completed": "完了"
+    },
+    "expectedReturnLabel": "想定利回り",
+    "minInvestmentLabel": "最低投資額",
+    "periodLabel": "運用期間",
+    "progressLabel": "募集達成率",
+    "infoTitle": "投資の仕組み",
+    "infoBody": "他の投資家と資金を出し合い、共同で不動産商品に投資します。収益とリスクは商品ごとに異なるため、投資前に必ず詳細をご確認ください。",
+    "categoryLabel": "カテゴリー",
+    "riskLabel": "リスク",
+    "riskSelectAll": "すべてのリスク"
+  },
+  "investDetail": {
+    "targetAmountLabel": "目標募集額",
+    "raisedAmountLabel": "累計調達額",
+    "dividendFrequencyLabel": "配当頻度",
+    "dividendFrequency": {
+      "monthly": "毎月",
+      "quarterly": "四半期ごと",
+      "yearly": "毎年"
+    },
+    "relatedPropertyTitle": "関連物件",
+    "applyButton": "投資申込",
+    "applyModalTitle": "投資申込について",
+    "applyModalBody": "この画面はテスト用です。\n実際の金融取引（決済・送金）はまだサポートされていません。",
+    "applyModalConfirm": "了解しました",
+    "applySubmittedToast": "投資申込を受け付けました（テスト）",
+    "aiInvestmentsTitle": "AI投資",
+    "tabAmount": "投資金額",
+    "tabPeriod": "期間",
+    "tabTarget": "目標額"
+  },
+  "investApply": {
+    "headerTitle": "投資申込み",
+    "loginRequiredDescription": "投資の申込みにはログインが必要です。",
+    "disclaimer": "これはテスト画面です。実際の決済・送金などの金融取引にはまだ対応しておらず、入力された情報は実際には保存されません。",
+    "productSummaryLabel": "申込み商品",
+    "amountSection": {
+      "title": "投資金額",
+      "amountLabel": "申込み金額 (VNĐ)",
+      "amountPlaceholder": "投資金額を入力 (VND)",
+      "amountHelper": "最低投資額 {{minAmount}}",
+      "quickMinLabel": "最低金額",
+      "quickMultLabel": "最低金額 x{{multiplier}}"
+    },
+    "applicantSection": {
+      "title": "申込者情報",
+      "nameLabel": "氏名",
+      "namePlaceholder": "投資者名を入力",
+      "phoneLabel": "電話番号",
+      "phonePlaceholder": "投資者の電話番号を入力",
+      "emailLabel": "メールアドレス",
+      "emailPlaceholder": "email@example.com"
+    },
+    "payoutSection": {
+      "title": "配当受取口座",
+      "description": "月次・四半期・年次の配当を受け取る口座情報です。",
+      "bankNameLabel": "銀行名",
+      "bankNamePlaceholder": "例：Vietcombank",
+      "accountNumberLabel": "口座番号",
+      "accountNumberPlaceholder": "口座番号を入力",
+      "accountHolderLabel": "口座名義",
+      "accountHolderPlaceholder": "口座名義を入力"
+    },
+    "noteSection": {
+      "title": "投資目的・メモ（任意）",
+      "placeholder": "投資目的やメモがあれば入力してください"
+    },
+    "agreementsSection": {
+      "title": "利用規約への同意",
+      "riskLabel": "[必須] 投資説明書を確認し、投資リスクの告知事項に同意します",
+      "privacyLabel": "[必須] 個人情報の収集および利用に同意します",
+      "marketingLabel": "[任意] マーケティング情報の受信に同意します"
+    },
+    "errors": {
+      "amountRequired": "投資金額を入力してください",
+      "amountBelowMin": "最低投資額（{{minAmount}}）以上を入力してください",
+      "nameRequired": "氏名を入力してください",
+      "phoneRequired": "電話番号を入力してください",
+      "emailRequired": "メールアドレスを入力してください",
+      "emailInvalid": "正しいメールアドレスの形式ではありません",
+      "bankNameRequired": "銀行名を入力してください",
+      "accountNumberRequired": "口座番号を入力してください",
+      "accountHolderRequired": "口座名義を入力してください",
+      "agreementsRequired": "必須項目に同意してください"
+    },
+    "submitButton": "投資を申込む",
+    "successTitle": "投資申込みを受け付けました",
+    "successDescription": "テスト画面のため、実際には送信されていません。\n実際のサービスでは審査後に結果をご案内します。",
+    "goToProduct": "商品詳細に戻る",
+    "goToInvestList": "投資商品一覧へ",
+    "confirmBeforeApplyTitle": "投資申込み前に必ずご確認ください",
+    "confirmBeforeApplyBody": "本商品は不動産および関連資産に投資する商品であり、投資元本の全部または一部が損失する可能性があり、投資収益は保証されません。\n投資前に以下の事項を必ずご確認ください。\n* ご自身の投資目的と投資期間を十分にご検討ください。\n* 投資金額がご自身の財政状況に無理のない範囲かご確認ください。\n* 生活費、緊急資金、ローン返済などに必要な資金を投資に使用しないでください。\n* 不動産市場および当該投資商品の状況により、予想より低い収益が発生したり、損失が発生する場合があります。\n* 投資金の回収または売却には一定期間を要する場合があり、希望する時にすぐに現金化できない場合があります。\n* 投資収益率および予想配当金は確定した収益を意味するものではありません。\n* 投資前に商品の投資構造、対象不動産、予想収益、リスク要因、手数料およびその他関連情報を十分にご確認ください。\n投資はご自身の判断と責任において行われます。\n十分に理解し、慎重にご判断の上、投資申込みを進めてください。"
+  },
+  "chat": {
+    "headerTitle": "不動産相談",
+    "loginRequiredDescription": "1対1相談はログイン後にご利用いただけます。",
+    "inputPlaceholder": "メッセージを入力",
+    "sendFailedToast": "送信に失敗しました。もう一度お試しください。",
+    "imagePermissionDenied": "写真へのアクセス権限が必要です。"
   },
   "ai": {
-    "title": "AI"
+    "title": "AI",
+    "greetingTitle": "AIマーケットアシスタント",
+    "greetingSubtitle": "物件・価格・市場動向について質問できます",
+    "inputPlaceholder": "ベトナム不動産について何でも質問してください...",
+    "sendLabel": "送信",
+    "voiceHint": "タップして話す",
+    "suggestedTitle": "こんな質問はいかがですか",
+    "recentTitle": "最近の検索",
+    "thinking": "回答を準備しています...",
+    "emptyTitle": "質問を入力して始めましょう",
+    "emptyDescription": "AIの回答はここに表示されます。",
+    "notReadyTitle": "AI回答機能は準備中です",
+    "notReadyDescription": "「{{query}}」— この機能はまだ接続されていません。",
+    "resetLabel": "別の質問をする",
+    "suggestions": {
+      "q1": "賃貸利回りが最も高いエリアはどこですか？",
+      "q2": "Vinhomes Grand ParkとEmpire Cityを比較してください",
+      "q3": "今はホーチミン市に投資する良いタイミングですか？",
+      "q4": "第2区の1平方メートルあたりの平均価格は？",
+      "q5": "REIT投資をわかりやすく説明してください",
+      "q6": "低リスクの投資商品を見せてください"
+    },
+    "recent": {
+      "q1": "第9区周辺のアパート",
+      "q2": "1000万VND以下のREIT商品",
+      "q3": "USD/VND為替レートの推移"
+    }
   },
   "my": {
-    "title": "マイページ"
+    "title": "マイページ",
+    "guestTitle": "今すぐ始めましょう",
+    "guestDescription": "ログインして投資と物件を管理しましょう。",
+    "signedInLabel": "ログイン中",
+    "activityTitle": "マイアクティビティ",
+    "stats": {
+      "reservations": "予約",
+      "investments": "投資",
+      "propertyActivity": "物件アクティビティ"
+    },
+    "favoritesTitle": "お気に入り",
+    "favoritePropertiesTitle": "お気に入り物件",
+    "favoriteInvestmentsTitle": "お気に入り投資商品",
+    "noFavoriteProperties": "お気に入り物件はまだありません",
+    "noFavoriteInvestments": "お気に入り投資商品はまだありません",
+    "settingsTitle": "設定",
+    "rows": {
+      "notifications": "通知",
+      "language": "言語",
+      "currency": "通貨",
+      "support": "カスタマーサポート"
+    },
+    "languageModalTitle": "言語を選択",
+    "currencyModalTitle": "通貨を選択",
+    "currency": {
+      "vnd": "ベトナムドン (VND)",
+      "usd": "米ドル (USD)"
+    }
+  },
+  "auth": {
+    "tagline": "ベトナム不動産・投資プラットフォーム",
+    "fields": {
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "confirmPassword": "パスワード（確認）"
+    },
+    "login": {
+      "title": "ログイン",
+      "submit": "ログイン",
+      "registerPrompt": "アカウントをお持ちでない方はこちら",
+      "google": "Googleで続ける",
+      "apple": "Appleで続ける",
+      "oauthUnavailable": "Google/Appleログインはまだ準備中です。",
+      "termsNotice": "続行すると、Viet'sの利用規約とプライバシーポリシーに同意したものとみなされます。"
+    },
+    "register": {
+      "title": "新規登録",
+      "submit": "登録",
+      "loginPrompt": "すでにアカウントをお持ちの方はこちら",
+      "successTitle": "アカウントを作成しました",
+      "checkEmail": "確認メールをご確認のうえ、アカウントを認証してください。",
+      "successGeneric": "アカウントが作成されました。",
+      "goToLogin": "ログインへ進む"
+    },
+    "errors": {
+      "missingFields": "すべての項目を入力してください。",
+      "passwordMismatch": "パスワードが一致しません。",
+      "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
+      "emailInUse": "このメールアドレスはすでに登録されています。",
+      "network": "ネットワークエラーです。もう一度お試しください。",
+      "weakPassword": "パスワードは6文字以上で入力してください。",
+      "unavailable": "現在ログインをご利用いただけません。",
+      "generic": "問題が発生しました。もう一度お試しください。"
+    }
+  },
+  "categories": {
+    "property": {
+      "apartment": "アパート",
+      "residential": "住宅",
+      "building": "ビル",
+      "factory": "工場",
+      "land": "土地",
+      "other": "その他"
+    },
+    "invest": {
+      "land": "土地",
+      "building": "ビル",
+      "commercial": "商業施設",
+      "residential": "住宅",
+      "industrial": "工場",
+      "warehouse": "倉庫",
+      "other": "その他"
+    }
   }
 }

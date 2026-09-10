@@ -1,4 +1,4 @@
-import { StyleSheet, Text, useColorScheme, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, spacing, typography } from "@/constants/theme";
@@ -12,8 +12,8 @@ type Props = {
  * 각 탭의 실제 화면이 구현되면 이 컴포넌트를 대체한다.
  */
 export function PlaceholderScreen({ title }: Props) {
-  const scheme = useColorScheme() ?? "light";
-  const theme = colors[scheme];
+  // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
+  const theme = colors.light;
 
   return (
     <SafeAreaView

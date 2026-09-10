@@ -30,3 +30,12 @@ yarn-error.*
 
 # TypeScript
 *.tsbuildinfo
+
+# [STEP: 2026-09-10-3] STEP 00(Git 백업) — 스크래치/백업 파일 제외.
+# 앱 코드가 아니라 세션 중 만들어진 임시 백업/이전 설정 스냅샷/작업 원본 자료라
+# 저장소에 커밋할 대상이 아니다(특히 zip은 98MB로 저장소를 불필요하게 키운다).
+*.before-expo-fix
+eslint-effective-config.json
+Viets*.zip
+작업파일/
+supabase/.temp/

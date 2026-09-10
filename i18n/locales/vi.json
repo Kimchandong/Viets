@@ -4,7 +4,19 @@
     "cancel": "Hủy",
     "confirm": "Xác nhận",
     "retry": "Thử lại",
-    "comingSoon": "Sắp ra mắt"
+    "comingSoon": "Sắp ra mắt",
+    "seeAll": "Xem tất cả",
+    "back": "Quay lại",
+    "share": "Chia sẻ",
+    "loginRequired": "Vui lòng đăng nhập",
+    "loginPromptBody": "Đăng nhập bằng tài khoản Google hoặc Apple để tiếp tục.",
+    "notFoundTitle": "Không tìm thấy",
+    "notFoundDescription": "Không tìm thấy mục bạn yêu cầu.",
+    "mockNotice": "Đây là dữ liệu thử nghiệm (mock)",
+    "favoriteAdded": "Đã thêm vào yêu thích",
+    "favoriteRemoved": "Đã xóa khỏi yêu thích",
+    "noSimilarResultsTitle": "Không có mục tương tự",
+    "noSimilarResultsDescription": "Không tìm thấy bất động sản/sản phẩm phù hợp với điều kiện này"
   },
   "tabs": {
     "home": "Trang chủ",
@@ -14,18 +26,297 @@
     "my": "Của tôi"
   },
   "home": {
-    "title": "Trang chủ"
+    "title": "Trang chủ",
+    "searchPlaceholder": "Tìm thành phố, dự án hoặc từ khóa",
+    "categoriesTitle": "Danh mục",
+    "featuredTitle": "Dành cho bạn",
+    "nearbyTitle": "Gần đây & mới nhất",
+    "marketTitle": "Tin tức thị trường",
+    "recommendedInvestTitle": "Đề xuất",
+    "allInvestProductsTitle": "Toàn bộ",
+    "categoryTabs": {
+      "property": "BĐS",
+      "invest": "Đầu tư"
+    }
   },
   "property": {
-    "title": "Bất động sản"
+    "title": "Bất động sản",
+    "searchPlaceholder": "Tìm theo khu vực hoặc tên bất động sản",
+    "allRegions": "Tất cả khu vực",
+    "filterAll": "Tất cả",
+    "status": {
+      "forSale": "Bán",
+      "forRent": "Cho thuê"
+    },
+    "statusLabel": "Loại giao dịch",
+    "mapComingSoon": "Chế độ bản đồ sắp ra mắt",
+    "featuredTitle": "Bất động sản nổi bật",
+    "listingsTitle": "Tin đăng mới nhất",
+    "emptyTitle": "Không tìm thấy bất động sản",
+    "emptyDescription": "Hãy thử khu vực hoặc bộ lọc khác.",
+    "yieldLabel": "Lợi suất ước tính",
+    "distanceAway": "Cách {{distance}} km",
+    "sortLabel": "Sắp xếp",
+    "sort": {
+      "newest": "Mới nhất",
+      "priceLow": "Giá thấp đến cao",
+      "priceHigh": "Giá cao đến thấp",
+      "areaLarge": "Diện tích lớn nhất"
+    },
+    "categoryLabel": "Danh mục"
+  },
+  "propertyDetail": {
+    "descriptionTitle": "Mô tả chi tiết",
+    "optionsTitle": "Tiện ích",
+    "bedroomsLabel": "Phòng ngủ",
+    "bathroomsLabel": "Phòng tắm",
+    "areaLabel": "Diện tích",
+    "inquiryButton": "Liên hệ tư vấn",
+    "inquiryModalTitle": "Liên hệ về bất động sản",
+    "inquiryModalBody": "Đội ngũ của chúng tôi sẽ xem xét và liên hệ lại.\n(Màn hình thử nghiệm — không thực sự gửi đi)",
+    "inquiryModalSubmit": "Gửi liên hệ",
+    "inquirySentToast": "Đã gửi liên hệ (thử nghiệm)",
+    "relatedInvestTitle": "Sản phẩm đầu tư liên quan",
+    "aiPropertiesTitle": "Bất động sản AI",
+    "tabArea": "Diện tích",
+    "tabRooms": "Số phòng",
+    "tabPrice": "Giá",
+    "expectedYieldLabel1": "AI Lợi nhuận dự kiến",
+    "expectedYieldLabel2": "Tỷ suất lợi nhuận dự kiến AI chỉ áp dụng cho bất động sản bán.\n(Chỉ mang tính tham khảo đầu tư)"
   },
   "invest": {
-    "title": "Đầu tư"
+    "title": "Đầu tư",
+    "overviewTitle": "Tổng quan đầu tư",
+    "overview": {
+      "totalRaised": "Tổng vốn huy động",
+      "activeProducts": "Sản phẩm đang mở",
+      "avgReturn": "Lợi nhuận TB"
+    },
+    "risk": {
+      "low": "Rủi ro thấp",
+      "medium": "Rủi ro trung bình",
+      "high": "Rủi ro cao"
+    },
+    "featuredTitle": "Sản phẩm nổi bật",
+    "allProductsTitle": "Tất cả sản phẩm",
+    "emptyTitle": "Không tìm thấy sản phẩm",
+    "emptyDescription": "Hãy thử mức độ rủi ro khác.",
+    "status": {
+      "fundraising": "Đang gọi vốn",
+      "closed": "Đã đóng",
+      "completed": "Hoàn tất"
+    },
+    "expectedReturnLabel": "Lợi nhuận kỳ vọng",
+    "minInvestmentLabel": "Đầu tư tối thiểu",
+    "periodLabel": "Kỳ hạn",
+    "progressLabel": "Đã gọi vốn",
+    "infoTitle": "Cách thức đầu tư",
+    "infoBody": "Góp vốn cùng các nhà đầu tư khác vào một sản phẩm bất động sản chung. Lợi nhuận và rủi ro phụ thuộc vào từng sản phẩm — hãy luôn xem kỹ thông tin chi tiết trước khi đầu tư.",
+    "categoryLabel": "Danh mục",
+    "riskLabel": "Mức rủi ro",
+    "riskSelectAll": "Tất cả mức rủi ro"
+  },
+  "investDetail": {
+    "targetAmountLabel": "Số tiền mục tiêu",
+    "raisedAmountLabel": "Đã huy động",
+    "dividendFrequencyLabel": "Tần suất chia cổ tức",
+    "dividendFrequency": {
+      "monthly": "Hàng tháng",
+      "quarterly": "Hàng quý",
+      "yearly": "Hàng năm"
+    },
+    "relatedPropertyTitle": "Bất động sản liên quan",
+    "applyButton": "Đăng ký đầu tư",
+    "applyModalTitle": "Thông tin đăng ký đầu tư",
+    "applyModalBody": "Đây là màn hình thử nghiệm.\nGiao dịch tài chính thực tế (thanh toán/chuyển khoản) chưa được hỗ trợ.",
+    "applyModalConfirm": "Đã hiểu",
+    "applySubmittedToast": "Đã gửi đăng ký đầu tư (thử nghiệm)",
+    "aiInvestmentsTitle": "Đầu tư AI",
+    "tabAmount": "Số tiền đầu tư",
+    "tabPeriod": "Kỳ hạn",
+    "tabTarget": "Số tiền mục tiêu"
+  },
+  "investApply": {
+    "headerTitle": "Đăng ký đầu tư",
+    "loginRequiredDescription": "Vui lòng đăng nhập để đăng ký đầu tư.",
+    "disclaimer": "Đây là màn hình thử nghiệm. Giao dịch tài chính thực tế (thanh toán/chuyển khoản) chưa được hỗ trợ và thông tin bạn nhập sẽ không thực sự được lưu lại.",
+    "productSummaryLabel": "Sản phẩm đăng ký",
+    "amountSection": {
+      "title": "Số tiền đầu tư",
+      "amountLabel": "Số tiền đăng ký (VNĐ)",
+      "amountPlaceholder": "Nhập số tiền đầu tư (VNĐ)",
+      "amountHelper": "Đầu tư tối thiểu {{minAmount}}",
+      "quickMinLabel": "Tối thiểu",
+      "quickMultLabel": "Tối thiểu x{{multiplier}}"
+    },
+    "applicantSection": {
+      "title": "Thông tin người đăng ký",
+      "nameLabel": "Họ và tên",
+      "namePlaceholder": "Nhập tên nhà đầu tư",
+      "phoneLabel": "Số điện thoại",
+      "phonePlaceholder": "Nhập số điện thoại nhà đầu tư",
+      "emailLabel": "Email",
+      "emailPlaceholder": "email@example.com"
+    },
+    "payoutSection": {
+      "title": "Tài khoản nhận cổ tức",
+      "description": "Tài khoản sẽ nhận cổ tức hàng tháng/quý/năm.",
+      "bankNameLabel": "Tên ngân hàng",
+      "bankNamePlaceholder": "VD: Vietcombank",
+      "accountNumberLabel": "Số tài khoản",
+      "accountNumberPlaceholder": "Nhập số tài khoản",
+      "accountHolderLabel": "Chủ tài khoản",
+      "accountHolderPlaceholder": "Nhập tên chủ tài khoản"
+    },
+    "noteSection": {
+      "title": "Mục đích đầu tư · Ghi chú (không bắt buộc)",
+      "placeholder": "Nhập mục đích đầu tư hoặc ghi chú nếu có"
+    },
+    "agreementsSection": {
+      "title": "Đồng ý điều khoản",
+      "riskLabel": "[Bắt buộc] Tôi đã xem bản cáo bạch và đồng ý với thông báo rủi ro đầu tư",
+      "privacyLabel": "[Bắt buộc] Tôi đồng ý thu thập và sử dụng thông tin cá nhân",
+      "marketingLabel": "[Không bắt buộc] Tôi đồng ý nhận thông tin tiếp thị"
+    },
+    "errors": {
+      "amountRequired": "Vui lòng nhập số tiền đầu tư",
+      "amountBelowMin": "Vui lòng nhập từ mức đầu tư tối thiểu ({{minAmount}}) trở lên",
+      "nameRequired": "Vui lòng nhập họ tên",
+      "phoneRequired": "Vui lòng nhập số điện thoại",
+      "emailRequired": "Vui lòng nhập email",
+      "emailInvalid": "Định dạng email không hợp lệ",
+      "bankNameRequired": "Vui lòng nhập tên ngân hàng",
+      "accountNumberRequired": "Vui lòng nhập số tài khoản",
+      "accountHolderRequired": "Vui lòng nhập tên chủ tài khoản",
+      "agreementsRequired": "Vui lòng đồng ý các điều khoản bắt buộc"
+    },
+    "submitButton": "Gửi đăng ký",
+    "successTitle": "Đã gửi đăng ký đầu tư",
+    "successDescription": "Đây là màn hình thử nghiệm nên chưa được gửi đi thực sự.\nTrong dịch vụ thực tế, bạn sẽ được thông báo kết quả sau khi xem xét.",
+    "goToProduct": "Quay lại chi tiết sản phẩm",
+    "goToInvestList": "Đến danh sách đầu tư",
+    "confirmBeforeApplyTitle": "Lưu ý quan trọng trước khi đăng ký đầu tư",
+    "confirmBeforeApplyBody": "Sản phẩm này là sản phẩm đầu tư vào bất động sản và các tài sản liên quan, có thể mất một phần hoặc toàn bộ vốn gốc đầu tư, và lợi nhuận đầu tư không được đảm bảo.\nVui lòng chắc chắn xác nhận các nội dung dưới đây trước khi đầu tư.\n* Hãy cân nhắc kỹ mục đích đầu tư và thời gian đầu tư của bản thân.\n* Hãy kiểm tra xem số tiền đầu tư có phù hợp với tình hình tài chính của bạn hay không.\n* Không sử dụng tiền sinh hoạt phí, quỹ khẩn cấp, tiền trả nợ vay... để đầu tư.\n* Tùy theo tình hình thị trường bất động sản và sản phẩm đầu tư, lợi nhuận thực tế có thể thấp hơn dự kiến hoặc có thể phát sinh thua lỗ.\n* Việc thu hồi hoặc chuyển nhượng khoản đầu tư có thể mất một khoảng thời gian nhất định và có thể không được chuyển đổi thành tiền mặt ngay khi bạn muốn.\n* Tỷ suất lợi nhuận đầu tư và cổ tức dự kiến không có nghĩa là lợi nhuận đã được xác định.\n* Trước khi đầu tư, vui lòng kiểm tra kỹ cấu trúc đầu tư, bất động sản mục tiêu, lợi nhuận dự kiến, các yếu tố rủi ro, phí và các thông tin liên quan khác của sản phẩm.\nViệc đầu tư được thực hiện theo phán đoán và trách nhiệm của chính bạn.\nVui lòng tiến hành đăng ký đầu tư sau khi đã hiểu rõ và cân nhắc thận trọng."
+  },
+  "chat": {
+    "headerTitle": "Tư vấn bất động sản",
+    "loginRequiredDescription": "Vui lòng đăng nhập để trò chuyện 1:1.",
+    "inputPlaceholder": "Nhập tin nhắn",
+    "sendFailedToast": "Gửi thất bại. Vui lòng thử lại.",
+    "imagePermissionDenied": "Cần quyền truy cập ảnh."
   },
   "ai": {
-    "title": "AI"
+    "title": "AI",
+    "greetingTitle": "Trợ lý thị trường AI",
+    "greetingSubtitle": "Hỏi về bất động sản, giá cả hoặc xu hướng thị trường",
+    "inputPlaceholder": "Hỏi bất cứ điều gì về bất động sản Việt Nam...",
+    "sendLabel": "Gửi",
+    "voiceHint": "Chạm để nói",
+    "suggestedTitle": "Thử hỏi",
+    "recentTitle": "Tìm kiếm gần đây",
+    "thinking": "Đang xử lý...",
+    "emptyTitle": "Đặt câu hỏi để bắt đầu",
+    "emptyDescription": "Câu trả lời của AI sẽ hiển thị ở đây.",
+    "notReadyTitle": "Tính năng trả lời AI sắp ra mắt",
+    "notReadyDescription": "\"{{query}}\" — tính năng này chưa được kết nối.",
+    "resetLabel": "Hỏi câu khác",
+    "suggestions": {
+      "q1": "Khu vực nào có lợi suất cho thuê tốt nhất?",
+      "q2": "So sánh Vinhomes Grand Park và Empire City",
+      "q3": "Bây giờ có phải thời điểm tốt để đầu tư tại TP.HCM?",
+      "q4": "Giá trung bình mỗi m² ở Quận 2 là bao nhiêu?",
+      "q5": "Giải thích đơn giản về đầu tư REIT",
+      "q6": "Cho tôi xem các sản phẩm đầu tư rủi ro thấp"
+    },
+    "recent": {
+      "q1": "Căn hộ gần Quận 9",
+      "q2": "Sản phẩm REIT dưới 10 triệu VNĐ",
+      "q3": "Xu hướng tỷ giá USD/VNĐ"
+    }
   },
   "my": {
-    "title": "Của tôi"
+    "title": "Của tôi",
+    "guestTitle": "Bắt đầu ngay",
+    "guestDescription": "Đăng nhập để quản lý đầu tư và bất động sản của bạn.",
+    "signedInLabel": "Đã đăng nhập",
+    "activityTitle": "Hoạt động của tôi",
+    "stats": {
+      "reservations": "Đặt chỗ",
+      "investments": "Đầu tư",
+      "propertyActivity": "Hoạt động BĐS"
+    },
+    "favoritesTitle": "Yêu thích",
+    "favoritePropertiesTitle": "Bất động sản yêu thích",
+    "favoriteInvestmentsTitle": "Sản phẩm đầu tư yêu thích",
+    "noFavoriteProperties": "Chưa có bất động sản yêu thích",
+    "noFavoriteInvestments": "Chưa có sản phẩm đầu tư yêu thích",
+    "settingsTitle": "Cài đặt",
+    "rows": {
+      "notifications": "Thông báo",
+      "language": "Ngôn ngữ",
+      "currency": "Đơn vị tiền tệ",
+      "support": "Hỗ trợ khách hàng"
+    },
+    "languageModalTitle": "Chọn ngôn ngữ",
+    "currencyModalTitle": "Chọn đơn vị tiền tệ",
+    "currency": {
+      "vnd": "Đồng Việt Nam (VND)",
+      "usd": "Đô la Mỹ (USD)"
+    }
+  },
+  "auth": {
+    "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
+    "fields": {
+      "email": "Email",
+      "password": "Mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu"
+    },
+    "login": {
+      "title": "Đăng nhập",
+      "submit": "Đăng nhập",
+      "registerPrompt": "Chưa có tài khoản? Đăng ký",
+      "google": "Tiếp tục với Google",
+      "apple": "Tiếp tục với Apple",
+      "oauthUnavailable": "Đăng nhập Google/Apple chưa được thiết lập.",
+      "termsNotice": "Bằng việc tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của Viet's."
+    },
+    "register": {
+      "title": "Đăng ký",
+      "submit": "Đăng ký",
+      "loginPrompt": "Đã có tài khoản? Đăng nhập",
+      "successTitle": "Tạo tài khoản thành công",
+      "checkEmail": "Vui lòng kiểm tra email để xác nhận tài khoản.",
+      "successGeneric": "Tài khoản của bạn đã được tạo.",
+      "goToLogin": "Đến trang đăng nhập"
+    },
+    "errors": {
+      "missingFields": "Vui lòng điền đầy đủ thông tin.",
+      "passwordMismatch": "Mật khẩu không khớp.",
+      "invalidCredentials": "Email hoặc mật khẩu không đúng.",
+      "emailInUse": "Email này đã được đăng ký.",
+      "network": "Lỗi mạng. Vui lòng thử lại.",
+      "weakPassword": "Mật khẩu phải có ít nhất 6 ký tự.",
+      "unavailable": "Hiện không thể đăng nhập.",
+      "generic": "Đã xảy ra lỗi. Vui lòng thử lại."
+    }
+  },
+  "categories": {
+    "property": {
+      "apartment": "Căn hộ",
+      "residential": "Nhà ở",
+      "building": "Tòa nhà",
+      "factory": "Nhà xưởng",
+      "land": "Đất",
+      "other": "Khác"
+    },
+    "invest": {
+      "land": "Đất",
+      "building": "Tòa nhà",
+      "commercial": "Mặt bằng",
+      "residential": "Nhà ở",
+      "industrial": "Nhà xưởng",
+      "warehouse": "Kho",
+      "other": "Khác"
+    }
   }
 }

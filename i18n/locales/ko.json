@@ -4,7 +4,19 @@
     "cancel": "취소",
     "confirm": "확인",
     "retry": "다시 시도",
-    "comingSoon": "준비 중입니다"
+    "comingSoon": "준비 중입니다",
+    "seeAll": "더보기",
+    "back": "뒤로",
+    "share": "공유",
+    "loginRequired": "로그인이 필요합니다",
+    "loginPromptBody": "Google 또는 Apple 계정으로 로그인하고 계속 진행해 보세요.",
+    "notFoundTitle": "찾을 수 없습니다",
+    "notFoundDescription": "요청하신 항목을 찾을 수 없습니다.",
+    "mockNotice": "테스트용 mock 데이터입니다",
+    "favoriteAdded": "관심 목록에 추가했습니다",
+    "favoriteRemoved": "관심 목록에서 제거했습니다",
+    "noSimilarResultsTitle": "유사한 항목이 없습니다",
+    "noSimilarResultsDescription": "조건에 맞는 매물/상품을 찾지 못했습니다"
   },
   "tabs": {
     "home": "홈",
@@ -14,18 +26,297 @@
     "my": "MY"
   },
   "home": {
-    "title": "홈"
+    "title": "홈",
+    "searchPlaceholder": "도시, 프로젝트, 키워드 검색",
+    "categoriesTitle": "카테고리",
+    "featuredTitle": "추천",
+    "nearbyTitle": "주변 · 최근",
+    "marketTitle": "시장 소식",
+    "recommendedInvestTitle": "추천",
+    "allInvestProductsTitle": "전체",
+    "categoryTabs": {
+      "property": "매물",
+      "invest": "투자"
+    }
   },
   "property": {
-    "title": "부동산"
+    "title": "부동산",
+    "searchPlaceholder": "지역 또는 매물명 검색",
+    "allRegions": "전체 지역",
+    "filterAll": "전체",
+    "status": {
+      "forSale": "매매",
+      "forRent": "임대"
+    },
+    "statusLabel": "거래 유형",
+    "mapComingSoon": "지도 보기는 준비 중입니다",
+    "featuredTitle": "추천 매물",
+    "listingsTitle": "최신 매물",
+    "emptyTitle": "매물이 없습니다",
+    "emptyDescription": "다른 지역이나 필터를 선택해 보세요.",
+    "yieldLabel": "예상수익",
+    "distanceAway": "{{distance}}km 거리",
+    "sortLabel": "정렬",
+    "sort": {
+      "newest": "최신순",
+      "priceLow": "낮은 가격순",
+      "priceHigh": "높은 가격순",
+      "areaLarge": "넓은 면적순"
+    },
+    "categoryLabel": "카테고리"
+  },
+  "propertyDetail": {
+    "descriptionTitle": "상세 설명",
+    "optionsTitle": "옵션 · 편의시설",
+    "bedroomsLabel": "침실",
+    "bathroomsLabel": "욕실",
+    "areaLabel": "면적",
+    "inquiryButton": "문의하기",
+    "inquiryModalTitle": "매물 문의",
+    "inquiryModalBody": "담당자가 확인 후 연락드립니다.\n(테스트 화면 — 실제로 전송되지 않습니다)",
+    "inquiryModalSubmit": "문의 보내기",
+    "inquirySentToast": "문의가 접수되었습니다 (테스트)",
+    "relatedInvestTitle": "연계 투자상품",
+    "aiPropertiesTitle": "AI 매물",
+    "tabArea": "면적",
+    "tabRooms": "방수",
+    "tabPrice": "가격",
+    "expectedYieldLabel1": "Ai 예상수익",
+    "expectedYieldLabel2": "부동산 매매 매물에만 Ai 예상 수익률 입니다.\n(투자 참고용)"
   },
   "invest": {
-    "title": "투자"
+    "title": "투자",
+    "overviewTitle": "투자 개요",
+    "overview": {
+      "totalRaised": "누적 모집액",
+      "activeProducts": "진행 중인 상품",
+      "avgReturn": "평균 수익률"
+    },
+    "risk": {
+      "low": "낮은 위험",
+      "medium": "중간 위험",
+      "high": "높은 위험"
+    },
+    "featuredTitle": "추천",
+    "allProductsTitle": "전체 상품",
+    "emptyTitle": "상품이 없습니다",
+    "emptyDescription": "다른 위험도를 선택해 보세요.",
+    "status": {
+      "fundraising": "모집 중",
+      "closed": "마감",
+      "completed": "완료"
+    },
+    "expectedReturnLabel": "예상수익",
+    "minInvestmentLabel": "최소투자",
+    "periodLabel": "투자기간",
+    "progressLabel": "모집률",
+    "infoTitle": "투자 방식 안내",
+    "infoBody": "다른 투자자들과 함께 자금을 모아 하나의 부동산 상품에 투자합니다. 수익과 위험은 상품마다 다르므로, 투자 전 상세 정보를 반드시 확인하세요.",
+    "categoryLabel": "카테고리",
+    "riskLabel": "위험도",
+    "riskSelectAll": "투자위험도"
+  },
+  "investDetail": {
+    "targetAmountLabel": "목표 모집액",
+    "raisedAmountLabel": "누적 모집액",
+    "dividendFrequencyLabel": "배당 주기",
+    "dividendFrequency": {
+      "monthly": "월별",
+      "quarterly": "분기별",
+      "yearly": "연간"
+    },
+    "relatedPropertyTitle": "연계 매물",
+    "applyButton": "투자 신청",
+    "applyModalTitle": "투자 신청 안내",
+    "applyModalBody": "이 화면은 테스트 화면입니다.\n실제 금융 거래(결제/송금)는 아직 지원되지 않습니다.",
+    "applyModalConfirm": "확인했습니다",
+    "applySubmittedToast": "투자 신청이 접수되었습니다 (테스트)",
+    "aiInvestmentsTitle": "AI 투자",
+    "tabAmount": "투자금",
+    "tabPeriod": "기간",
+    "tabTarget": "목표액"
+  },
+  "investApply": {
+    "headerTitle": "투자 신청",
+    "loginRequiredDescription": "투자 신청은 로그인 후 이용할 수 있습니다.",
+    "disclaimer": "이 화면은 테스트 화면입니다. 실제 결제·송금 등 금융거래는 아직 지원되지 않으며, 입력하신 정보는 실제로 저장되지 않습니다.",
+    "productSummaryLabel": "신청 상품",
+    "amountSection": {
+      "title": "투자 금액",
+      "amountLabel": "신청 금액 (VNĐ)",
+      "amountPlaceholder": "투자금 입력 (VND)",
+      "amountHelper": "최소 투자금 {{minAmount}}",
+      "quickMinLabel": "최소금액",
+      "quickMultLabel": "최소금액 x{{multiplier}}"
+    },
+    "applicantSection": {
+      "title": "신청자 정보",
+      "nameLabel": "성명",
+      "namePlaceholder": "투자자명 입력",
+      "phoneLabel": "휴대폰번호",
+      "phonePlaceholder": "투자자 전화번호 입력",
+      "emailLabel": "이메일",
+      "emailPlaceholder": "email@example.com"
+    },
+    "payoutSection": {
+      "title": "배당금 수령 계좌",
+      "description": "월별·분기별·연별 배당금을 받을 계좌 정보입니다.",
+      "bankNameLabel": "은행명",
+      "bankNamePlaceholder": "예: Vietcombank",
+      "accountNumberLabel": "계좌번호",
+      "accountNumberPlaceholder": "계좌번호 입력",
+      "accountHolderLabel": "예금주",
+      "accountHolderPlaceholder": "예금주명 입력"
+    },
+    "noteSection": {
+      "title": "투자 목적 · 메모 (선택)",
+      "placeholder": "투자 목적이나 남기실 메모가 있다면 입력해주세요"
+    },
+    "agreementsSection": {
+      "title": "약관 동의",
+      "riskLabel": "[필수] 투자설명서 확인 및 투자위험 고지사항에 동의합니다",
+      "privacyLabel": "[필수] 개인정보 수집 및 이용에 동의합니다",
+      "marketingLabel": "[선택] 마케팅 정보 수신에 동의합니다"
+    },
+    "errors": {
+      "amountRequired": "투자 금액을 입력해주세요",
+      "amountBelowMin": "최소 투자금({{minAmount}}) 이상 입력해주세요",
+      "nameRequired": "성명을 입력해주세요",
+      "phoneRequired": "휴대폰번호를 입력해주세요",
+      "emailRequired": "이메일을 입력해주세요",
+      "emailInvalid": "올바른 이메일 형식이 아닙니다",
+      "bankNameRequired": "은행명을 입력해주세요",
+      "accountNumberRequired": "계좌번호를 입력해주세요",
+      "accountHolderRequired": "예금주명을 입력해주세요",
+      "agreementsRequired": "필수 약관에 동의해주세요"
+    },
+    "submitButton": "투자 신청하기",
+    "successTitle": "투자 신청이 접수되었습니다",
+    "successDescription": "테스트 화면이므로 실제로 접수되지는 않았습니다.\n실제 서비스에서는 검토 후 결과를 안내드립니다.",
+    "goToProduct": "상품 상세로 돌아가기",
+    "goToInvestList": "투자 상품 목록으로",
+    "confirmBeforeApplyTitle": "투자신청 전 꼭 확인",
+    "confirmBeforeApplyBody": "본 상품은 부동산 및 관련 자산에 투자하는 상품으로 투자원금의 전부 또는 일부가 손실될 수 있으며, 투자수익이 보장되지 않습니다.\n투자 전 아래 사항을 반드시 확인하시기 바랍니다.\n* 본인의 투자목적과 투자기간을 충분히 고려해 주세요.\n* 투자금액이 본인의 재정상황에 무리가 없는지 확인해 주세요.\n* 생활비, 비상자금, 대출금 등 상환에 필요한 자금을 투자에 사용하지 마세요.\n* 부동산 시장 및 해당 투자상품의 상황에 따라 예상보다 낮은 수익이 발생하거나 손실이 발생할 수 있습니다.\n* 투자금의 회수 또는 매각에 일정 기간이 소요될 수 있으며, 원할 때 즉시 현금화되지 않을 수 있습니다.\n* 투자수익률 및 예상 배당금은 확정된 수익을 의미하지 않습니다.\n* 투자 전 상품의 투자구조, 대상 부동산, 예상 수익, 위험요소, 수수료 및 기타 관련 정보를 충분히 확인하시기 바랍니다.\n투자는 본인의 판단과 책임으로 이루어집니다.\n충분히 이해하고 신중하게 판단한 후 투자신청을 진행해 주세요."
+  },
+  "chat": {
+    "headerTitle": "부동산 상담",
+    "loginRequiredDescription": "1:1 상담은 로그인 후 이용할 수 있습니다.",
+    "inputPlaceholder": "메시지를 입력하세요",
+    "sendFailedToast": "전송에 실패했습니다. 다시 시도해주세요.",
+    "imagePermissionDenied": "이미지에 접근하려면 권한이 필요합니다."
   },
   "ai": {
-    "title": "AI"
+    "title": "AI",
+    "greetingTitle": "AI 시장 어시스턴트",
+    "greetingSubtitle": "매물, 가격, 시장 동향에 대해 물어보세요",
+    "inputPlaceholder": "베트남 부동산에 대해 무엇이든 물어보세요...",
+    "sendLabel": "전송",
+    "voiceHint": "눌러서 말하기",
+    "suggestedTitle": "이렇게 질문해 보세요",
+    "recentTitle": "최근 검색",
+    "thinking": "답변을 준비하고 있어요...",
+    "emptyTitle": "질문을 입력해 시작해 보세요",
+    "emptyDescription": "AI 답변이 이곳에 표시됩니다.",
+    "notReadyTitle": "AI 답변 기능은 준비 중입니다",
+    "notReadyDescription": "\"{{query}}\" — 아직 연결되지 않은 기능입니다.",
+    "resetLabel": "다른 질문하기",
+    "suggestions": {
+      "q1": "임대 수익률이 가장 좋은 지역은 어디인가요?",
+      "q2": "빈홈스 그랜드 파크와 엠파이어시티를 비교해 주세요",
+      "q3": "지금 호치민에 투자하기 좋은 시기인가요?",
+      "q4": "2군 평균 m²당 가격은 얼마인가요?",
+      "q5": "리츠 투자를 쉽게 설명해 주세요",
+      "q6": "저위험 투자상품을 보여주세요"
+    },
+    "recent": {
+      "q1": "9군 인근 아파트",
+      "q2": "1000만 동 이하 리츠 상품",
+      "q3": "USD/VND 환율 추이"
+    }
   },
   "my": {
-    "title": "MY"
+    "title": "MY",
+    "guestTitle": "지금 시작하세요",
+    "guestDescription": "로그인하고 투자와 매물을 관리해 보세요.",
+    "signedInLabel": "로그인 계정",
+    "activityTitle": "나의 활동",
+    "stats": {
+      "reservations": "예약",
+      "investments": "투자",
+      "propertyActivity": "매물 활동"
+    },
+    "favoritesTitle": "관심 목록",
+    "favoritePropertiesTitle": "관심 매물",
+    "favoriteInvestmentsTitle": "관심 투자상품",
+    "noFavoriteProperties": "관심 매물이 없습니다",
+    "noFavoriteInvestments": "관심 투자상품이 없습니다",
+    "settingsTitle": "설정",
+    "rows": {
+      "notifications": "알림",
+      "language": "언어",
+      "currency": "통화",
+      "support": "고객센터"
+    },
+    "languageModalTitle": "언어 선택",
+    "currencyModalTitle": "통화 선택",
+    "currency": {
+      "vnd": "베트남 동 (VND)",
+      "usd": "미국 달러 (USD)"
+    }
+  },
+  "auth": {
+    "tagline": "베트남 부동산 투자 플랫폼",
+    "fields": {
+      "email": "이메일",
+      "password": "비밀번호",
+      "confirmPassword": "비밀번호 확인"
+    },
+    "login": {
+      "title": "로그인",
+      "submit": "로그인",
+      "registerPrompt": "계정이 없으신가요? 회원가입",
+      "google": "Google로 계속하기",
+      "apple": "Apple로 계속하기",
+      "oauthUnavailable": "Google/Apple 로그인은 아직 준비 중입니다.",
+      "termsNotice": "계속 진행하면 Viet's 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다."
+    },
+    "register": {
+      "title": "회원가입",
+      "submit": "회원가입",
+      "loginPrompt": "이미 계정이 있으신가요? 로그인",
+      "successTitle": "계정이 생성되었습니다",
+      "checkEmail": "이메일을 확인해 계정을 인증해 주세요.",
+      "successGeneric": "계정이 생성되었습니다.",
+      "goToLogin": "로그인하러 가기"
+    },
+    "errors": {
+      "missingFields": "모든 항목을 입력해 주세요.",
+      "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+      "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다.",
+      "emailInUse": "이미 가입된 이메일입니다.",
+      "network": "네트워크 오류입니다. 다시 시도해 주세요.",
+      "weakPassword": "비밀번호는 최소 6자 이상이어야 합니다.",
+      "unavailable": "현재 로그인을 사용할 수 없습니다.",
+      "generic": "문제가 발생했습니다. 다시 시도해 주세요."
+    }
+  },
+  "categories": {
+    "property": {
+      "apartment": "아파트",
+      "residential": "주택",
+      "building": "빌딩",
+      "factory": "공장",
+      "land": "토지",
+      "other": "기타"
+    },
+    "invest": {
+      "land": "토지",
+      "building": "빌딩",
+      "commercial": "상가",
+      "residential": "주택",
+      "industrial": "공장",
+      "warehouse": "창고",
+      "other": "기타"
+    }
   }
 }

@@ -4,7 +4,19 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "retry": "Retry",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "seeAll": "See all",
+    "back": "Back",
+    "share": "Share",
+    "loginRequired": "Please log in",
+    "loginPromptBody": "Log in with your Google or Apple account to continue.",
+    "notFoundTitle": "Not found",
+    "notFoundDescription": "The item you requested could not be found.",
+    "mockNotice": "This is mock test data",
+    "favoriteAdded": "Added to favorites",
+    "favoriteRemoved": "Removed from favorites",
+    "noSimilarResultsTitle": "No similar results",
+    "noSimilarResultsDescription": "We couldn't find any matching listings"
   },
   "tabs": {
     "home": "Home",
@@ -14,18 +26,297 @@
     "my": "My"
   },
   "home": {
-    "title": "Home"
+    "title": "Home",
+    "searchPlaceholder": "Search city, project, or keyword",
+    "categoriesTitle": "Categories",
+    "featuredTitle": "Featured for you",
+    "nearbyTitle": "Nearby & recent",
+    "marketTitle": "Market updates",
+    "recommendedInvestTitle": "Recommended",
+    "allInvestProductsTitle": "All",
+    "categoryTabs": {
+      "property": "Listings",
+      "invest": "Invest"
+    }
   },
   "property": {
-    "title": "Property"
+    "title": "Property",
+    "searchPlaceholder": "Search by location or property name",
+    "allRegions": "All regions",
+    "filterAll": "All",
+    "status": {
+      "forSale": "For Sale",
+      "forRent": "For Rent"
+    },
+    "statusLabel": "Transaction Type",
+    "mapComingSoon": "Map view — coming soon",
+    "featuredTitle": "Featured properties",
+    "listingsTitle": "Latest listings",
+    "emptyTitle": "No properties found",
+    "emptyDescription": "Try a different region or filter.",
+    "yieldLabel": "Est. yield",
+    "distanceAway": "{{distance}} km away",
+    "sortLabel": "Sort",
+    "sort": {
+      "newest": "Newest",
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low",
+      "areaLarge": "Area: Large to Small"
+    },
+    "categoryLabel": "Category"
+  },
+  "propertyDetail": {
+    "descriptionTitle": "Description",
+    "optionsTitle": "Options & amenities",
+    "bedroomsLabel": "Bedrooms",
+    "bathroomsLabel": "Bathrooms",
+    "areaLabel": "Area",
+    "inquiryButton": "Inquire",
+    "inquiryModalTitle": "Property inquiry",
+    "inquiryModalBody": "Our team will review and get back to you.\n(Test screen — nothing is actually sent.)",
+    "inquiryModalSubmit": "Send inquiry",
+    "inquirySentToast": "Inquiry submitted (test)",
+    "relatedInvestTitle": "Related investment product",
+    "aiPropertiesTitle": "AI Properties",
+    "tabArea": "Area",
+    "tabRooms": "Rooms",
+    "tabPrice": "Price",
+    "expectedYieldLabel1": "AI Expected Return",
+    "expectedYieldLabel2": "AI-estimated expected yield applies only to for-sale properties.\n(For investment reference only)"
   },
   "invest": {
-    "title": "Invest"
+    "title": "Invest",
+    "overviewTitle": "Investment overview",
+    "overview": {
+      "totalRaised": "Total raised",
+      "activeProducts": "Active products",
+      "avgReturn": "Avg. return"
+    },
+    "risk": {
+      "low": "Low risk",
+      "medium": "Medium risk",
+      "high": "High risk"
+    },
+    "featuredTitle": "Featured products",
+    "allProductsTitle": "All products",
+    "emptyTitle": "No products found",
+    "emptyDescription": "Try a different risk level.",
+    "status": {
+      "fundraising": "Fundraising",
+      "closed": "Closed",
+      "completed": "Completed"
+    },
+    "expectedReturnLabel": "Expected return",
+    "minInvestmentLabel": "Min. investment",
+    "periodLabel": "Period",
+    "progressLabel": "Funded",
+    "infoTitle": "How investing works",
+    "infoBody": "Pool your funds with other investors into a shared real estate product. Returns and risk depend on the specific product — always review the details before investing.",
+    "categoryLabel": "Category",
+    "riskLabel": "Risk",
+    "riskSelectAll": "All risk levels"
+  },
+  "investDetail": {
+    "targetAmountLabel": "Target amount",
+    "raisedAmountLabel": "Raised so far",
+    "dividendFrequencyLabel": "Dividend frequency",
+    "dividendFrequency": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    },
+    "relatedPropertyTitle": "Related property",
+    "applyButton": "Apply to invest",
+    "applyModalTitle": "Investment application",
+    "applyModalBody": "This is a test screen.\nReal financial transactions (payment/transfer) are not yet supported.",
+    "applyModalConfirm": "Understood",
+    "applySubmittedToast": "Investment application submitted (test)",
+    "aiInvestmentsTitle": "AI Investments",
+    "tabAmount": "Investment amount",
+    "tabPeriod": "Period",
+    "tabTarget": "Target amount"
+  },
+  "investApply": {
+    "headerTitle": "Investment Application",
+    "loginRequiredDescription": "Please log in to apply to invest.",
+    "disclaimer": "This is a test screen. Real financial transactions (payment/transfer) are not yet supported, and the information you enter is not actually saved.",
+    "productSummaryLabel": "Product",
+    "amountSection": {
+      "title": "Investment Amount",
+      "amountLabel": "Amount (VNĐ)",
+      "amountPlaceholder": "Enter investment amount (VND)",
+      "amountHelper": "Min. investment {{minAmount}}",
+      "quickMinLabel": "Minimum",
+      "quickMultLabel": "Minimum x{{multiplier}}"
+    },
+    "applicantSection": {
+      "title": "Applicant Information",
+      "nameLabel": "Full name",
+      "namePlaceholder": "Enter investor name",
+      "phoneLabel": "Phone number",
+      "phonePlaceholder": "Enter investor phone number",
+      "emailLabel": "Email",
+      "emailPlaceholder": "email@example.com"
+    },
+    "payoutSection": {
+      "title": "Dividend Payout Account",
+      "description": "The account that will receive your monthly/quarterly/yearly dividends.",
+      "bankNameLabel": "Bank name",
+      "bankNamePlaceholder": "e.g. Vietcombank",
+      "accountNumberLabel": "Account number",
+      "accountNumberPlaceholder": "Enter account number",
+      "accountHolderLabel": "Account holder",
+      "accountHolderPlaceholder": "Enter account holder name"
+    },
+    "noteSection": {
+      "title": "Purpose / Notes (optional)",
+      "placeholder": "Add your investment purpose or any notes"
+    },
+    "agreementsSection": {
+      "title": "Agreements",
+      "riskLabel": "[Required] I have reviewed the prospectus and agree to the investment risk disclosure",
+      "privacyLabel": "[Required] I agree to the collection and use of my personal information",
+      "marketingLabel": "[Optional] I agree to receive marketing information"
+    },
+    "errors": {
+      "amountRequired": "Please enter an investment amount",
+      "amountBelowMin": "Please enter at least the minimum investment ({{minAmount}})",
+      "nameRequired": "Please enter your full name",
+      "phoneRequired": "Please enter your phone number",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Please enter a valid email address",
+      "bankNameRequired": "Please enter the bank name",
+      "accountNumberRequired": "Please enter the account number",
+      "accountHolderRequired": "Please enter the account holder's name",
+      "agreementsRequired": "Please agree to the required terms"
+    },
+    "submitButton": "Submit Application",
+    "successTitle": "Your application has been submitted",
+    "successDescription": "This is a test screen, so nothing was actually submitted.\nIn the real service you would be notified of the review result.",
+    "goToProduct": "Back to product details",
+    "goToInvestList": "Go to investment list",
+    "confirmBeforeApplyTitle": "Important Notice Before Applying to Invest",
+    "confirmBeforeApplyBody": "This product invests in real estate and related assets, and part or all of your invested principal may be lost; investment returns are not guaranteed.\nPlease be sure to check the following before investing.\n* Carefully consider your investment purpose and investment period.\n* Make sure the investment amount does not strain your financial situation.\n* Do not use funds needed for living expenses, emergency funds, loan repayments, etc. for investment.\n* Depending on the real estate market and the status of this investment product, returns may be lower than expected or losses may occur.\n* Recovering or selling your investment may take a certain amount of time, and it may not be converted to cash immediately when you want.\n* The investment return rate and expected dividends do not represent a guaranteed return.\n* Before investing, please thoroughly review the product's investment structure, underlying property, expected returns, risk factors, fees, and other related information.\nInvestments are made based on your own judgment and responsibility.\nPlease proceed with your investment application only after fully understanding and carefully considering the above."
+  },
+  "chat": {
+    "headerTitle": "Property Consultation",
+    "loginRequiredDescription": "Please log in to start a 1:1 chat.",
+    "inputPlaceholder": "Type a message",
+    "sendFailedToast": "Failed to send. Please try again.",
+    "imagePermissionDenied": "Photo library access is required."
   },
   "ai": {
-    "title": "AI"
+    "title": "AI",
+    "greetingTitle": "AI Market Assistant",
+    "greetingSubtitle": "Ask about properties, prices, or market trends",
+    "inputPlaceholder": "Ask anything about Vietnam real estate...",
+    "sendLabel": "Send",
+    "voiceHint": "Tap to speak",
+    "suggestedTitle": "Try asking",
+    "recentTitle": "Recent searches",
+    "thinking": "Thinking...",
+    "emptyTitle": "Ask a question to get started",
+    "emptyDescription": "AI answers will appear here.",
+    "notReadyTitle": "AI answers are coming soon",
+    "notReadyDescription": "\"{{query}}\" — this feature isn't connected yet.",
+    "resetLabel": "Ask something else",
+    "suggestions": {
+      "q1": "Which districts have the best rental yield?",
+      "q2": "Compare Vinhomes Grand Park vs Empire City",
+      "q3": "Is now a good time to invest in Ho Chi Minh City?",
+      "q4": "What's the average price per m² in District 2?",
+      "q5": "Explain REIT investing in simple terms",
+      "q6": "Show me low-risk investment products"
+    },
+    "recent": {
+      "q1": "Apartments near District 9",
+      "q2": "REIT products under 10 million VND",
+      "q3": "USD/VND exchange rate trend"
+    }
   },
   "my": {
-    "title": "My"
+    "title": "My",
+    "guestTitle": "Get Started Now",
+    "guestDescription": "Log in to manage your investments and properties.",
+    "signedInLabel": "Signed in as",
+    "activityTitle": "My Activity",
+    "stats": {
+      "reservations": "Reservations",
+      "investments": "Investments",
+      "propertyActivity": "Property Activity"
+    },
+    "favoritesTitle": "Favorites",
+    "favoritePropertiesTitle": "Favorite properties",
+    "favoriteInvestmentsTitle": "Favorite investments",
+    "noFavoriteProperties": "No favorite properties yet",
+    "noFavoriteInvestments": "No favorite investments yet",
+    "settingsTitle": "Settings",
+    "rows": {
+      "notifications": "Notifications",
+      "language": "Language",
+      "currency": "Currency",
+      "support": "Customer Support"
+    },
+    "languageModalTitle": "Select Language",
+    "currencyModalTitle": "Select Currency",
+    "currency": {
+      "vnd": "Vietnamese Dong (VND)",
+      "usd": "US Dollar (USD)"
+    }
+  },
+  "auth": {
+    "tagline": "Vietnam real estate & investment platform",
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password"
+    },
+    "login": {
+      "title": "Log In",
+      "submit": "Log In",
+      "registerPrompt": "Don't have an account? Sign up",
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "oauthUnavailable": "Google/Apple sign-in isn't set up yet.",
+      "termsNotice": "By continuing, you agree to Viet's Terms of Service and Privacy Policy."
+    },
+    "register": {
+      "title": "Sign Up",
+      "submit": "Sign Up",
+      "loginPrompt": "Already have an account? Log in",
+      "successTitle": "Account created",
+      "checkEmail": "Please check your email to confirm your account.",
+      "successGeneric": "Your account has been created.",
+      "goToLogin": "Go to Log In"
+    },
+    "errors": {
+      "missingFields": "Please fill in all fields.",
+      "passwordMismatch": "Passwords do not match.",
+      "invalidCredentials": "Incorrect email or password.",
+      "emailInUse": "This email is already registered.",
+      "network": "Network error. Please try again.",
+      "weakPassword": "Password must be at least 6 characters.",
+      "unavailable": "Sign-in is currently unavailable.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "categories": {
+    "property": {
+      "apartment": "Apartment",
+      "residential": "House",
+      "building": "Building",
+      "factory": "Factory",
+      "land": "Land",
+      "other": "Other"
+    },
+    "invest": {
+      "land": "Land",
+      "building": "Building",
+      "commercial": "Retail",
+      "residential": "House",
+      "industrial": "Factory",
+      "warehouse": "Warehouse",
+      "other": "Other"
+    }
   }
 }

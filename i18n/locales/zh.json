@@ -4,7 +4,19 @@
     "cancel": "取消",
     "confirm": "确认",
     "retry": "重试",
-    "comingSoon": "即将推出"
+    "comingSoon": "即将推出",
+    "seeAll": "查看全部",
+    "back": "返回",
+    "share": "分享",
+    "loginRequired": "请先登录",
+    "loginPromptBody": "使用 Google 或 Apple 账号登录后继续。",
+    "notFoundTitle": "未找到",
+    "notFoundDescription": "未找到您请求的内容。",
+    "mockNotice": "这是模拟测试数据",
+    "favoriteAdded": "已添加到收藏",
+    "favoriteRemoved": "已从收藏中移除",
+    "noSimilarResultsTitle": "暂无相似结果",
+    "noSimilarResultsDescription": "未找到符合条件的房源/产品"
   },
   "tabs": {
     "home": "首页",
@@ -14,18 +26,297 @@
     "my": "我的"
   },
   "home": {
-    "title": "首页"
+    "title": "首页",
+    "searchPlaceholder": "搜索城市、项目或关键词",
+    "categoriesTitle": "分类",
+    "featuredTitle": "为您推荐",
+    "nearbyTitle": "附近 · 最新",
+    "marketTitle": "市场资讯",
+    "recommendedInvestTitle": "推荐",
+    "allInvestProductsTitle": "全部",
+    "categoryTabs": {
+      "property": "房源",
+      "invest": "投资"
+    }
   },
   "property": {
-    "title": "房产"
+    "title": "房产",
+    "searchPlaceholder": "按地区或房源名称搜索",
+    "allRegions": "全部地区",
+    "filterAll": "全部",
+    "status": {
+      "forSale": "出售",
+      "forRent": "出租"
+    },
+    "statusLabel": "交易类型",
+    "mapComingSoon": "地图视图即将推出",
+    "featuredTitle": "精选房源",
+    "listingsTitle": "最新房源",
+    "emptyTitle": "未找到房源",
+    "emptyDescription": "请尝试其他地区或筛选条件。",
+    "yieldLabel": "预估收益率",
+    "distanceAway": "距离 {{distance}} 公里",
+    "sortLabel": "排序",
+    "sort": {
+      "newest": "最新",
+      "priceLow": "价格从低到高",
+      "priceHigh": "价格从高到低",
+      "areaLarge": "面积从大到小"
+    },
+    "categoryLabel": "分类"
+  },
+  "propertyDetail": {
+    "descriptionTitle": "详细描述",
+    "optionsTitle": "配套设施",
+    "bedroomsLabel": "卧室",
+    "bathroomsLabel": "浴室",
+    "areaLabel": "面积",
+    "inquiryButton": "咨询",
+    "inquiryModalTitle": "房产咨询",
+    "inquiryModalBody": "我们的团队会审核后与您联系。\n（测试界面 — 实际不会发送）",
+    "inquiryModalSubmit": "发送咨询",
+    "inquirySentToast": "咨询已提交（测试）",
+    "relatedInvestTitle": "相关投资产品",
+    "aiPropertiesTitle": "AI房源",
+    "tabArea": "面积",
+    "tabRooms": "房间数",
+    "tabPrice": "价格",
+    "expectedYieldLabel1": "AI预期收益",
+    "expectedYieldLabel2": "AI预期收益率仅适用于出售类房源。\n（仅供投资参考）"
   },
   "invest": {
-    "title": "投资"
+    "title": "投资",
+    "overviewTitle": "投资概览",
+    "overview": {
+      "totalRaised": "累计募集",
+      "activeProducts": "在售产品",
+      "avgReturn": "平均收益率"
+    },
+    "risk": {
+      "low": "低风险",
+      "medium": "中风险",
+      "high": "高风险"
+    },
+    "featuredTitle": "精选产品",
+    "allProductsTitle": "全部产品",
+    "emptyTitle": "未找到产品",
+    "emptyDescription": "请尝试其他风险等级。",
+    "status": {
+      "fundraising": "募集中",
+      "closed": "已截止",
+      "completed": "已完成"
+    },
+    "expectedReturnLabel": "预期收益率",
+    "minInvestmentLabel": "最低投资额",
+    "periodLabel": "投资期限",
+    "progressLabel": "已募集",
+    "infoTitle": "投资方式说明",
+    "infoBody": "与其他投资者共同出资，投资于同一个房地产产品。收益与风险因产品而异——投资前请务必查看详细信息。",
+    "categoryLabel": "分类",
+    "riskLabel": "风险等级",
+    "riskSelectAll": "全部风险等级"
+  },
+  "investDetail": {
+    "targetAmountLabel": "目标募集金额",
+    "raisedAmountLabel": "已募集金额",
+    "dividendFrequencyLabel": "分红频率",
+    "dividendFrequency": {
+      "monthly": "每月",
+      "quarterly": "每季度",
+      "yearly": "每年"
+    },
+    "relatedPropertyTitle": "相关房产",
+    "applyButton": "申请投资",
+    "applyModalTitle": "投资申请说明",
+    "applyModalBody": "此界面为测试用途。\n暂不支持真实金融交易（支付/转账）。",
+    "applyModalConfirm": "我知道了",
+    "applySubmittedToast": "投资申请已提交（测试）",
+    "aiInvestmentsTitle": "AI投资",
+    "tabAmount": "投资金额",
+    "tabPeriod": "期限",
+    "tabTarget": "目标金额"
+  },
+  "investApply": {
+    "headerTitle": "投资申请",
+    "loginRequiredDescription": "请登录后再申请投资。",
+    "disclaimer": "这是测试页面。暂不支持实际的付款/转账等金融交易，您填写的信息不会被真实保存。",
+    "productSummaryLabel": "申请产品",
+    "amountSection": {
+      "title": "投资金额",
+      "amountLabel": "申请金额 (VNĐ)",
+      "amountPlaceholder": "请输入投资金额 (VND)",
+      "amountHelper": "最低投资额 {{minAmount}}",
+      "quickMinLabel": "最低金额",
+      "quickMultLabel": "最低金额 x{{multiplier}}"
+    },
+    "applicantSection": {
+      "title": "申请人信息",
+      "nameLabel": "姓名",
+      "namePlaceholder": "请输入投资者姓名",
+      "phoneLabel": "手机号码",
+      "phonePlaceholder": "请输入投资者电话号码",
+      "emailLabel": "邮箱",
+      "emailPlaceholder": "email@example.com"
+    },
+    "payoutSection": {
+      "title": "分红收款账户",
+      "description": "用于接收按月/季/年分红的账户信息。",
+      "bankNameLabel": "银行名称",
+      "bankNamePlaceholder": "例：Vietcombank",
+      "accountNumberLabel": "账户号码",
+      "accountNumberPlaceholder": "请输入账户号码",
+      "accountHolderLabel": "账户持有人",
+      "accountHolderPlaceholder": "请输入账户持有人姓名"
+    },
+    "noteSection": {
+      "title": "投资目的 · 备注（选填）",
+      "placeholder": "如有投资目的或备注，请在此输入"
+    },
+    "agreementsSection": {
+      "title": "条款同意",
+      "riskLabel": "[必填] 我已阅读投资说明书并同意投资风险提示",
+      "privacyLabel": "[必填] 我同意收集和使用我的个人信息",
+      "marketingLabel": "[选填] 我同意接收营销信息"
+    },
+    "errors": {
+      "amountRequired": "请输入投资金额",
+      "amountBelowMin": "请输入不低于最低投资额（{{minAmount}}）的金额",
+      "nameRequired": "请输入姓名",
+      "phoneRequired": "请输入手机号码",
+      "emailRequired": "请输入邮箱",
+      "emailInvalid": "邮箱格式不正确",
+      "bankNameRequired": "请输入银行名称",
+      "accountNumberRequired": "请输入账户号码",
+      "accountHolderRequired": "请输入账户持有人姓名",
+      "agreementsRequired": "请同意必填条款"
+    },
+    "submitButton": "提交申请",
+    "successTitle": "投资申请已提交",
+    "successDescription": "这是测试页面，实际并未提交。\n在正式服务中，审核后会通知您结果。",
+    "goToProduct": "返回产品详情",
+    "goToInvestList": "前往投资列表",
+    "confirmBeforeApplyTitle": "投资申请前请务必确认",
+    "confirmBeforeApplyBody": "本产品为投资不动产及相关资产的产品，投资本金可能部分或全部损失，投资收益不作保证。\n投资前请务必确认以下事项。\n* 请充分考虑本人的投资目的和投资期限。\n* 请确认投资金额是否会对本人的财务状况造成负担。\n* 请勿将生活费、应急资金、贷款偿还等所需资金用于投资。\n* 根据房地产市场及该投资产品的状况，可能出现低于预期的收益或发生亏损。\n* 投资款的回收或转让可能需要一定时间，可能无法在您需要时立即变现。\n* 投资收益率及预期分红并不代表已确定的收益。\n* 投资前请充分确认产品的投资结构、标的不动产、预期收益、风险因素、费用及其他相关信息。\n投资由本人自行判断并自行承担责任。\n请在充分理解并审慎判断后再进行投资申请。"
+  },
+  "chat": {
+    "headerTitle": "房产咨询",
+    "loginRequiredDescription": "请登录后开始一对一咨询。",
+    "inputPlaceholder": "输入消息",
+    "sendFailedToast": "发送失败，请重试。",
+    "imagePermissionDenied": "需要相册访问权限。"
   },
   "ai": {
-    "title": "AI"
+    "title": "AI",
+    "greetingTitle": "AI 市场助手",
+    "greetingSubtitle": "咨询房产、价格或市场趋势",
+    "inputPlaceholder": "咨询任何关于越南房地产的问题...",
+    "sendLabel": "发送",
+    "voiceHint": "点击说话",
+    "suggestedTitle": "试试这样问",
+    "recentTitle": "最近搜索",
+    "thinking": "正在思考...",
+    "emptyTitle": "输入问题开始对话",
+    "emptyDescription": "AI 回答将显示在这里。",
+    "notReadyTitle": "AI 问答功能即将推出",
+    "notReadyDescription": "“{{query}}” — 该功能尚未连接。",
+    "resetLabel": "换个问题",
+    "suggestions": {
+      "q1": "哪些区域的租金回报率最好？",
+      "q2": "比较 Vinhomes Grand Park 和 Empire City",
+      "q3": "现在是投资胡志明市的好时机吗？",
+      "q4": "2 郡每平方米的平均价格是多少？",
+      "q5": "用简单的方式解释 REIT 投资",
+      "q6": "给我看看低风险投资产品"
+    },
+    "recent": {
+      "q1": "9 郡附近的公寓",
+      "q2": "1000 万越南盾以下的 REIT 产品",
+      "q3": "美元/越南盾汇率走势"
+    }
   },
   "my": {
-    "title": "我的"
+    "title": "我的",
+    "guestTitle": "立即开始",
+    "guestDescription": "登录以管理您的投资和房产。",
+    "signedInLabel": "已登录账号",
+    "activityTitle": "我的活动",
+    "stats": {
+      "reservations": "预约",
+      "investments": "投资",
+      "propertyActivity": "房产动态"
+    },
+    "favoritesTitle": "收藏",
+    "favoritePropertiesTitle": "收藏的房产",
+    "favoriteInvestmentsTitle": "收藏的投资产品",
+    "noFavoriteProperties": "暂无收藏的房产",
+    "noFavoriteInvestments": "暂无收藏的投资产品",
+    "settingsTitle": "设置",
+    "rows": {
+      "notifications": "通知",
+      "language": "语言",
+      "currency": "货币",
+      "support": "客户支持"
+    },
+    "languageModalTitle": "选择语言",
+    "currencyModalTitle": "选择货币",
+    "currency": {
+      "vnd": "越南盾 (VND)",
+      "usd": "美元 (USD)"
+    }
+  },
+  "auth": {
+    "tagline": "越南房地产与投资平台",
+    "fields": {
+      "email": "邮箱",
+      "password": "密码",
+      "confirmPassword": "确认密码"
+    },
+    "login": {
+      "title": "登录",
+      "submit": "登录",
+      "registerPrompt": "还没有账号？注册",
+      "google": "使用 Google 继续",
+      "apple": "使用 Apple 继续",
+      "oauthUnavailable": "Google/Apple 登录尚未配置。",
+      "termsNotice": "继续即表示您同意 Viet's 的服务条款和隐私政策。"
+    },
+    "register": {
+      "title": "注册",
+      "submit": "注册",
+      "loginPrompt": "已有账号？登录",
+      "successTitle": "账号创建成功",
+      "checkEmail": "请检查邮箱以验证您的账号。",
+      "successGeneric": "您的账号已创建。",
+      "goToLogin": "前往登录"
+    },
+    "errors": {
+      "missingFields": "请填写所有字段。",
+      "passwordMismatch": "两次密码不一致。",
+      "invalidCredentials": "邮箱或密码不正确。",
+      "emailInUse": "该邮箱已被注册。",
+      "network": "网络错误，请重试。",
+      "weakPassword": "密码至少需要6个字符。",
+      "unavailable": "登录功能暂不可用。",
+      "generic": "出现问题，请重试。"
+    }
+  },
+  "categories": {
+    "property": {
+      "apartment": "公寓",
+      "residential": "住宅",
+      "building": "大厦",
+      "factory": "工厂",
+      "land": "土地",
+      "other": "其他"
+    },
+    "invest": {
+      "land": "土地",
+      "building": "大厦",
+      "commercial": "商铺",
+      "residential": "住宅",
+      "industrial": "工厂",
+      "warehouse": "仓库",
+      "other": "其他"
+    }
   }
 }

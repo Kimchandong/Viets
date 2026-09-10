@@ -1,0 +1,322 @@
+{
+  "common": {
+    "loading": "กำลังโหลด...",
+    "cancel": "ยกเลิก",
+    "confirm": "ยืนยัน",
+    "retry": "ลองใหม่",
+    "comingSoon": "เร็ว ๆ นี้",
+    "seeAll": "ดูทั้งหมด",
+    "back": "ย้อนกลับ",
+    "share": "แชร์",
+    "loginRequired": "กรุณาเข้าสู่ระบบ",
+    "loginPromptBody": "เข้าสู่ระบบด้วยบัญชี Google หรือ Apple เพื่อดำเนินการต่อ",
+    "notFoundTitle": "ไม่พบข้อมูล",
+    "notFoundDescription": "ไม่พบรายการที่คุณร้องขอ",
+    "mockNotice": "นี่คือข้อมูลทดสอบ (mock)",
+    "favoriteAdded": "เพิ่มในรายการโปรดแล้ว",
+    "favoriteRemoved": "ลบออกจากรายการโปรดแล้ว",
+    "noSimilarResultsTitle": "ไม่มีรายการที่คล้ายกัน",
+    "noSimilarResultsDescription": "ไม่พบรายการที่ตรงตามเงื่อนไข"
+  },
+  "tabs": {
+    "home": "หน้าแรก",
+    "property": "อสังหาริมทรัพย์",
+    "invest": "ลงทุน",
+    "ai": "AI",
+    "my": "ของฉัน"
+  },
+  "home": {
+    "title": "หน้าแรก",
+    "searchPlaceholder": "ค้นหาเมือง โครงการ หรือคำค้นหา",
+    "categoriesTitle": "หมวดหมู่",
+    "featuredTitle": "แนะนำสำหรับคุณ",
+    "nearbyTitle": "ใกล้เคียงและล่าสุด",
+    "marketTitle": "ข่าวสารตลาด",
+    "recommendedInvestTitle": "แนะนำ",
+    "allInvestProductsTitle": "ทั้งหมด",
+    "categoryTabs": {
+      "property": "ประกาศ",
+      "invest": "ลงทุน"
+    }
+  },
+  "property": {
+    "title": "อสังหาริมทรัพย์",
+    "searchPlaceholder": "ค้นหาตามทำเลหรือชื่อทรัพย์สิน",
+    "allRegions": "ทุกภูมิภาค",
+    "filterAll": "ทั้งหมด",
+    "status": {
+      "forSale": "ขาย",
+      "forRent": "เช่า"
+    },
+    "statusLabel": "ประเภทธุรกรรม",
+    "mapComingSoon": "มุมมองแผนที่ — เร็ว ๆ นี้",
+    "featuredTitle": "อสังหาริมทรัพย์แนะนำ",
+    "listingsTitle": "ประกาศล่าสุด",
+    "emptyTitle": "ไม่พบอสังหาริมทรัพย์",
+    "emptyDescription": "ลองเปลี่ยนภูมิภาคหรือตัวกรองอื่น",
+    "yieldLabel": "ผลตอบแทนโดยประมาณ",
+    "distanceAway": "ห่างออกไป {{distance}} กม.",
+    "sortLabel": "เรียงลำดับ",
+    "sort": {
+      "newest": "ล่าสุด",
+      "priceLow": "ราคา: ต่ำไปสูง",
+      "priceHigh": "ราคา: สูงไปต่ำ",
+      "areaLarge": "พื้นที่: มากไปน้อย"
+    },
+    "categoryLabel": "หมวดหมู่"
+  },
+  "propertyDetail": {
+    "descriptionTitle": "รายละเอียด",
+    "optionsTitle": "ตัวเลือกและสิ่งอำนวยความสะดวก",
+    "bedroomsLabel": "ห้องนอน",
+    "bathroomsLabel": "ห้องน้ำ",
+    "areaLabel": "พื้นที่",
+    "inquiryButton": "สอบถามข้อมูล",
+    "inquiryModalTitle": "สอบถามเกี่ยวกับอสังหาริมทรัพย์",
+    "inquiryModalBody": "ทีมงานของเราจะตรวจสอบและติดต่อกลับ\n(หน้าจอทดสอบ — ไม่มีการส่งข้อมูลจริง)",
+    "inquiryModalSubmit": "ส่งคำถาม",
+    "inquirySentToast": "ส่งคำถามแล้ว (ทดสอบ)",
+    "relatedInvestTitle": "ผลิตภัณฑ์การลงทุนที่เกี่ยวข้อง",
+    "aiPropertiesTitle": "อสังหาริมทรัพย์ AI",
+    "tabArea": "พื้นที่",
+    "tabRooms": "จำนวนห้อง",
+    "tabPrice": "ราคา",
+    "expectedYieldLabel1": "AI ผลตอบแทนคาดการณ์",
+    "expectedYieldLabel2": "อัตราผลตอบแทนคาดการณ์จาก AI ใช้ได้เฉพาะอสังหาริมทรัพย์ประเภทขายเท่านั้น\n(ใช้เพื่ออ้างอิงการลงทุนเท่านั้น)"
+  },
+  "invest": {
+    "title": "ลงทุน",
+    "overviewTitle": "ภาพรวมการลงทุน",
+    "overview": {
+      "totalRaised": "ยอดระดมทุนสะสม",
+      "activeProducts": "ผลิตภัณฑ์ที่เปิดอยู่",
+      "avgReturn": "ผลตอบแทนเฉลี่ย"
+    },
+    "risk": {
+      "low": "ความเสี่ยงต่ำ",
+      "medium": "ความเสี่ยงปานกลาง",
+      "high": "ความเสี่ยงสูง"
+    },
+    "featuredTitle": "ผลิตภัณฑ์แนะนำ",
+    "allProductsTitle": "ผลิตภัณฑ์ทั้งหมด",
+    "emptyTitle": "ไม่พบผลิตภัณฑ์",
+    "emptyDescription": "ลองเปลี่ยนระดับความเสี่ยง",
+    "status": {
+      "fundraising": "กำลังระดมทุน",
+      "closed": "ปิดแล้ว",
+      "completed": "เสร็จสมบูรณ์"
+    },
+    "expectedReturnLabel": "ผลตอบแทนที่คาดหวัง",
+    "minInvestmentLabel": "เงินลงทุนขั้นต่ำ",
+    "periodLabel": "ระยะเวลา",
+    "progressLabel": "ระดมทุนแล้ว",
+    "infoTitle": "การลงทุนทำงานอย่างไร",
+    "infoBody": "รวมเงินทุนของคุณกับนักลงทุนรายอื่นในผลิตภัณฑ์อสังหาริมทรัพย์ร่วมกัน ผลตอบแทนและความเสี่ยงขึ้นอยู่กับผลิตภัณฑ์แต่ละรายการ — ควรตรวจสอบรายละเอียดก่อนลงทุนเสมอ",
+    "categoryLabel": "หมวดหมู่",
+    "riskLabel": "ความเสี่ยง",
+    "riskSelectAll": "ทุกระดับความเสี่ยง"
+  },
+  "investDetail": {
+    "targetAmountLabel": "จำนวนเงินเป้าหมาย",
+    "raisedAmountLabel": "ระดมทุนแล้ว",
+    "dividendFrequencyLabel": "ความถี่การจ่ายเงินปันผล",
+    "dividendFrequency": {
+      "monthly": "รายเดือน",
+      "quarterly": "รายไตรมาส",
+      "yearly": "รายปี"
+    },
+    "relatedPropertyTitle": "อสังหาริมทรัพย์ที่เกี่ยวข้อง",
+    "applyButton": "สมัครลงทุน",
+    "applyModalTitle": "ใบสมัครลงทุน",
+    "applyModalBody": "นี่คือหน้าจอทดสอบ\nยังไม่รองรับธุรกรรมทางการเงินจริง (การชำระเงิน/โอนเงิน)",
+    "applyModalConfirm": "เข้าใจแล้ว",
+    "applySubmittedToast": "ส่งใบสมัครลงทุนแล้ว (ทดสอบ)",
+    "aiInvestmentsTitle": "การลงทุน AI",
+    "tabAmount": "จำนวนเงินลงทุน",
+    "tabPeriod": "ระยะเวลา",
+    "tabTarget": "จำนวนเป้าหมาย"
+  },
+  "investApply": {
+    "headerTitle": "สมัครลงทุน",
+    "loginRequiredDescription": "กรุณาเข้าสู่ระบบเพื่อสมัครลงทุน",
+    "disclaimer": "นี่คือหน้าจอทดสอบ ยังไม่รองรับธุรกรรมทางการเงินจริง (การชำระเงิน/โอนเงิน) และข้อมูลที่คุณกรอกจะไม่ถูกบันทึกจริง",
+    "productSummaryLabel": "ผลิตภัณฑ์ที่สมัคร",
+    "amountSection": {
+      "title": "จำนวนเงินลงทุน",
+      "amountLabel": "จำนวนเงินที่สมัคร (VNĐ)",
+      "amountPlaceholder": "กรอกจำนวนเงินลงทุน (VND)",
+      "amountHelper": "เงินลงทุนขั้นต่ำ {{minAmount}}",
+      "quickMinLabel": "ขั้นต่ำ",
+      "quickMultLabel": "ขั้นต่ำ x{{multiplier}}"
+    },
+    "applicantSection": {
+      "title": "ข้อมูลผู้สมัคร",
+      "nameLabel": "ชื่อ-นามสกุล",
+      "namePlaceholder": "กรอกชื่อผู้ลงทุน",
+      "phoneLabel": "หมายเลขโทรศัพท์",
+      "phonePlaceholder": "กรอกหมายเลขโทรศัพท์ผู้ลงทุน",
+      "emailLabel": "อีเมล",
+      "emailPlaceholder": "email@example.com"
+    },
+    "payoutSection": {
+      "title": "บัญชีรับเงินปันผล",
+      "description": "ข้อมูลบัญชีที่จะรับเงินปันผลรายเดือน/รายไตรมาส/รายปี",
+      "bankNameLabel": "ชื่อธนาคาร",
+      "bankNamePlaceholder": "เช่น Vietcombank",
+      "accountNumberLabel": "เลขที่บัญชี",
+      "accountNumberPlaceholder": "กรอกเลขที่บัญชี",
+      "accountHolderLabel": "ชื่อเจ้าของบัญชี",
+      "accountHolderPlaceholder": "กรอกชื่อเจ้าของบัญชี"
+    },
+    "noteSection": {
+      "title": "วัตถุประสงค์การลงทุน · หมายเหตุ (ไม่บังคับ)",
+      "placeholder": "กรอกวัตถุประสงค์การลงทุนหรือหมายเหตุ (ถ้ามี)"
+    },
+    "agreementsSection": {
+      "title": "ยอมรับข้อตกลง",
+      "riskLabel": "[จำเป็น] ฉันได้ตรวจสอบหนังสือชี้ชวนและยอมรับการเปิดเผยความเสี่ยงด้านการลงทุน",
+      "privacyLabel": "[จำเป็น] ฉันยินยอมให้เก็บรวบรวมและใช้ข้อมูลส่วนบุคคลของฉัน",
+      "marketingLabel": "[ไม่บังคับ] ฉันยินยอมรับข้อมูลทางการตลาด"
+    },
+    "errors": {
+      "amountRequired": "กรุณากรอกจำนวนเงินลงทุน",
+      "amountBelowMin": "กรุณากรอกจำนวนไม่ต่ำกว่าเงินลงทุนขั้นต่ำ ({{minAmount}})",
+      "nameRequired": "กรุณากรอกชื่อ-นามสกุล",
+      "phoneRequired": "กรุณากรอกหมายเลขโทรศัพท์",
+      "emailRequired": "กรุณากรอกอีเมล",
+      "emailInvalid": "รูปแบบอีเมลไม่ถูกต้อง",
+      "bankNameRequired": "กรุณากรอกชื่อธนาคาร",
+      "accountNumberRequired": "กรุณากรอกเลขที่บัญชี",
+      "accountHolderRequired": "กรุณากรอกชื่อเจ้าของบัญชี",
+      "agreementsRequired": "กรุณายอมรับข้อตกลงที่จำเป็น"
+    },
+    "submitButton": "ส่งใบสมัครลงทุน",
+    "successTitle": "ส่งใบสมัครลงทุนแล้ว",
+    "successDescription": "นี่คือหน้าจอทดสอบ จึงยังไม่ได้ส่งจริง\nในบริการจริง คุณจะได้รับแจ้งผลหลังการตรวจสอบ",
+    "goToProduct": "กลับไปที่รายละเอียดผลิตภัณฑ์",
+    "goToInvestList": "ไปที่รายการลงทุน",
+    "confirmBeforeApplyTitle": "โปรดตรวจสอบก่อนสมัครลงทุน",
+    "confirmBeforeApplyBody": "ผลิตภัณฑ์นี้เป็นผลิตภัณฑ์การลงทุนในอสังหาริมทรัพย์และสินทรัพย์ที่เกี่ยวข้อง ซึ่งเงินต้นที่ลงทุนอาจสูญเสียบางส่วนหรือทั้งหมด และผลตอบแทนจากการลงทุนไม่ได้รับการรับประกัน\nกรุณาตรวจสอบข้อมูลต่อไปนี้ให้แน่ใจก่อนการลงทุน\n* กรุณาพิจารณาวัตถุประสงค์และระยะเวลาการลงทุนของท่านให้รอบคอบ\n* กรุณาตรวจสอบว่าจำนวนเงินลงทุนไม่กระทบต่อสถานะทางการเงินของท่าน\n* กรุณาอย่าใช้เงินที่จำเป็นสำหรับค่าครองชีพ เงินสำรองฉุกเฉิน การชำระหนี้ ฯลฯ มาลงทุน\n* ผลตอบแทนที่แท้จริงอาจต่ำกว่าที่คาดไว้หรืออาจเกิดการขาดทุนได้ ขึ้นอยู่กับสภาวะตลาดอสังหาริมทรัพย์และสถานะของผลิตภัณฑ์การลงทุนนี้\n* การเรียกคืนหรือขายเงินลงทุนอาจใช้เวลาระยะหนึ่ง และอาจไม่สามารถแปลงเป็นเงินสดได้ทันทีที่ต้องการ\n* อัตราผลตอบแทนการลงทุนและเงินปันผลที่คาดการณ์ไม่ได้หมายถึงผลตอบแทนที่ยืนยันแล้ว\n* กรุณาตรวจสอบโครงสร้างการลงทุน อสังหาริมทรัพย์เป้าหมาย ผลตอบแทนที่คาดการณ์ ปัจจัยความเสี่ยง ค่าธรรมเนียม และข้อมูลอื่นๆ ที่เกี่ยวข้องของผลิตภัณฑ์อย่างละเอียดก่อนการลงทุน\nการลงทุนเป็นไปตามดุลยพินิจและความรับผิดชอบของท่านเอง\nกรุณาดำเนินการสมัครลงทุนหลังจากที่เข้าใจและพิจารณาอย่างรอบคอบแล้ว"
+  },
+  "chat": {
+    "headerTitle": "ปรึกษาอสังหาริมทรัพย์",
+    "loginRequiredDescription": "กรุณาเข้าสู่ระบบเพื่อเริ่มแชทแบบตัวต่อตัว",
+    "inputPlaceholder": "พิมพ์ข้อความ",
+    "sendFailedToast": "ส่งไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    "imagePermissionDenied": "จำเป็นต้องได้รับสิทธิ์เข้าถึงรูปภาพ"
+  },
+  "ai": {
+    "title": "AI",
+    "greetingTitle": "ผู้ช่วย AI ด้านตลาด",
+    "greetingSubtitle": "ถามเกี่ยวกับอสังหาริมทรัพย์ ราคา หรือแนวโน้มตลาด",
+    "inputPlaceholder": "ถามอะไรก็ได้เกี่ยวกับอสังหาริมทรัพย์เวียดนาม...",
+    "sendLabel": "ส่ง",
+    "voiceHint": "แตะเพื่อพูด",
+    "suggestedTitle": "ลองถามดู",
+    "recentTitle": "ค้นหาล่าสุด",
+    "thinking": "กำลังประมวลผล...",
+    "emptyTitle": "ถามคำถามเพื่อเริ่มต้น",
+    "emptyDescription": "คำตอบจาก AI จะแสดงที่นี่",
+    "notReadyTitle": "คำตอบจาก AI จะพร้อมใช้งานเร็ว ๆ นี้",
+    "notReadyDescription": "\"{{query}}\" — ฟีเจอร์นี้ยังไม่ได้เชื่อมต่อ",
+    "resetLabel": "ถามคำถามอื่น",
+    "suggestions": {
+      "q1": "เขตไหนมีผลตอบแทนค่าเช่าดีที่สุด?",
+      "q2": "เปรียบเทียบ Vinhomes Grand Park กับ Empire City",
+      "q3": "ตอนนี้เป็นเวลาที่ดีในการลงทุนในโฮจิมินห์ซิตี้หรือไม่?",
+      "q4": "ราคาเฉลี่ยต่อตารางเมตรในเขต 2 เท่าไหร่?",
+      "q5": "อธิบายการลงทุน REIT แบบง่าย ๆ",
+      "q6": "แสดงผลิตภัณฑ์การลงทุนความเสี่ยงต่ำให้ดูหน่อย"
+    },
+    "recent": {
+      "q1": "อพาร์ตเมนต์ใกล้เขต 9",
+      "q2": "ผลิตภัณฑ์ REIT ต่ำกว่า 10 ล้านด่ง",
+      "q3": "แนวโน้มอัตราแลกเปลี่ยน USD/VND"
+    }
+  },
+  "my": {
+    "title": "ของฉัน",
+    "guestTitle": "เริ่มต้นใช้งานตอนนี้",
+    "guestDescription": "เข้าสู่ระบบเพื่อจัดการการลงทุนและอสังหาริมทรัพย์ของคุณ",
+    "signedInLabel": "เข้าสู่ระบบในชื่อ",
+    "activityTitle": "กิจกรรมของฉัน",
+    "stats": {
+      "reservations": "การจอง",
+      "investments": "การลงทุน",
+      "propertyActivity": "กิจกรรมอสังหาริมทรัพย์"
+    },
+    "favoritesTitle": "รายการโปรด",
+    "favoritePropertiesTitle": "อสังหาริมทรัพย์ที่ชื่นชอบ",
+    "favoriteInvestmentsTitle": "การลงทุนที่ชื่นชอบ",
+    "noFavoriteProperties": "ยังไม่มีอสังหาริมทรัพย์ที่ชื่นชอบ",
+    "noFavoriteInvestments": "ยังไม่มีการลงทุนที่ชื่นชอบ",
+    "settingsTitle": "การตั้งค่า",
+    "rows": {
+      "notifications": "การแจ้งเตือน",
+      "language": "ภาษา",
+      "currency": "สกุลเงิน",
+      "support": "ฝ่ายบริการลูกค้า"
+    },
+    "languageModalTitle": "เลือกภาษา",
+    "currencyModalTitle": "เลือกสกุลเงิน",
+    "currency": {
+      "vnd": "ดองเวียดนาม (VND)",
+      "usd": "ดอลลาร์สหรัฐ (USD)"
+    }
+  },
+  "auth": {
+    "tagline": "แพลตฟอร์มอสังหาริมทรัพย์และการลงทุนเวียดนาม",
+    "fields": {
+      "email": "อีเมล",
+      "password": "รหัสผ่าน",
+      "confirmPassword": "ยืนยันรหัสผ่าน"
+    },
+    "login": {
+      "title": "เข้าสู่ระบบ",
+      "submit": "เข้าสู่ระบบ",
+      "registerPrompt": "ยังไม่มีบัญชี? สมัครสมาชิก",
+      "google": "ดำเนินการต่อด้วย Google",
+      "apple": "ดำเนินการต่อด้วย Apple",
+      "oauthUnavailable": "ยังไม่ได้ตั้งค่าการเข้าสู่ระบบด้วย Google/Apple",
+      "termsNotice": "การดำเนินการต่อถือว่าคุณยอมรับข้อกำหนดการให้บริการและนโยบายความเป็นส่วนตัวของ Viet's"
+    },
+    "register": {
+      "title": "สมัครสมาชิก",
+      "submit": "สมัครสมาชิก",
+      "loginPrompt": "มีบัญชีอยู่แล้ว? เข้าสู่ระบบ",
+      "successTitle": "สร้างบัญชีสำเร็จ",
+      "checkEmail": "กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันบัญชี",
+      "successGeneric": "สร้างบัญชีของคุณเรียบร้อยแล้ว",
+      "goToLogin": "ไปที่หน้าเข้าสู่ระบบ"
+    },
+    "errors": {
+      "missingFields": "กรุณากรอกข้อมูลให้ครบทุกช่อง",
+      "passwordMismatch": "รหัสผ่านไม่ตรงกัน",
+      "invalidCredentials": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+      "emailInUse": "อีเมลนี้ถูกใช้ลงทะเบียนแล้ว",
+      "network": "เกิดข้อผิดพลาดเครือข่าย กรุณาลองใหม่",
+      "weakPassword": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร",
+      "unavailable": "ขณะนี้ไม่สามารถเข้าสู่ระบบได้",
+      "generic": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+    }
+  },
+  "categories": {
+    "property": {
+      "apartment": "อพาร์ตเมนต์",
+      "residential": "บ้าน",
+      "building": "อาคาร",
+      "factory": "โรงงาน",
+      "land": "ที่ดิน",
+      "other": "อื่น ๆ"
+    },
+    "invest": {
+      "land": "ที่ดิน",
+      "building": "อาคาร",
+      "commercial": "พื้นที่ค้าปลีก",
+      "residential": "บ้าน",
+      "industrial": "โรงงาน",
+      "warehouse": "คลังสินค้า",
+      "other": "อื่น ๆ"
+    }
+  }
+}

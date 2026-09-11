@@ -85,7 +85,8 @@
     "tabPrice": "Giá",
     "expectedYieldLabel1": "AI Lợi nhuận dự kiến",
     "expectedYieldLabel2": "Tỷ suất lợi nhuận dự kiến AI chỉ áp dụng cho bất động sản bán.\n(Chỉ mang tính tham khảo đầu tư)",
-    "locationTitle": "Vị trí"
+    "locationTitle": "Vị trí",
+    "editButton": "Sửa tin đăng"
   },
   "invest": {
     "title": "Đầu tư",
@@ -283,7 +284,8 @@
       "passwordLabel": "Mật khẩu",
       "missingFields": "Vui lòng nhập ID và mật khẩu"
     },
-    "chatInbox": "Danh sách tư vấn"
+    "chatInbox": "Danh sách tư vấn",
+    "myProperties": "Tin đăng"
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
@@ -759,5 +761,27 @@
     "imageMessage": "(ảnh)",
     "noPermissionTitle": "Không có quyền",
     "noPermissionDescription": "Chỉ tài khoản có quyền quản lý bất động sản mới xem được danh sách tư vấn."
+  },
+  "myProperties": {
+    "title": "Tin đã đăng",
+    "tabs": {
+      "public": "Công khai",
+      "done": "Hoàn tất",
+      "hold": "Tạm ẩn",
+      "featured": "Đề xuất"
+    },
+    "changeStatus": "Đổi trạng thái",
+    "otherStatus": "Chọn trạng thái",
+    "changed": "Đã đổi trạng thái",
+    "changeFailed": "Không đổi được trạng thái",
+    "emptyTitle": "Chưa có tin nào",
+    "emptyDescription": {
+      "public": "Chưa có tin nào đang công khai.",
+      "done": "Chưa có tin nào đã hoàn tất giao dịch.",
+      "hold": "Chưa có tin nào đang tạm ẩn.",
+      "featured": "Chưa có tin nào đang chạy dịch vụ đề xuất trả phí."
+    },
+    "noPermissionTitle": "Không có quyền",
+    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này."
   }
 }

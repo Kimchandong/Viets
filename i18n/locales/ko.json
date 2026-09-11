@@ -85,7 +85,8 @@
     "tabPrice": "가격",
     "expectedYieldLabel1": "Ai 예상수익",
     "expectedYieldLabel2": "부동산 매매 매물에만 Ai 예상 수익률 입니다.\n(투자 참고용)",
-    "locationTitle": "위치"
+    "locationTitle": "위치",
+    "editButton": "매물 수정"
   },
   "invest": {
     "title": "투자",
@@ -283,7 +284,8 @@
       "passwordLabel": "비밀번호",
       "missingFields": "아이디와 비밀번호를 입력해 주세요"
     },
-    "chatInbox": "상담 목록"
+    "chatInbox": "상담 목록",
+    "myProperties": "매물 정보"
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",
@@ -759,5 +761,27 @@
     "imageMessage": "(사진)",
     "noPermissionTitle": "권한이 없습니다",
     "noPermissionDescription": "매물 관리 권한이 있는 계정만 상담 목록을 볼 수 있습니다."
+  },
+  "myProperties": {
+    "title": "등록 매물",
+    "tabs": {
+      "public": "공개",
+      "done": "완료",
+      "hold": "보류",
+      "featured": "추천"
+    },
+    "changeStatus": "상태 변경",
+    "otherStatus": "상태 선택",
+    "changed": "상태를 변경했습니다",
+    "changeFailed": "상태를 변경하지 못했습니다",
+    "emptyTitle": "매물이 없습니다",
+    "emptyDescription": {
+      "public": "노출 중인 매물이 없습니다.",
+      "done": "중개가 완료된 매물이 없습니다.",
+      "hold": "미노출로 보류 중인 매물이 없습니다.",
+      "featured": "유료 추천이 진행 중인 매물이 없습니다."
+    },
+    "noPermissionTitle": "권한이 없습니다",
+    "noPermissionDescription": "매물 관리 권한이 있는 계정만 등록 매물을 볼 수 있습니다."
   }
 }

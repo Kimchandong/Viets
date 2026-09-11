@@ -85,7 +85,8 @@
     "tabPrice": "Price",
     "expectedYieldLabel1": "AI Expected Return",
     "expectedYieldLabel2": "AI-estimated expected yield applies only to for-sale properties.\n(For investment reference only)",
-    "locationTitle": "Location"
+    "locationTitle": "Location",
+    "editButton": "Edit listing"
   },
   "invest": {
     "title": "Invest",
@@ -283,7 +284,8 @@
       "passwordLabel": "Password",
       "missingFields": "Enter your ID and password"
     },
-    "chatInbox": "Inquiries"
+    "chatInbox": "Inquiries",
+    "myProperties": "Listings"
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",
@@ -759,5 +761,27 @@
     "imageMessage": "(photo)",
     "noPermissionTitle": "No permission",
     "noPermissionDescription": "Only accounts with property management permission can view inquiries."
+  },
+  "myProperties": {
+    "title": "My listings",
+    "tabs": {
+      "public": "Public",
+      "done": "Completed",
+      "hold": "On hold",
+      "featured": "Featured"
+    },
+    "changeStatus": "Change status",
+    "otherStatus": "Select status",
+    "changed": "Status updated",
+    "changeFailed": "Could not update the status",
+    "emptyTitle": "No listings",
+    "emptyDescription": {
+      "public": "No listings are public right now.",
+      "done": "No listings have been completed.",
+      "hold": "No listings are on hold.",
+      "featured": "No listings have a paid feature running."
+    },
+    "noPermissionTitle": "No permission",
+    "noPermissionDescription": "Only accounts with listing management permission can see registered listings."
   }
 }

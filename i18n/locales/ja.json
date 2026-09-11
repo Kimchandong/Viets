@@ -85,7 +85,8 @@
     "tabPrice": "価格",
     "expectedYieldLabel1": "AI予想収益",
     "expectedYieldLabel2": "AI予想収益率は売買物件にのみ適用されます。\n（投資参考用）",
-    "locationTitle": "所在地"
+    "locationTitle": "所在地",
+    "editButton": "物件を編集"
   },
   "invest": {
     "title": "投資",
@@ -283,7 +284,8 @@
       "passwordLabel": "パスワード",
       "missingFields": "IDとパスワードを入力してください"
     },
-    "chatInbox": "相談一覧"
+    "chatInbox": "相談一覧",
+    "myProperties": "物件情報"
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",
@@ -759,5 +761,27 @@
     "imageMessage": "(写真)",
     "noPermissionTitle": "権限がありません",
     "noPermissionDescription": "物件管理権限のあるアカウントのみ相談一覧を閲覧できます。"
+  },
+  "myProperties": {
+    "title": "登録物件",
+    "tabs": {
+      "public": "公開",
+      "done": "完了",
+      "hold": "保留",
+      "featured": "おすすめ"
+    },
+    "changeStatus": "ステータス変更",
+    "otherStatus": "ステータスを選択",
+    "changed": "ステータスを変更しました",
+    "changeFailed": "ステータスを変更できませんでした",
+    "emptyTitle": "物件がありません",
+    "emptyDescription": {
+      "public": "公開中の物件がありません。",
+      "done": "成約済みの物件がありません。",
+      "hold": "保留中の物件がありません。",
+      "featured": "有料のおすすめ掲載中の物件がありません。"
+    },
+    "noPermissionTitle": "権限がありません",
+    "noPermissionDescription": "物件管理権限のあるアカウントのみ登録物件を表示できます。"
   }
 }

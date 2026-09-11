@@ -85,7 +85,8 @@
     "tabPrice": "价格",
     "expectedYieldLabel1": "AI预期收益",
     "expectedYieldLabel2": "AI预期收益率仅适用于出售类房源。\n（仅供投资参考）",
-    "locationTitle": "位置"
+    "locationTitle": "位置",
+    "editButton": "编辑房源"
   },
   "invest": {
     "title": "投资",
@@ -283,7 +284,8 @@
       "passwordLabel": "密码",
       "missingFields": "请输入账号和密码"
     },
-    "chatInbox": "咨询列表"
+    "chatInbox": "咨询列表",
+    "myProperties": "房源信息"
   },
   "auth": {
     "tagline": "越南房地产与投资平台",
@@ -759,5 +761,27 @@
     "imageMessage": "(图片)",
     "noPermissionTitle": "没有权限",
     "noPermissionDescription": "仅具有房源管理权限的账号可查看咨询列表。"
+  },
+  "myProperties": {
+    "title": "已登记房源",
+    "tabs": {
+      "public": "公开",
+      "done": "完成",
+      "hold": "暂停",
+      "featured": "推荐"
+    },
+    "changeStatus": "更改状态",
+    "otherStatus": "选择状态",
+    "changed": "状态已更改",
+    "changeFailed": "状态更改失败",
+    "emptyTitle": "暂无房源",
+    "emptyDescription": {
+      "public": "暂无公开中的房源。",
+      "done": "暂无已成交的房源。",
+      "hold": "暂无暂停中的房源。",
+      "featured": "暂无正在进行付费推荐的房源。"
+    },
+    "noPermissionTitle": "没有权限",
+    "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。"
   }
 }

@@ -411,6 +411,16 @@ export default function MyScreen() {
                   theme={theme}
                 />
               ) : null}
+              {/* [2026-09-11 사용자 지시] 매물 정보 — 등록한 매물을 공개/완료/보류/추천
+                  으로 나눠 보고 상태를 바꾸는 화면. */}
+              {canRegister ? (
+                <SettingsRow
+                  icon="business-outline"
+                  label={t("my.myProperties")}
+                  onPress={() => router.push("/my-properties")}
+                  theme={theme}
+                />
+              ) : null}
               {/* [2026-09-11] 상담 목록 — 담당자는 매물 상세로 들어가면 자기 명의의
                   새 대화가 생겨 고객 상담을 볼 수 없다. 목록이 유일한 진입점이다. */}
               {canRegister ? (

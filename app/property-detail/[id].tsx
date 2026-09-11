@@ -446,11 +446,20 @@ export default function PropertyDetailScreen() {
 
       {/* [STEP: 2026-09-09] 사용자 요청 — "문의하기"를 누르면 기존 단순 확인
           Modal 대신, 매물 등록자와의 1:1 상담 화면(app/property-chat/[id].tsx)으로
-          이동한다. */}
+          이동한다.
+
+          [2026-09-11 사용자 지시] 매물 관리 권한이 있는 계정(등록자 = 중개업소/관리자)
+          에게는 "문의하기" 대신 "매물 수정"을 보여주고 수정 폼으로 보낸다 — 자기가 올린
+          매물에 자기가 문의를 남기는 동작은 의미가 없고, 실제로 눌리면 담당자 명의의
+          빈 상담 대화만 생긴다(그 대화는 chat-inbox에도 뜨지 않는다). */}
       <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
         <Button
-          title={t("propertyDetail.inquiryButton")}
+          title={canEdit ? t("propertyDetail.editButton") : t("propertyDetail.inquiryButton")}
           onPress={() => {
+            if (canEdit) {
+              router.push({ pathname: "/property-register", params: { id: property.id } });
+              return;
+            }
             if (!session) {
               setLoginPromptVisible(true);
               return;

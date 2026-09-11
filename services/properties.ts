@@ -82,7 +82,7 @@ function resolveImages(row: PropertyRow, uiCategory: PropertyImageCategory): Ima
 
 /** utils/format.ts formatVndAmount()로 mock과 동일한 "4.2 tỷ"/"18,000k" 표기를
  * 만들고, listing_type='for_rent'면 "/tháng"을 붙인다(mock의 "18,000k/tháng"과 동일). */
-function formatPrice(row: PropertyRow): string {
+function formatPrice(row: Pick<PropertyRow, "price" | "listing_type">): string {
   const amount = formatVndAmount(row.price);
   return row.listing_type === "for_rent" ? `${amount}/tháng` : amount;
 }
@@ -566,6 +566,117 @@ export async function getPropertiesByIds(ids: string[]): Promise<MockProperty[]>
     return [];
   }
   return ((data ?? []) as unknown as PropertyRow[]).map(mapRowToMockProperty);
+}
+
+/* ==========================================================================
+ * [2026-09-11 사용자 지시] 등록 매물 관리 — MY > 매물 정보
+ * ======================================================================== */
+
+/** 등록 매물 목록의 탭. DB의 어떤 값에 대응하는지는 아래 주석 참조. */
+export type ManagedPropertyTab = "public" | "done" | "hold" | "featured";
+
+/**
+ * 탭 → properties.status 매핑.
+ *
+ * - public(공개) = 'active'  — 노출 중이라 목록/검색/상세에서 보이는 매물
+ * - done(완료)   = 'sold'    — 중개가 끝난 매물
+ * - hold(보류)   = 'draft'   — 등록은 됐지만 노출하지 않는 매물
+ *
+ * 'featured'(추천)는 status가 아니라 **properties.featured 플래그**다 — 상태 축과
+ * 독립적이라(공개 중인 매물이 동시에 추천일 수 있다) 여기에 넣지 않는다.
+ */
+export const MANAGED_STATUS_BY_TAB: Record<"public" | "done" | "hold", "active" | "sold" | "draft"> = {
+  public: "active",
+  done: "sold",
+  hold: "draft",
+};
+
+export type ManagedPropertyStatus = "active" | "sold" | "draft";
+
+/** 등록 매물 한 줄. 목록에 필요한 것만 담는다(상세는 매물 상세 화면이 따로 조회한다). */
+export type ManagedProperty = {
+  id: string;
+  title: string;
+  address: string;
+  /** "4.2 tỷ" / "18,000k/tháng" — 목록 카드와 같은 표기. */
+  price: string;
+  status: string;
+  featured: boolean;
+  /** 대표 사진(sort_order가 가장 작은 것). 없으면 null — 화면에서 자리표시자를 그린다. */
+  thumbnailUrl: string | null;
+};
+
+type ManagedPropertyRow = {
+  id: string;
+  title: string;
+  address: string | null;
+  price: number;
+  listing_type: "for_sale" | "for_rent";
+  status: string;
+  featured: boolean;
+  property_images: PropertyImageRow[] | null;
+};
+
+/**
+ * 내가 관리하는 매물 전체 — **status 필터를 걸지 않는다.**
+ *
+ * 무엇이 돌아오는지는 서버(properties SELECT 정책)가 정한다: admin/reviewer는 전체,
+ * Agency 소속 계정은 자기 Agency 매물, `property_manage` 보유자는 관리 대상 매물.
+ * 클라이언트가 "내 것"을 따로 걸러내지 않는 이유는 properties에 등록자(created_by)
+ * 컬럼이 없기 때문이다 — 소유 판정의 유일한 근거가 RLS다.
+ */
+export async function listManagedProperties(): Promise<ManagedProperty[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select("id,title,address,price,listing_type,status,featured,property_images(url,sort_order)")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("[services/properties] listManagedProperties failed:", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as unknown as ManagedPropertyRow[]).map((row) => {
+    const images = [...(row.property_images ?? [])].sort(
+      (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+    );
+    return {
+      id: row.id,
+      title: row.title,
+      address: row.address ?? "",
+      price: formatPrice({ price: row.price, listing_type: row.listing_type }),
+      status: row.status,
+      featured: row.featured,
+      thumbnailUrl: images[0]?.url ?? null,
+    };
+  });
+}
+
+/**
+ * 공개/완료/보류 상태만 바꾼다(추천은 여기서 켜지 않는다 — 유료 서비스라 결제
+ * 흐름을 거쳐야 하고, 그 설계는 아직 없다).
+ *
+ * 권한은 서버(properties UPDATE 정책)가 최종 판정한다.
+ */
+export async function updatePropertyStatus(
+  id: string,
+  status: ManagedPropertyStatus,
+): Promise<boolean> {
+  if (!supabase) {
+    return false;
+  }
+
+  const { error } = await supabase.from("properties").update({ status }).eq("id", id);
+
+  if (error) {
+    console.warn("[services/properties] updatePropertyStatus failed:", error.message);
+    return false;
+  }
+  return true;
 }
 
 export async function getPropertyById(id: string): Promise<MockProperty | undefined> {

@@ -14,11 +14,17 @@ import { supabase } from "./supabase";
  * 실제 참여자이므로, RLS 정책도 "이 대화의 customer_id = auth.uid()"만으로
  * customer/agent 메시지 양쪽을 함께 허용한다(agent는 별도 로그인 계정이 없음).
  *
- * 필요한 Supabase 테이블/정책/버킷(SQL Editor·Storage에서 1회 실행, 대화 별도 전달):
+ * 사용하는 Supabase 테이블/버킷:
  *   public.property_conversations(id, property_id, customer_id, created_at)
  *   public.property_messages(id, conversation_id, sender_type, original_text,
- *     original_lang, translations jsonb, image_url, created_at)
+ *     original_lang, translations jsonb, image_url, created_at, translation_* 4종)
  *   storage bucket "chat-images"(public read, 본인 폴더에만 업로드 가능)
+ *
+ * 이 스키마는 2026-09-08에 SQL Editor로 1회 실행해 만들었던 것을 2026-09-11에
+ * migration으로 편입했다(D51 해소, 20260911073649_chat_schema_capture.sql). 같은 날
+ * property_id도 text → uuid + FK(properties, ON DELETE CASCADE)로 정리했다
+ * (20260911082640_chat_property_uuid_fk.sql) — 이제 존재하지 않는 매물 id로는
+ * 대화가 만들어지지 않고, 매물을 하드 삭제하면 대화도 함께 사라진다.
  *
  * 핵심 요구사항(사용자 원문): "입력언어와 상관없이 수신인은 디바이스 설정언어로
  * 번역되어 대화창에 노출되어야 함" — getTranslatedText()가 뷰어의 현재 앱 언어

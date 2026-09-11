@@ -16,6 +16,7 @@ import { LocationPicker } from "@/components/LocationPicker";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SegmentedToggle } from "@/components/SegmentedToggle";
+import { Select } from "@/components/Select";
 import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
@@ -32,6 +33,7 @@ import {
   type ExistingPropertyImage,
   type NewPropertyInput,
 } from "@/services/properties";
+import { chargePropertyRegister } from "@/services/payments";
 import { canRegisterProperty, isAdmin } from "@/services/roles";
 import { translateOption } from "@/constants/mockData";
 import {
@@ -380,13 +382,27 @@ export default function PropertyRegisterScreen() {
     // 사진 연결이 실패해도 매물 자체는 이미 저장됐으므로 되돌리지 않고, 사용자에게만
     // 알린다(사진은 이후 다시 추가하면 된다).
     const linked = await addPropertyImages(targetId as string, uploadedUrls);
+
+    // [2026-09-11 사용자 지시] 매물 등록 요금 차감 — 신규 등록에만 물린다(수정은
+    // 이미 낸 요금이다). 잔액이 모자라면 서버가 요금을 물리지 않고 그 매물을
+    // 미노출(draft)로 내려 둔다("등록은 하되 미노출로 저장"). 요금이 0이거나 Agency
+    // 없이 등록하는 관리자 계정은 차감 없이 통과한다.
+    let charged = true;
+    if (!isEditing && targetId) {
+      charged = await chargePropertyRegister(targetId);
+    }
+
     setSubmitting(false);
     if (!linked) {
       showToast(t("propertyRegister.photoLinkFailed"));
     }
+
     // 저장 직후 그 매물 상세로 이동한다 — draft로 저장한 경우에는 공개 조회
     // (status='active')에 걸리지 않아 상세가 열리지 않으므로 이전 화면으로 돌아간다.
-    if (publishNow) {
+    if (!charged) {
+      showToast(t("propertyRegister.savedAsDraftNoBalance"));
+      router.back();
+    } else if (publishNow) {
       router.replace(`/property-detail/${targetId}`);
     } else {
       showToast(t("propertyRegister.savedAsDraft"));
@@ -451,30 +467,6 @@ export default function PropertyRegisterScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* [2026-09-11 사용자 지시] 카테고리를 콘텐츠 맨 위로. 무엇을 등록하는지가
-            먼저 정해져야 나머지 입력의 의미가 잡힌다.
-            셀렉트(모달) 대신 버튼을 가로로 늘어놓고 밀어서 고른다 — 8종뿐이라
-            모달을 여닫는 것보다 한 번에 보고 누르는 편이 빠르다. */}
-        <View style={styles.section}>
-          <SectionHeader title={t("propertyRegister.categorySection")} />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryScroll}
-          >
-            {DB_CATEGORIES.map((item) => (
-              <Chip
-                key={item}
-                label={t(`propertyRegister.dbCategory.${item}`)}
-                active={category === item}
-                onPress={() => setCategory(item)}
-                theme={theme}
-                tone="accent"
-              />
-            ))}
-          </ScrollView>
-        </View>
-
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.basicSection")} />
           <Input
@@ -493,6 +485,24 @@ export default function PropertyRegisterScreen() {
             style={styles.multiline}
             placeholder={t("propertyRegister.descriptionPlaceholder")}
           />
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader title={t("propertyRegister.categorySection")} />
+          {/* [2026-09-11 사용자 지시] 칩 나열 → 셀렉트. 카테고리는 8종이라 칩으로
+              펼치면 자리를 많이 차지하고 선택된 값이 한눈에 들어오지 않는다. */}
+          <Select
+            label={t("propertyRegister.categoryLabel")}
+            value={category}
+            options={DB_CATEGORIES.map((item) => ({
+              value: item,
+              label: t(`propertyRegister.dbCategory.${item}`),
+            }))}
+            onChange={(next) => setCategory(next as DbCategory)}
+            theme={theme}
+            closeLabel={t("common.cancel")}
+          />
+
         </View>
 
         <View style={styles.section}>
@@ -948,12 +958,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.xs,
-  },
-  // 가로 슬라이드 — 줄바꿈하지 않고 옆으로 밀어서 고른다.
-  categoryScroll: {
-    flexDirection: "row",
-    gap: spacing.xs,
-    paddingRight: spacing.md,
   },
   amenityTitle: {
     fontWeight: typography.weight.medium,

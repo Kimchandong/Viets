@@ -23,6 +23,8 @@ import { getPropertiesByIds } from "@/services/properties";
 import { getInvestmentProductsByIds } from "@/services/investments";
 import { canManageInvestment, canRegisterProperty, isAdmin } from "@/services/roles";
 import { getMyAgency, type MyAgency } from "@/services/agencies";
+import { getAgencyBalance, type AgencyBalance } from "@/services/payments";
+import { formatMoneyAmount } from "@/utils/format";
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/i18n";
 import {
   getSession,
@@ -148,6 +150,9 @@ export default function MyScreen() {
   // [2026-09-11 사용자 지시] 부동산 등록신청 상태. 신청을 마치면 상단에 업체명이 뜨고,
   // 승인되면 매물 등록/매물 정보 메뉴가 열린다(그 판정은 canRegisterProperty가 한다).
   const [agency, setAgency] = useState<MyAgency | null>(null);
+  // [2026-09-11 사용자 지시] 승인된 업체만 잔액이 있다 — 사용잔액(쓸 수 있는 돈)을
+  // 크게, 현잔액(누적 입금)을 작게 보여 준다.
+  const [balance, setBalance] = useState<AgencyBalance | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -156,6 +161,7 @@ export default function MyScreen() {
       setCanManageInvest(false);
       setIsAdminUser(false);
       setAgency(null);
+      setBalance(null);
       setPermissionChecked(false);
       return;
     }
@@ -171,8 +177,15 @@ export default function MyScreen() {
     isAdmin().then((ok) => {
       if (mounted) setIsAdminUser(ok);
     });
-    getMyAgency().then((result) => {
-      if (mounted) setAgency(result);
+    getMyAgency().then(async (result) => {
+      if (!mounted) return;
+      setAgency(result);
+      if (result && result.approvalStatus === "approved") {
+        const nextBalance = await getAgencyBalance(result.id);
+        if (mounted) setBalance(nextBalance);
+      } else {
+        setBalance(null);
+      }
     });
     return () => {
       mounted = false;
@@ -292,12 +305,29 @@ export default function MyScreen() {
                 <Text style={[textStyles.cardTitle, { color: theme.text }]} numberOfLines={1}>
                   {agency?.name ?? session?.user.email ?? "—"}
                 </Text>
-                {agency ? (
+                {agency && !balance ? (
                   <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
                     {session?.user.email ?? ""}
                   </Text>
                 ) : null}
               </View>
+
+              {/* [2026-09-11 사용자 지시] 로그인 아이콘 우측에 잔액 — 사용잔액 24px
+                  주황, 그 아래 현잔액 12px 회색, 그 아래 이메일. 승인된 업체에만 뜬다
+                  (잔액이라는 개념 자체가 그때 생긴다). */}
+              {balance ? (
+                <View style={styles.balanceBox}>
+                  <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
+                    {formatMoneyAmount(balance.available, "VND")}
+                  </Text>
+                  <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>
+                    {formatMoneyAmount(balance.totalDeposited, "VND")}
+                  </Text>
+                  <Text style={[styles.balanceEmail, { color: theme.secondaryText }]} numberOfLines={1}>
+                    {session?.user.email ?? ""}
+                  </Text>
+                </View>
+              ) : null}
             </>
           ) : (
             <View style={styles.profileText}>
@@ -384,14 +414,25 @@ export default function MyScreen() {
         {/* [2026-09-11] 로그아웃 — 기존에는 아예 없어서 다른 계정으로 바꿔 로그인할
             방법이 없었다(테스트에 특히 필요). 세션만 지우고 화면 이동은 하지 않는다. */}
         {isLoggedIn ? (
-          <Button
-            size="small"
-            variant="outline"
-            title={signingOut ? t("my.signingOut") : t("my.signOut")}
-            onPress={handleSignOut}
-            disabled={signingOut}
-            style={styles.signOutButton}
-          />
+          <View style={styles.accountActions}>
+            {/* [2026-09-11 사용자 지시] 로그아웃 버튼 좌측 결제 버튼 — 승인된 업체에만
+                의미가 있으므로 그때만 그린다. */}
+            {agency?.approvalStatus === "approved" ? (
+              <Button
+                size="small"
+                variant="outline"
+                title={t("my.payment")}
+                onPress={() => router.push("/payment-info")}
+              />
+            ) : null}
+            <Button
+              size="small"
+              variant="outline"
+              title={signingOut ? t("my.signingOut") : t("my.signOut")}
+              onPress={handleSignOut}
+              disabled={signingOut}
+            />
+          </View>
         ) : null}
 
         <View style={styles.section}>
@@ -488,6 +529,15 @@ export default function MyScreen() {
                   icon="shield-checkmark-outline"
                   label={t("my.reviewAgencies")}
                   onPress={() => router.push("/admin-agencies")}
+                  theme={theme}
+                />
+              ) : null}
+              {/* [2026-09-11] 입금 관리(요금·QR 설정 + 입금 신고 심사) — admin 전용. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="card-outline"
+                  label={t("my.managePayments")}
+                  onPress={() => router.push("/admin-payments")}
                   theme={theme}
                 />
               ) : null}
@@ -720,6 +770,26 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
     gap: spacing.sm,
+  },
+  accountActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  balanceBox: {
+    alignItems: "flex-end",
+    minWidth: 0,
+  },
+  balanceAvailable: {
+    fontSize: 24,
+    fontWeight: typography.weight.bold,
+  },
+  balanceTotal: {
+    fontSize: 12,
+  },
+  balanceEmail: {
+    fontSize: 12,
   },
   signOutButton: {
     alignSelf: "flex-end",

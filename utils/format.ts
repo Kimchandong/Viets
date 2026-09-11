@@ -99,3 +99,14 @@ export function localizedText(map: Partial<Record<string, string>>, lang: string
   return map[lang] ?? map.vi ?? Object.values(map)[0] ?? "";
 }
 
+
+/**
+ * [2026-09-11] 잔액·요금 표기 — "5,000,000 VND".
+ *
+ * formatVndAmount()의 "4.2 tỷ"/"18,000k" 축약과 일부러 다르게 둔다. 매물 가격은 한눈에
+ * 크기를 가늠하는 값이라 축약이 맞지만, 입금액과 잔액은 **정확히 얼마인지**가 중요하다 —
+ * 은행에 그 금액 그대로 넣어야 하고, 잔액은 1원 단위로 맞아야 신뢰가 생긴다.
+ */
+export function formatMoneyAmount(amount: number, currency: string): string {
+  return `${Math.round(amount).toLocaleString("en-US")} ${currency}`;
+}

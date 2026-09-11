@@ -287,7 +287,17 @@
     "chatInbox": "상담 목록",
     "myProperties": "매물 정보",
     "payment": "결제",
-    "managePayments": "입금 관리"
+    "managePayments": "입금 관리",
+    "agencyTitle": "부동산 사업자",
+    "agencyApply": "부동산 등록신청",
+    "agencyStatusRow": "등록신청 현황",
+    "reviewAgencies": "등록신청 관리",
+    "agencyStatus": {
+      "pending": "심사 중",
+      "approved": "승인된 중개업소",
+      "rejected": "신청 반려",
+      "suspended": "이용 정지"
+    }
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",
@@ -847,5 +857,61 @@
     "rejectReasonPlaceholder": "확인되지 않은 이유를 적어 주세요",
     "noPermissionTitle": "권한이 없습니다",
     "noPermissionDescription": "관리자만 입금을 관리할 수 있습니다."
+  },
+  "agencyApply": {
+    "title": "부동산 등록신청",
+    "sectionBasic": "업체 정보",
+    "sectionLicense": "중개번호",
+    "name": "등록자(업체)명",
+    "namePlaceholder": "사업자등록증의 상호를 적어 주세요",
+    "region": "지역",
+    "regionPlaceholder": "지역을 선택하세요",
+    "contactName": "담당자명",
+    "contactNamePlaceholder": "연락 받을 분의 이름",
+    "phone": "전화번호",
+    "phonePlaceholder": "연락 가능한 번호",
+    "address": "주소",
+    "addressPlaceholder": "사무실 주소",
+    "noLicense": "부동산중개번호 없음",
+    "registrationNo": "부동산중개번호",
+    "registrationNoPlaceholder": "중개등록번호를 적어 주세요",
+    "licenseFileHint": "중개등록증 사진을 첨부하면 심사가 빨라집니다.",
+    "attachFile": "파일 첨부",
+    "removeFile": "첨부 삭제",
+    "submit": "신청하기",
+    "submitted": "신청이 접수되었습니다",
+    "submitFailed": "신청에 실패했습니다",
+    "alreadyApplied": "이미 진행 중인 신청이 있습니다",
+    "uploadFailed": "파일 업로드에 실패했습니다",
+    "filePermissionDenied": "사진 접근 권한이 필요합니다",
+    "errorRequired": "필수 항목입니다",
+    "errorCheckForm": "입력하지 않은 항목이 있습니다",
+    "pendingTitle": "심사 중입니다",
+    "pendingDescription": "관리자 확인 후 승인되면 매물을 등록할 수 있습니다.",
+    "approvedTitle": "승인되었습니다",
+    "approvedDescription": "MY에서 매물 등록과 매물 정보를 이용할 수 있습니다.",
+    "rejectedTitle": "신청이 반려되었습니다"
+  },
+  "adminAgencies": {
+    "title": "등록신청 관리",
+    "status": {
+      "pending": "심사 중",
+      "approved": "승인",
+      "rejected": "반려",
+      "suspended": "정지"
+    },
+    "emptyTitle": "신청이 없습니다",
+    "emptyDescription": "해당 상태의 등록신청이 아직 없습니다.",
+    "approve": "승인",
+    "reject": "반려",
+    "approved": "승인했습니다",
+    "rejected": "반려했습니다",
+    "actionFailed": "처리하지 못했습니다",
+    "rejectTitle": "반려 사유",
+    "rejectReasonPlaceholder": "무엇을 고쳐 다시 내야 하는지 적어 주세요",
+    "viewDocument": "첨부 파일 보기",
+    "documentFailed": "파일을 열지 못했습니다",
+    "noPermissionTitle": "권한이 없습니다",
+    "noPermissionDescription": "관리자만 등록신청을 심사할 수 있습니다."
   }
 }

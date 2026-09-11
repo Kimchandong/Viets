@@ -287,7 +287,17 @@
     "chatInbox": "相談一覧",
     "myProperties": "物件情報",
     "payment": "決済",
-    "managePayments": "入金管理"
+    "managePayments": "入金管理",
+    "agencyTitle": "不動産事業者",
+    "agencyApply": "不動産登録申請",
+    "agencyStatusRow": "申請状況",
+    "reviewAgencies": "登録申請の審査",
+    "agencyStatus": {
+      "pending": "審査中",
+      "approved": "承認済みの仲介業者",
+      "rejected": "申請却下",
+      "suspended": "利用停止"
+    }
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",
@@ -847,5 +857,61 @@
     "rejectReasonPlaceholder": "確認できなかった理由を記入してください",
     "noPermissionTitle": "権限がありません",
     "noPermissionDescription": "管理者のみ入金を管理できます。"
+  },
+  "agencyApply": {
+    "title": "不動産登録申請",
+    "sectionBasic": "事業者情報",
+    "sectionLicense": "仲介番号",
+    "name": "登録者(会社)名",
+    "namePlaceholder": "登記上の商号を入力してください",
+    "region": "地域",
+    "regionPlaceholder": "地域を選択してください",
+    "contactName": "担当者名",
+    "contactNamePlaceholder": "ご連絡先の担当者名",
+    "phone": "電話番号",
+    "phonePlaceholder": "連絡可能な番号",
+    "address": "住所",
+    "addressPlaceholder": "事務所の住所",
+    "noLicense": "仲介番号なし",
+    "registrationNo": "仲介番号",
+    "registrationNoPlaceholder": "仲介登録番号を入力してください",
+    "licenseFileHint": "登録証の写真を添付すると審査が早くなります。",
+    "attachFile": "ファイル添付",
+    "removeFile": "添付を削除",
+    "submit": "申請する",
+    "submitted": "申請を受け付けました",
+    "submitFailed": "申請できませんでした",
+    "alreadyApplied": "すでに手続き中の申請があります",
+    "uploadFailed": "ファイルのアップロードに失敗しました",
+    "filePermissionDenied": "写真へのアクセス許可が必要です",
+    "errorRequired": "必須項目です",
+    "errorCheckForm": "未入力の項目があります",
+    "pendingTitle": "審査中です",
+    "pendingDescription": "管理者の承認後に物件を登録できます。",
+    "approvedTitle": "承認されました",
+    "approvedDescription": "MYから物件登録と物件情報を利用できます。",
+    "rejectedTitle": "申請が却下されました"
+  },
+  "adminAgencies": {
+    "title": "登録申請の審査",
+    "status": {
+      "pending": "審査中",
+      "approved": "承認",
+      "rejected": "却下",
+      "suspended": "停止"
+    },
+    "emptyTitle": "申請がありません",
+    "emptyDescription": "この状態の申請はまだありません。",
+    "approve": "承認",
+    "reject": "却下",
+    "approved": "承認しました",
+    "rejected": "却下しました",
+    "actionFailed": "処理できませんでした",
+    "rejectTitle": "却下の理由",
+    "rejectReasonPlaceholder": "再申請前に直すべき点を記入してください",
+    "viewDocument": "添付ファイルを見る",
+    "documentFailed": "ファイルを開けませんでした",
+    "noPermissionTitle": "権限がありません",
+    "noPermissionDescription": "管理者のみ申請を審査できます。"
   }
 }

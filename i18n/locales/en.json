@@ -28,7 +28,7 @@
   },
   "home": {
     "title": "Home",
-    "searchPlaceholder": "Search city, project, or keyword",
+    "searchPlaceholder": "Property AI, voice search",
     "categoriesTitle": "Categories",
     "featuredTitle": "Featured for you",
     "nearbyTitle": "Nearby & recent",
@@ -215,7 +215,11 @@
     "loginRequiredDescription": "Please log in to start a 1:1 chat.",
     "inputPlaceholder": "Type a message",
     "sendFailedToast": "Failed to send. Please try again.",
-    "imagePermissionDenied": "Photo library access is required."
+    "imagePermissionDenied": "Photo library access is required.",
+    "waitingForAgent": "The agency that listed this property will reply shortly.",
+    "translationSkippedLength": "Not auto-translated — over {{limit}} characters.",
+    "lengthLimitNotice": "Long messages are blocked to keep translation accurate.",
+    "lengthLimitHint": "Up to {{limit}} characters per message. Please split it up."
   },
   "ai": {
     "title": "AI",

@@ -28,7 +28,7 @@
   },
   "home": {
     "title": "ホーム",
-    "searchPlaceholder": "都市・プロジェクト・キーワードで検索",
+    "searchPlaceholder": "不動産AI・音声検索",
     "categoriesTitle": "カテゴリー",
     "featuredTitle": "おすすめ",
     "nearbyTitle": "近く・新着",
@@ -215,7 +215,11 @@
     "loginRequiredDescription": "1対1相談はログイン後にご利用いただけます。",
     "inputPlaceholder": "メッセージを入力",
     "sendFailedToast": "送信に失敗しました。もう一度お試しください。",
-    "imagePermissionDenied": "写真へのアクセス権限が必要です。"
+    "imagePermissionDenied": "写真へのアクセス権限が必要です。",
+    "waitingForAgent": "この物件を掲載した仲介業者が回答します。少々お待ちください。",
+    "translationSkippedLength": "{{limit}}文字を超えるため自動翻訳していません。",
+    "lengthLimitNotice": "正確な翻訳のため、長文の送信を制限しています。",
+    "lengthLimitHint": "1回に{{limit}}文字まで送れます。分けて送ってください。"
   },
   "ai": {
     "title": "AI",

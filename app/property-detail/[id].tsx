@@ -318,8 +318,10 @@ export default function PropertyDetailScreen() {
               PropertyCard.tsx와 동일하게 splitYieldText로 숫자/단위를 분리한다. */}
           <Text style={[textStyles.heroValue, { color: theme.accent }]}>
             {splitYieldText(property.price).rate}
+            {/* [2026-09-11 사용자 지시] 단위 크기를 금액과 같게 — fontSize를 지정하지
+                않으면 바깥 heroValue 크기를 그대로 상속한다. 굵기만 다르게 둔다. */}
             {splitYieldText(property.price).suffix ? (
-              <Text style={{ fontWeight: typography.weight.regular, fontSize: typography.size.md }}>
+              <Text style={{ fontWeight: typography.weight.regular }}>
                 {splitYieldText(property.price).suffix}
               </Text>
             ) : null}

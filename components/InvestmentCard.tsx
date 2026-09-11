@@ -104,8 +104,17 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
           <Text style={styles.metricLabel} numberOfLines={2}>
             {t("invest.minInvestmentLabel")}
           </Text>
+          {/* [2026-09-11 사용자 지시] 금액 단위 k는 bold 없이, 앞에 한 칸 띄우고,
+              금액과 같은 크기로. splitYieldText가 "5,000k"를 "5,000" + " k"로 나눈다 —
+              매물 카드·상세가 이미 쓰는 방식과 같게 맞춘다. fontSize를 따로 주지
+              않으므로 바깥 metricValue 크기를 그대로 상속한다. */}
           <Text style={[styles.metricValue, { color: theme.text }]} numberOfLines={2}>
-            {product.minInvestment}
+            {splitYieldText(product.minInvestment).rate}
+            {splitYieldText(product.minInvestment).suffix ? (
+              <Text style={{ fontWeight: typography.weight.regular }}>
+                {splitYieldText(product.minInvestment).suffix}
+              </Text>
+            ) : null}
           </Text>
         </View>
         <View style={styles.metric}>

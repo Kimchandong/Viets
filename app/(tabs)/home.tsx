@@ -258,20 +258,6 @@ export default function HomeScreen() {
               // 적용돼 11px 근처로 흔들릴 수 있어, 이 입력창만 명시적으로 고정).
               style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: 12 }]}
             />
-            {/* [2026-09-11 사용자 지시] 음성검색 왼쪽에 AI 검색. 검색창에 적은 말이
-                있으면 그대로 들고 AI 탭으로 넘어간다 — 여기서 지우고 거기서 다시
-                치게 만들 이유가 없다. */}
-            <Pressable
-              onPress={() => {
-                const query = homeSearch.trim();
-                router.navigate({ pathname: "/ai", params: query ? { q: query } : {} });
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t("tabs.ai")}
-              hitSlop={8}
-            >
-              <Ionicons name="sparkles-outline" size={22} color={theme.secondaryText} />
-            </Pressable>
             {/* [2026-09-11 사용자 지시] 음성검색 아이콘 크게(18 → 22). */}
             <Pressable onPress={showComingSoon} accessibilityRole="button" hitSlop={8}>
               <Ionicons name="mic-outline" size={22} color={theme.secondaryText} />
@@ -360,6 +346,7 @@ export default function HomeScreen() {
           <View testID="home-section-property-featured" style={styles.section}>
             <SectionHeader
               title={t("home.featuredTitle")}
+              icon="business-outline"
               actionLabel={t("common.seeAll")}
               onAction={() => router.push("/property")}
             />
@@ -384,6 +371,7 @@ export default function HomeScreen() {
           <View testID="home-section-invest-recommended" style={styles.section}>
             <SectionHeader
               title={t("home.recommendedInvestTitle")}
+              icon="trending-up-outline"
               actionLabel={t("common.seeAll")}
               onAction={() => router.push("/invest")}
             />
@@ -579,7 +567,12 @@ const TICKER_SLIDE_MS = 400;
  * 깜박임은 숫자가 0이 되면 즉시 멈추고 기본 테두리로 돌아간다 — 멈추지 않으면 볼
  * 것이 없는데도 계속 시선을 끈다.
  */
-const IDLE_BORDER = "rgba(255,255,255,0.4)";
+// [2026-09-11 사용자 지시] 알림 버튼 배경/테두리 — 흰 반투명에서 검은 반투명으로.
+// 배너 영상이 밝을 때 흰 배경 위 흰 아이콘이 묻혀 보였다.
+const IDLE_BORDER = "rgba(255,255,255,0.3)";
+const ICON_BUTTON_BG = "rgba(0,0,0,0.3)";
+/** [2026-09-11 사용자 지시] 알림 아이콘 글리프 크기 — 20의 10% 축소. */
+const ALERT_ICON_SIZE = 18;
 
 function AlertIconButton({
   icon,
@@ -623,14 +616,16 @@ function AlertIconButton({
           style={[
             styles.iconButton,
             {
-              backgroundColor: "rgba(255,255,255,0.3)",
+              backgroundColor: ICON_BUTTON_BG,
               borderWidth: count > 0 ? 1 : StyleSheet.hairlineWidth,
               borderColor: count > 0 ? borderColor : IDLE_BORDER,
               opacity: pressed ? opacity.pressed : 1,
             },
           ]}
         >
-          <Ionicons name={icon} size={20} color="#FFFFFF" />
+          {/* [2026-09-11 사용자 지시] 아이콘만 10% 축소(20 → 18).
+              버튼 크기(styles.iconButton)와 배지는 건드리지 않는다. */}
+          <Ionicons name={icon} size={ALERT_ICON_SIZE} color="#FFFFFF" />
           {count > 0 ? (
             <View style={[styles.notificationBadge, { backgroundColor: badgeColor }]}>
               <Text style={styles.notificationBadgeText} numberOfLines={1}>
@@ -968,9 +963,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   // [STEP: 2026-09-09-11] 사용자 제보(스크린샷) — 알림 버튼 테두리를 없앤다.
+  // [2026-09-11 사용자 지시] 알림 버튼 10% 축소(40 → 36). 안쪽 아이콘도 함께
+  // 20 → 18로 줄였다(ALERT_ICON_SIZE). 배지(notificationBadge, 16px)와 그 안의
+  // 숫자는 그대로 둔다 — 버튼이 작아져도 알림 수는 같은 크기로 읽혀야 한다.
   iconButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: radius.full,
     alignItems: "center",
     justifyContent: "center",

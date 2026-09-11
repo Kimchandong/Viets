@@ -20,6 +20,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
+// react-native의 Modal을 이미 쓰고 있어 공용 컴포넌트는 별칭으로 가져온다.
+import { Modal as AppModal } from "@/components/Modal";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
@@ -34,6 +36,8 @@ import {
   getOrCreateConversation,
   getTranslatedText,
   sendCustomerImage,
+  MAX_TRANSLATE_CHARS,
+  isTooLongToTranslate,
   sendCustomerMessage,
   subscribeToMessages,
 } from "@/services/chat";
@@ -93,6 +97,8 @@ export default function PropertyChatScreen() {
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  // [2026-09-11 사용자 지시] 상한을 넘겨 입력했을 때 알리는 팝업.
+  const [lengthWarningOpen, setLengthWarningOpen] = useState(false);
 
   const scrollRef = useRef<ScrollView>(null);
 
@@ -207,6 +213,13 @@ export default function PropertyChatScreen() {
   async function handleSend() {
     const text = draft.trim();
     if (!text || sending) {
+      return;
+    }
+    // [2026-09-11 사용자 지시] 상한을 넘으면 보내지 않고 팝업으로 알린다.
+    // 보낸 뒤 "번역 안 됨"이라고 알리면 이미 상대에게 읽을 수 없는 글이 가 있다 —
+    // 보내기 전에 막아야 고쳐 쓸 수 있다.
+    if (isTooLongToTranslate(text)) {
+      setLengthWarningOpen(true);
       return;
     }
     if (!conversationId) {
@@ -332,6 +345,19 @@ export default function PropertyChatScreen() {
             ) : null}
           </View>
 
+          {/* [2026-09-11 STEP 07-③] 담당자 답장이 아직 없을 때의 안내.
+              예전에는 같은 문구를 agent 메시지로 DB에 넣었는데(mock 자동응답),
+              홈 알림이 생긴 뒤로 고객의 미읽음 수에 1로 잡혔다 — 읽을 것이 없는데
+              배지가 붙는다. 화면에서만 보여 주면 세어지지도, 번역 비용이 들지도 않는다.
+              담당자 본인에게는 보여 주지 않는다(자기가 답할 차례이므로). */}
+          {!isAgentView && messages.length > 0 && !messages.some((m) => m.sender_type === "agent") ? (
+            <View style={[styles.waitingNotice, { borderColor: theme.border }]}>
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                {t("chat.waitingForAgent")}
+              </Text>
+            </View>
+          ) : null}
+
           {messages.map((message) => {
             // [2026-09-11] "내 말풍선"은 보는 사람이 누구냐에 따라 달라진다.
             // 고객이 보면 customer 메시지가 내 것이고, 담당자가 보면 agent 메시지가
@@ -357,6 +383,17 @@ export default function PropertyChatScreen() {
                     ]}
                   >
                     <Text style={[textStyles.bodySmall, { color: isCustomer ? theme.onAccent : theme.text }]}>{text}</Text>
+                    {/* [2026-09-11 사용자 결정] 길이 상한을 넘은 메시지는 번역하지 않는다.
+                        원문만 덩그러니 두면 번역이 고장 난 것처럼 보이므로 이유를 밝힌다.
+                        내가 쓴 말은 어차피 내 언어라 안내할 것이 없고, 상대 언어가 내
+                        언어와 같을 때도 애초에 번역 대상이 아니다. */}
+                    {!isCustomer
+                      && message.original_lang !== language
+                      && isTooLongToTranslate(message.original_text) ? (
+                      <Text style={[textStyles.caption, styles.translateSkipped, { color: theme.secondaryText }]}>
+                        {t("chat.translationSkippedLength", { limit: MAX_TRANSLATE_CHARS })}
+                      </Text>
+                    ) : null}
                   </View>
                 )}
               </View>
@@ -402,6 +439,20 @@ export default function PropertyChatScreen() {
       </KeyboardAvoidingView>
 
       {/* 사용자 요청: "삽입된 이미지 클릭하여 전체화면 보기(닫기)" */}
+      <AppModal visible={lengthWarningOpen} onClose={() => setLengthWarningOpen(false)}>
+        <Text style={[textStyles.body, { color: theme.text }]}>
+          {t("chat.lengthLimitNotice")}
+        </Text>
+        <Text style={[textStyles.caption, { color: theme.secondaryText, marginTop: spacing.xs }]}>
+          {t("chat.lengthLimitHint", { limit: MAX_TRANSLATE_CHARS })}
+        </Text>
+        <Button
+          title={t("common.confirm")}
+          onPress={() => setLengthWarningOpen(false)}
+          style={{ marginTop: spacing.md }}
+        />
+      </AppModal>
+
       <Modal visible={!!previewImageUrl} transparent animationType="fade" onRequestClose={() => setPreviewImageUrl(null)}>
         <Pressable style={styles.previewBackdrop} onPress={() => setPreviewImageUrl(null)}>
           {previewImageUrl ? <Image source={{ uri: previewImageUrl }} style={styles.previewImage} resizeMode="contain" /> : null}
@@ -473,6 +524,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs / 2,
+  },
+  // 번역 생략 안내 — 말풍선 안, 원문 바로 아래.
+  translateSkipped: {
+    marginTop: 4,
+  },
+  // [2026-09-11] 담당자 답장 대기 안내 — 말풍선이 아니라 가운데 정렬된 안내 줄.
+  waitingNotice: {
+    alignSelf: "center",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.sm,
   },
   bubbleRow: {
     flexDirection: "row",

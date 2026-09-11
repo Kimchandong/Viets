@@ -6,13 +6,15 @@ import { supabase } from "./supabase";
 /**
  * [STEP: 2026-09-09] 사용자 요청 — 부동산상세 "문의하기" > 매물 등록자와의 1:1 채팅.
  *
- * 아직 부동산중개업소별 등록자 계정/권한 체계가 없어서(실제 백엔드 부재), 실제
- * 동작하는 채팅(Supabase 테이블 + Realtime)은 만들되, 상대방(중개인) 쪽은 고정된
- * mock 담당자 1명(constants/mockData.ts의 MOCK_LISTING_AGENT)이 짧은 지연 후
- * 자동 응답하는 것으로 시뮬레이션한다(사용자 확인 — "mock 담당자 1명을 정해두고
- * 자동응답을 붙이는 방식"). 고객이 로그인한 계정(auth.uid())이 대화의 유일한
- * 실제 참여자이므로, RLS 정책도 "이 대화의 customer_id = auth.uid()"만으로
- * customer/agent 메시지 양쪽을 함께 허용한다(agent는 별도 로그인 계정이 없음).
+ * [2026-09-11 STEP 07-③] 담당자는 이제 **매물 등록자**(properties.created_by)다.
+ * 그 판정은 이 파일이 하지 않는다 — RLS의 can_manage_property_chat()이 정하고,
+ * 담당자는 상담 목록(app/chat-inbox.tsx)에서 대화를 열어 agent로 답한다.
+ *
+ * 그래서 mock 담당자 자동응답을 없앴다. 그것은 대화가 아니라 "담당자가 답변드립니다"
+ * 라는 안내였는데 agent 메시지로 DB에 저장돼, 홈 알림이 생긴 뒤로는 고객의 미읽음
+ * 수에 1로 잡혔다(읽을 것이 없는데 배지가 붙는다). 같은 안내는 화면에서
+ * (app/property-chat/[id].tsx) 담당자 답장이 아직 없을 때만 보여 준다 — DB에
+ * 남기지 않으므로 세어지지도, 번역 비용이 들지도 않는다.
  *
  * 사용하는 Supabase 테이블/버킷:
  *   public.property_conversations(id, property_id, customer_id, created_at)
@@ -66,21 +68,35 @@ const MAX_TRANSLATION_ATTEMPTS = 3;
 
 const CONVERSATIONS_TABLE = "property_conversations";
 const MESSAGES_TABLE = "property_messages";
-const CHAT_IMAGES_BUCKET = "chat-images";
 
-// 데모용 mock 담당자 자동 응답 원문 — "채팅 콘텐츠"이므로 i18n(UI Translation
-// 전용, i18n/index.ts 상단 주석 참고)이 아니라 여기(콘텐츠 계층)에 원문(베트남어)
-// 그대로 둔다. getTranslatedText()의 동일한 실시간 번역 경로를 그대로 타므로,
-// 뷰어 언어와 무관하게 항상 현재 앱 언어로 번역되어 보인다.
-// [STEP S-1 후속, 2026-09-09] 사용자 요청 — 안내멘트 문구 변경("해당 매물의
-// 중개업소 및 등록자가 답변 드립니다. 잠시만 기다려 주세요"). 다른 채팅 콘텐츠와
-// 동일하게 원문(베트남어)만 저장하고 getTranslatedText()의 실시간 번역 경로를
-// 그대로 태워 뷰어의 현재 앱 언어로 자동 번역되어 보이게 한다(다국어 적용,
-// 위 AGENT_AUTO_REPLY_TEXT 사용처와 동일 원칙 — 상단 주석 참고).
-const AGENT_AUTO_REPLY_TEXT =
-  "Văn phòng môi giới và người đăng tin của bất động sản này sẽ phản hồi. Vui lòng chờ trong giây lát.";
-const AGENT_AUTO_REPLY_LANG = "vi";
-const AGENT_AUTO_REPLY_DELAY_MS = 1400;
+/**
+ * [2026-09-11 사용자 결정] 자동번역 길이 상한(문자).
+ *
+ * 번역 비용은 "새로 생긴 서로 다른 문장"의 글자 수에만 붙는다 — 같은 언어끼리는
+ * 호출 자체가 없고, 메시지별·전역 캐시가 재조회를 막는다. 그래서 실제 비용을
+ * 좌우하는 것은 대화의 길이가 아니라 **한 번에 붙여넣은 긴 글** 하나다.
+ * 짧은 문답 수백 개보다 긴 문서 한 통이 비싸다.
+ *
+ * 메시지 개수로 막지 않는 이유: 상담이 개수 상한을 넘는 순간 서로 말이 통하지
+ * 않게 되어, 이 앱이 존재하는 이유가 사라진다. 길이 상한은 대화를 끊지 않으면서
+ * 비용이 튀는 경우만 걸러 낸다.
+ *
+ * [2026-09-11 사용자 결정] 500 → 100. 상한을 넘는 메시지는 번역을 건너뛰는 데서
+ * 그치지 않고, 화면이 아예 전송을 막고 팝업으로 알린다 — 번역되지 않는 긴 글이
+ * 대화에 쌓이면 상대는 읽을 수 없는 원문만 받게 되기 때문이다.
+ *
+ * 이 값은 실사용 데이터를 보고 조정할 예정이다(MY > 번역 사용량의 과금 문자 수).
+ */
+export const MAX_TRANSLATE_CHARS = 100;
+
+/**
+ * 이 메시지가 길이 상한 때문에 번역되지 않는지. 화면이 원문 옆에 안내를 붙일 때 쓴다 —
+ * 읽을 수 없는 원문만 덩그러니 두면 번역이 고장 난 것처럼 보인다.
+ */
+export function isTooLongToTranslate(text: string): boolean {
+  return text.length > MAX_TRANSLATE_CHARS;
+}
+const CHAT_IMAGES_BUCKET = "chat-images";
 
 /**
  * 이 매물(propertyId) + 현재 로그인 사용자 조합의 대화를 찾거나 새로 만든다.
@@ -305,11 +321,6 @@ export async function sendCustomerMessage(
       return false;
     }
 
-    // 자동응답은 "아직 담당자가 붙지 않은 대화"를 위한 것이다 — 실제 담당자가
-    // 답하는 중에는 보내지 않는다.
-    if (senderType === "customer") {
-      scheduleAgentAutoReply(conversationId);
-    }
     return true;
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown-error";
@@ -380,67 +391,12 @@ export async function sendCustomerImage(
       return false;
     }
 
-    if (senderType === "customer") {
-      scheduleAgentAutoReply(conversationId);
-    }
     return true;
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown-error";
     console.warn("[services/chat] sendCustomerImage threw:", message);
     return false;
   }
-}
-
-// 대화당 1회만 자동응답을 보내기 위한 메모리 가드(같은 세션 내 중복 타이머 방지용,
-// 1차 판단은 여전히 DB 조회로 한다 — 앱 재시작/여러 기기에서도 정확하도록).
-const autoReplySentConversations = new Set<string>();
-
-/**
- * [STEP S-1, 2026-09-09] 사용자 확인 — 자동응답 인사말은 대화당 "최초 1회만"
- * 나와야 한다. 매 전송마다 다시 나오던 문제(이전에는 무조건 스케줄링)를 고쳐,
- * 이 대화에 이미 agent 메시지가 있으면 다시 보내지 않는다.
- */
-function scheduleAgentAutoReply(conversationId: string): void {
-  if (autoReplySentConversations.has(conversationId)) {
-    return;
-  }
-
-  setTimeout(() => {
-    void (async () => {
-      if (!supabase) {
-        return;
-      }
-
-      const { data: existingAgentMessage, error: checkError } = await supabase
-        .from(MESSAGES_TABLE)
-        .select("id")
-        .eq("conversation_id", conversationId)
-        .eq("sender_type", "agent" satisfies ChatSenderType)
-        .limit(1)
-        .maybeSingle();
-
-      if (checkError) {
-        console.warn("[services/chat] auto-reply existence check failed:", checkError.message);
-      }
-      if (existingAgentMessage) {
-        autoReplySentConversations.add(conversationId);
-        return;
-      }
-
-      const { error: replyError } = await supabase.from(MESSAGES_TABLE).insert({
-        conversation_id: conversationId,
-        sender_type: "agent" satisfies ChatSenderType,
-        original_text: AGENT_AUTO_REPLY_TEXT,
-        original_lang: AGENT_AUTO_REPLY_LANG,
-      });
-
-      if (replyError) {
-        console.warn("[services/chat] auto-reply insert failed:", replyError.message);
-      } else {
-        autoReplySentConversations.add(conversationId);
-      }
-    })();
-  }, AGENT_AUTO_REPLY_DELAY_MS);
 }
 
 /**
@@ -544,6 +500,13 @@ export async function getTranslatedText(message: ChatMessage, targetLang: string
   const cached = message.translations?.[targetLang];
   if (cached) {
     return cached;
+  }
+
+  // 길이 상한 — 캐시보다 뒤에 둔다. 이미 번역해 둔 긴 메시지는 그대로 보여 주는 것이
+  // 맞다(추가 비용이 없고, 상한을 나중에 낮춰도 과거 대화가 갑자기 원문으로 바뀌지
+  // 않는다). 새로 호출하는 것만 막는다.
+  if (isTooLongToTranslate(message.original_text)) {
+    return message.original_text;
   }
 
   // [STEP T-2] 실패한 메시지를 화면 열 때마다 다시 시도하던 문제를 막는다.

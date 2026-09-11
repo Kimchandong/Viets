@@ -39,6 +39,10 @@ const PROPERTY_CATEGORIES: PropertyImageCategory[] = [
   "other",
 ];
 
+/** [2026-09-11 사용자 지시] 지역 칩 내부 여백 — 4px → 6px → 상하 6 / 좌우 8. */
+const REGION_CHIP_PADDING_Y = 6;
+const REGION_CHIP_PADDING_X = 10;
+
 // STEP 4-9B — Property UI 레이아웃 기반. 지역/상태 필터는 mock 데이터(constants/mockData.ts)에
 // 대한 순수 클라이언트 필터일 뿐 실제 Supabase 쿼리는 아니다. Map 연동(Google Maps SDK)은
 // Phase 4 범위 — 이 STEP은 새 dependency를 추가하지 않으므로 Map 전환은 자리표시만 제공한다.
@@ -221,7 +225,12 @@ export default function PropertyScreen() {
               inactiveTextColor={theme.secondaryText}
               // [STEP: 2026-09-09-19] 사용자 요청 — 지역 메뉴 좌우 간격을 좀 더 좁게
               // (칩 기본 내부 padding spacing.md=16 대신 spacing.xs=4).
-              paddingHorizontal={spacing.xs}
+              // [2026-09-11 사용자 지시] 여백 상하 6 / 좌우 10, 선택 시 파란 테두리 +
+              // 아래 카테고리 칩(아파트/주택…)과 같은 라운딩(radius.full).
+              paddingHorizontal={REGION_CHIP_PADDING_X}
+              paddingVertical={REGION_CHIP_PADDING_Y}
+              activeBorderColor={theme.accent}
+              borderRadius={radius.full}
             />
             {MOCK_REGIONS.map((item) => (
               <Chip
@@ -235,7 +244,10 @@ export default function PropertyScreen() {
                 activeColor="transparent"
                 activeTextColor="#111111"
                 inactiveTextColor={theme.secondaryText}
-                paddingHorizontal={spacing.xs}
+                paddingHorizontal={REGION_CHIP_PADDING_X}
+                paddingVertical={REGION_CHIP_PADDING_Y}
+                activeBorderColor={theme.accent}
+                borderRadius={radius.full}
               />
             ))}
           </ScrollView>
@@ -386,7 +398,7 @@ export default function PropertyScreen() {
           <>
             {featured.length > 0 ? (
               <View style={styles.section}>
-                <SectionHeader title={t("property.featuredTitle")} />
+                <SectionHeader title={t("property.featuredTitle")} icon="business-outline" />
                 <HorizontalCardCarousel
                   style={styles.bleedScroll}
                   contentContainerStyle={styles.featuredRow}
@@ -511,7 +523,12 @@ const styles = StyleSheet.create({
     // [STEP: 2026-09-09-18] 사용자 재요청 — 검색창 바로 아래 여백을 정확히 20px로
     // (content.gap 16 + 이 영역 자체 paddingVertical 4 = 20). 이전 STEP의
     // marginTop:-20("위로 20px")은 결과적으로 여백이 거의 0이 되어버려 되돌린다.
-    paddingVertical: spacing.xs,
+    //
+    // [2026-09-11 사용자 지시] 검색창과 지역 메뉴 사이만 padding-top: 0.
+    // 아래쪽(카테고리 칩과의 간격)은 그대로 둬야 하므로 paddingVertical을
+    // 위/아래로 나눈다.
+    paddingTop: 0,
+    paddingBottom: spacing.xs,
     marginBottom: -(spacing.md - spacing.xs),
   },
   regionChipRow: {

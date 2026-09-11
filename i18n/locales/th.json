@@ -28,7 +28,7 @@
   },
   "home": {
     "title": "หน้าแรก",
-    "searchPlaceholder": "ค้นหาเมือง โครงการ หรือคำค้นหา",
+    "searchPlaceholder": "AI อสังหาฯ, ค้นหาด้วยเสียง",
     "categoriesTitle": "หมวดหมู่",
     "featuredTitle": "แนะนำสำหรับคุณ",
     "nearbyTitle": "ใกล้เคียงและล่าสุด",
@@ -215,7 +215,11 @@
     "loginRequiredDescription": "กรุณาเข้าสู่ระบบเพื่อเริ่มแชทแบบตัวต่อตัว",
     "inputPlaceholder": "พิมพ์ข้อความ",
     "sendFailedToast": "ส่งไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
-    "imagePermissionDenied": "จำเป็นต้องได้รับสิทธิ์เข้าถึงรูปภาพ"
+    "imagePermissionDenied": "จำเป็นต้องได้รับสิทธิ์เข้าถึงรูปภาพ",
+    "waitingForAgent": "ผู้ลงประกาศอสังหาริมทรัพย์นี้จะตอบกลับ กรุณารอสักครู่",
+    "translationSkippedLength": "ไม่ได้แปลอัตโนมัติ — เกิน {{limit}} ตัวอักษร",
+    "lengthLimitNotice": "จำกัดข้อความยาวเพื่อให้การแปลถูกต้อง",
+    "lengthLimitHint": "ส่งได้สูงสุด {{limit}} ตัวอักษรต่อข้อความ กรุณาแบ่งส่ง"
   },
   "ai": {
     "title": "AI",

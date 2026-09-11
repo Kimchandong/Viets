@@ -28,7 +28,7 @@
   },
   "home": {
     "title": "首页",
-    "searchPlaceholder": "搜索城市、项目或关键词",
+    "searchPlaceholder": "房产 AI、语音搜索",
     "categoriesTitle": "分类",
     "featuredTitle": "为您推荐",
     "nearbyTitle": "附近 · 最新",
@@ -215,7 +215,11 @@
     "loginRequiredDescription": "请登录后开始一对一咨询。",
     "inputPlaceholder": "输入消息",
     "sendFailedToast": "发送失败，请重试。",
-    "imagePermissionDenied": "需要相册访问权限。"
+    "imagePermissionDenied": "需要相册访问权限。",
+    "waitingForAgent": "该房源的中介与发布者会尽快回复，请稍候。",
+    "translationSkippedLength": "超过 {{limit}} 字，未自动翻译。",
+    "lengthLimitNotice": "为保证翻译准确，限制发送长消息。",
+    "lengthLimitHint": "每条消息最多 {{limit}} 字，请分次发送。"
   },
   "ai": {
     "title": "AI",

@@ -14,18 +14,30 @@
  * 동작은 전혀 바뀌지 않는다(그 문자열들엔 " tỷ"가 없으므로 slashIndex 분기가 먼저
  * 걸린다).
  */
+/**
+ * [2026-09-11 사용자 지시] "금액 단위 k 전체 bold 삭제" + "k 앞에 한 칸".
+ *
+ * "18,000k"의 k는 tỷ/tháng과 똑같은 단위인데 숫자 쪽(rate)에 붙어 있어 혼자 bold로
+ * 남아 있었다. 숫자에서 떼어 suffix 앞에 붙이면 호출부를 하나도 건드리지 않고 모든
+ * 화면에서 regular weight로 렌더된다 — 이 함수를 쓰는 곳이 이미 rate만 bold로,
+ * suffix는 regular로 그리고 있기 때문이다. 앞의 공백은 " tỷ"와 모양을 맞춘 것이다.
+ */
+function detachUnitK(rate: string, suffix: string): { rate: string; suffix: string } {
+  return rate.endsWith("k") ? { rate: rate.slice(0, -1), suffix: ` k${suffix}` } : { rate, suffix };
+}
+
 export function splitYieldText(text: string): { rate: string; suffix: string } {
   const slashIndex = text.indexOf("/");
   if (slashIndex !== -1) {
     // [STEP: 2026-09-09-6] 사용자 요청 — "18,000k/tháng"처럼 붙어있던 표기를
     // "18,000k / tháng"으로, 금액과 "/" 사이 · "/"와 단위 사이 각각 한 칸씩 띄운다.
-    return { rate: text.slice(0, slashIndex), suffix: ` / ${text.slice(slashIndex + 1)}` };
+    return detachUnitK(text.slice(0, slashIndex), ` / ${text.slice(slashIndex + 1)}`);
   }
   const tyIndex = text.indexOf(" tỷ");
   if (tyIndex !== -1) {
-    return { rate: text.slice(0, tyIndex), suffix: text.slice(tyIndex) };
+    return detachUnitK(text.slice(0, tyIndex), text.slice(tyIndex));
   }
-  return { rate: text, suffix: "" };
+  return detachUnitK(text, "");
 }
 
 

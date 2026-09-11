@@ -111,26 +111,27 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
       {/* [STEP: 2026-09-09-3] 사용자 요청 — 가격란 아래에 면적/침실수/욕실수 표시
           (기존 수익률/거리는 위 두 줄로 이동). */}
       <View testID="property-card-meta-row" style={styles.metaRow}>
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+        <Text style={[textStyles.caption, styles.metaText, { color: theme.secondaryText }]} numberOfLines={1}>
           {property.area}
         </Text>
-        {/* [STEP: 2026-09-09-16] 사용자 제보 — 아이콘 size를 리터럴 11로 고정하면
+        {/* [STEP: 2026-09-09-16] 사용자 제보 — 아이콘 size를 리터럴로 고정하면
             웹 미리보기(스케일 팩터가 거의 1)에서는 우연히 글자크기와 비슷해 보이지만,
             textStyles.caption.fontSize는 moderateScale()로 화면폭에 따라 달라지므로
-            실기기(빌드한 앱)에서는 아이콘이 글자보다 작아 보였다. 아이콘 size를
-            textStyles.caption.fontSize로 직접 지정해 항상 같은 값을 쓰게 한다. */}
+            실기기(빌드한 앱)에서는 아이콘이 글자보다 작아 보였다.
+            [2026-09-11 사용자 지시] 글자·아이콘 모두 12px로 고정한다 — 한 상수를
+            양쪽에 쓰므로 기기마다 어긋날 일이 없다. */}
         {property.bedrooms !== undefined ? (
           <View style={styles.metaItem}>
-            <Ionicons name="bed-outline" size={textStyles.caption.fontSize} color={theme.secondaryText} />
-            <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+            <Ionicons name="bed-outline" size={META_SIZE} color={theme.secondaryText} />
+            <Text style={[textStyles.caption, styles.metaText, { color: theme.secondaryText }]} numberOfLines={1}>
               {property.bedrooms}
             </Text>
           </View>
         ) : null}
         {property.bathrooms !== undefined ? (
           <View style={styles.metaItem}>
-            <Ionicons name="water-outline" size={textStyles.caption.fontSize} color={theme.secondaryText} />
-            <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+            <Ionicons name="water-outline" size={META_SIZE} color={theme.secondaryText} />
+            <Text style={[textStyles.caption, styles.metaText, { color: theme.secondaryText }]} numberOfLines={1}>
               {property.bathrooms}
             </Text>
           </View>
@@ -139,6 +140,9 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
     </Card>
   );
 }
+
+/** [2026-09-11 사용자 지시] 면적/침실/욕실 행의 글자·아이콘 크기(px). */
+const META_SIZE = 12;
 
 const styles = StyleSheet.create({
   card: {
@@ -240,11 +244,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
   },
+  // [2026-09-11 사용자 지시] 평수/방수/화장실 글자 12px. 위 아이콘과 같은 상수를 쓴다.
+  metaText: {
+    fontSize: META_SIZE,
+  },
   // [STEP: 2026-09-09] 사용자 요청 — 가격 단위(tỷ/tháng) bold 없앰.
-  // [STEP: 2026-09-09-6] 사용자 요청 — 이 단위 글자 크기 11px.
+  // [2026-09-11 사용자 지시] 단위 글자 크기를 앞의 금액과 같게 — fontSize override를
+  // 없애면 바깥 Text(textStyles.price)의 크기를 그대로 상속한다. 굵기만 다르게 둔다.
   priceUnit: {
     fontWeight: typography.weight.regular,
-    fontSize: 11,
   },
   // [STEP: 2026-09-09-14] 수익률 강조 스택(큰 수치 + 작은 단위, 우측 정렬).
   yieldStack: {

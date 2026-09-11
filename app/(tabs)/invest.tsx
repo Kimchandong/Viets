@@ -260,7 +260,7 @@ export default function InvestScreen() {
 
         {featured.length > 0 ? (
           <View style={styles.section}>
-            <SectionHeader title={t("invest.featuredTitle")} />
+            <SectionHeader title={t("invest.featuredTitle")} icon="trending-up-outline" />
             {/* [STEP: 2026-09-09-6] 사용자 요청 — 캐러셀 첫 카드 가운데 정렬 + 좌우
                 화살표 네비게이션(HorizontalCardCarousel, home/property와 동일 패턴). */}
             <HorizontalCardCarousel

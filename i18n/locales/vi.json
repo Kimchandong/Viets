@@ -28,7 +28,7 @@
   },
   "home": {
     "title": "Trang chủ",
-    "searchPlaceholder": "Tìm thành phố, dự án hoặc từ khóa",
+    "searchPlaceholder": "AI bất động sản, tìm bằng giọng nói",
     "categoriesTitle": "Danh mục",
     "featuredTitle": "Dành cho bạn",
     "nearbyTitle": "Gần đây & mới nhất",
@@ -215,7 +215,11 @@
     "loginRequiredDescription": "Vui lòng đăng nhập để trò chuyện 1:1.",
     "inputPlaceholder": "Nhập tin nhắn",
     "sendFailedToast": "Gửi thất bại. Vui lòng thử lại.",
-    "imagePermissionDenied": "Cần quyền truy cập ảnh."
+    "imagePermissionDenied": "Cần quyền truy cập ảnh.",
+    "waitingForAgent": "Văn phòng môi giới và người đăng tin của bất động sản này sẽ phản hồi. Vui lòng chờ trong giây lát.",
+    "translationSkippedLength": "Không tự động dịch — vượt quá {{limit}} ký tự.",
+    "lengthLimitNotice": "Tin nhắn dài bị chặn để đảm bảo bản dịch chính xác.",
+    "lengthLimitHint": "Tối đa {{limit}} ký tự mỗi tin nhắn. Vui lòng chia nhỏ."
   },
   "ai": {
     "title": "AI",

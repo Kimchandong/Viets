@@ -36,6 +36,17 @@ export type ChipProps = {
   // 이 칩 하나만 더 좁게 쓰고 싶은 곳을 위한 선택적 override — 미지정 시 기존
   // spacing.md 그대로(다른 모든 호출부는 전혀 영향받지 않음).
   paddingHorizontal?: number;
+  // [2026-09-11 사용자 지시] 지역 칩 내부 여백을 상하까지 6px로. paddingHorizontal과
+  // 같은 이유로 이 칩에만 적용되는 선택적 override다.
+  paddingVertical?: number;
+  // [2026-09-11 사용자 지시] "지역명 클릭 활성화 시 검은색 테두리".
+  // bordered={false}인 칩(지역 메뉴)에도 **선택됐을 때만** 테두리를 주기 위한 prop.
+  // 값을 주면 비활성 상태에서도 같은 두께의 투명 테두리를 그려 둔다 — 선택할 때만
+  // 테두리가 생기면 칩 크기가 1px씩 늘었다 줄었다 해서 줄 전체가 흔들린다.
+  activeBorderColor?: string;
+  // [2026-09-11 사용자 지시] 지역 칩은 사각(squared)이지만 모서리를 살짝 굴린다.
+  // squared/pill 두 가지로는 표현할 수 없어 값을 직접 받는다 — 주면 squared보다 우선한다.
+  borderRadius?: number;
 };
 
 /**
@@ -55,8 +66,12 @@ export function Chip({
   inactiveTextColor,
   textStyle,
   paddingHorizontal,
+  paddingVertical,
+  activeBorderColor,
+  borderRadius,
 }: ChipProps) {
   const resolvedActiveColor = activeColor ?? (tone === "accent" ? theme.accent : theme.text);
+  const hasActiveBorder = activeBorderColor !== undefined;
   return (
     <Pressable
       onPress={onPress}
@@ -66,12 +81,19 @@ export function Chip({
         styles.chip,
         {
           backgroundColor: active ? resolvedActiveColor : theme.card,
-          borderColor: active ? resolvedActiveColor : theme.border,
-          borderWidth: bordered ? 1 : 0,
-          borderRadius: squared ? 0 : radius.full,
+          borderColor: hasActiveBorder
+            ? active
+              ? activeBorderColor
+              : "transparent"
+            : active
+              ? resolvedActiveColor
+              : theme.border,
+          borderWidth: bordered || hasActiveBorder ? 1 : 0,
+          borderRadius: borderRadius ?? (squared ? 0 : radius.full),
           opacity: pressed ? opacity.pressed : 1,
         },
         paddingHorizontal !== undefined ? { paddingHorizontal } : null,
+        paddingVertical !== undefined ? { paddingVertical } : null,
       ]}
     >
       <Text

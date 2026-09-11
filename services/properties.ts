@@ -53,11 +53,12 @@ type PropertyRow = {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  created_by: string | null;
   property_images: PropertyImageRow[] | null;
 };
 
 const PROPERTY_SELECT =
-  "id,title,description,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,featured,amenities,address,latitude,longitude,property_images(url,sort_order)";
+  "id,title,description,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,featured,amenities,address,latitude,longitude,created_by,property_images(url,sort_order)";
 
 /** address 텍스트에 MOCK_REGIONS(지역 필터 칩) 중 하나가 포함되어 있으면 그 값을 쓴다.
  * locations 테이블이 아직 비어있어(seed 없음) province_id FK 대신 address 텍스트 매칭으로
@@ -114,6 +115,9 @@ function mapRowToMockProperty(row: PropertyRow): MockProperty {
     // (properties_geom_sync 트리거도 동일한 규칙으로 geom을 NULL 처리한다).
     latitude: row.latitude ?? undefined,
     longitude: row.longitude ?? undefined,
+    // 등록자 — 매물 상세가 "이 매물이 내 것인가"를 판단하는 데 쓴다(중개업소는 자기
+    // 매물만 수정할 수 있다). 실제 차단은 properties UPDATE 정책이 서버에서 한다.
+    createdBy: row.created_by ?? undefined,
     images: resolveImages(row, uiCategory),
     isMock: false,
   };
@@ -621,9 +625,9 @@ type ManagedPropertyRow = {
  * 내가 관리하는 매물 전체 — **status 필터를 걸지 않는다.**
  *
  * 무엇이 돌아오는지는 서버(properties SELECT 정책)가 정한다: admin/reviewer는 전체,
- * Agency 소속 계정은 자기 Agency 매물, `property_manage` 보유자는 관리 대상 매물.
- * 클라이언트가 "내 것"을 따로 걸러내지 않는 이유는 properties에 등록자(created_by)
- * 컬럼이 없기 때문이다 — 소유 판정의 유일한 근거가 RLS다.
+ * Agency 소속 계정은 자기 Agency 매물, `property_manage` 보유자는 **자기가 등록한**
+ * 매물(created_by = auth.uid()). 클라이언트가 created_by로 한 번 더 거르지 않는 이유는
+ * 그러면 관리자가 전체를 보는 동작까지 함께 막히기 때문이다 — 소유 판정은 RLS에 맡긴다.
  */
 export async function listManagedProperties(): Promise<ManagedProperty[]> {
   if (!supabase) {

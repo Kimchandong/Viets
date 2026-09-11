@@ -60,6 +60,10 @@ export type MockProperty = {
   latitude?: number;
   longitude?: number;
   images: (typeof MOCK_PROPERTY_IMAGES)[MockPropertyCategory];
+  /** [2026-09-11] 이 매물을 등록한 계정(properties.created_by). 중개업소는 자기가 등록한
+   * 매물만 수정할 수 있으므로, 화면이 "이 매물이 내 것인가"를 판단하는 근거가 된다.
+   * mock 매물과 등록자 기록이 없는 옛 매물에는 값이 없다. */
+  createdBy?: string;
   /** [STEP 04] 실제 Supabase 매물은 isMock:false — services/properties.ts가 채운다.
    * 아래 MOCK_PROPERTIES 배열 원소는 전부 isMock:true로 그대로 유지(제거 대상이지만
    * 아직 삭제하지 않음 — findSimilarProperties* 등 일부 화면이 계속 참조). */

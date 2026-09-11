@@ -38,7 +38,7 @@ import { PROPERTY_OPTION_VALUE_PATTERN } from "@/constants/propertyOptions";
 import { localizedText, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { getPropertyById } from "@/services/properties";
-import { canRegisterProperty } from "@/services/roles";
+import { isAdmin } from "@/services/roles";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 
 // [FULL-DEV] Property 상세 화면 — app/(tabs)/property.tsx(리스트/카드)와 app/(tabs)/home.tsx
@@ -121,8 +121,12 @@ export default function PropertyDetailScreen() {
     aiTab === "area" ? similarByArea : aiTab === "rooms" ? similarByRooms : similarByPrice;
 
   const [session, setSession] = useState<Session | null>(null);
-  // [STEP 04-수정] 매물 수정 진입점 노출 여부 — admin 또는 property_manage 권한 보유자.
-  const [canEdit, setCanEdit] = useState(false);
+  // [2026-09-11 사용자 지시] 매물 수정 진입점 노출 여부.
+  // 이전에는 canRegisterProperty()(= admin이거나 property_manage 보유)만 봤는데, 그러면
+  // **남의 매물**에도 수정 버튼이 뜬다(중개업소 A가 B의 매물에서 "매물 수정"을 보고,
+  // 눌러도 서버가 거부한다). properties.created_by가 생겼으니 이 매물이 내 것인지로
+  // 판단한다 — 관리자는 예외로 전부 수정할 수 있다.
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   // [STEP: 2026-09-09] 사용자 요청 — "문의하기"를 비로그인 상태에서 누르면
   // 전체 화면 전환 대신 팝업으로 Google/Apple 로그인을 바로 띄운다.
@@ -131,6 +135,11 @@ export default function PropertyDetailScreen() {
 
   const isFavorite = useFavoritesStore((state) => (property ? state.isFavorite("property", property.id) : false));
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+
+  // 등록자 기록이 없는 옛 매물(createdBy 없음)은 관리자에게만 수정 대상이다 —
+  // 누가 올렸는지 모르는 매물을 아무 중개업소나 고치게 두지 않는다.
+  const canEdit =
+    isAdminUser || (!!session && !!property?.createdBy && property.createdBy === session.user.id);
 
   // [STEP: 2026-09-09-6] 사용자 요청 — "투자신청/문의하기 클릭 시 로그인이 안 되고
   // 다시 로그인창으로 돌아옴" 버그 수정. 기존에는 getSession()을 마운트 시 한 번만
@@ -150,8 +159,8 @@ export default function PropertyDetailScreen() {
       if (mounted) setSession(nextSession);
     });
 
-    canRegisterProperty().then((ok) => {
-      if (mounted) setCanEdit(ok);
+    isAdmin().then((ok) => {
+      if (mounted) setIsAdminUser(ok);
     });
 
     return () => {

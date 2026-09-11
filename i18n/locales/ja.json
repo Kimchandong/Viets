@@ -271,7 +271,8 @@
     "adminTitle": "運営",
     "registerProperty": "物件登録",
     "registerInvestment": "投資商品登録",
-    "managePermissions": "アカウント権限管理"
+    "managePermissions": "アカウント権限管理",
+    "translationUsage": "翻訳使用量"
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",
@@ -470,5 +471,25 @@
       "investment_manage": "投資商品の登録・編集・募集終了",
       "property_manage": "物件の登録・編集・非表示"
     }
+  },
+  "translationUsage": {
+    "title": "翻訳使用量",
+    "periodToday": "今日",
+    "periodMonth": "今月",
+    "cacheHitRate": "キャッシュヒット率",
+    "cacheHitRateHelper": "翻訳リクエスト{{total}}件のうち{{saved}}件をAPI呼び出しなしで処理しました",
+    "apiCalls": "API呼び出し",
+    "cacheHits": "キャッシュヒット",
+    "skipped": "翻訳不要",
+    "failures": "翻訳失敗",
+    "billableChars": "API送信文字数",
+    "freeChars": "月間無料枠",
+    "chargeableChars": "課金対象文字数",
+    "estimatedCost": "推定コスト",
+    "priceNotice": "100万文字あたり${{price}}で計算した推定値です。実際の請求額はGoogle Cloudコンソールでご確認ください。",
+    "loadFailedTitle": "使用量を読み込めませんでした",
+    "loadFailedDescription": "しばらくしてから再度お試しください。",
+    "noPermissionTitle": "アクセス権限がありません",
+    "noPermissionDescription": "翻訳使用量は管理者のみ確認できます。"
   }
 }

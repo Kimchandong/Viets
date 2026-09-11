@@ -271,7 +271,8 @@
     "adminTitle": "运营",
     "registerProperty": "发布房源",
     "registerInvestment": "发布投资产品",
-    "managePermissions": "账户权限管理"
+    "managePermissions": "账户权限管理",
+    "translationUsage": "翻译用量"
   },
   "auth": {
     "tagline": "越南房地产与投资平台",
@@ -470,5 +471,25 @@
       "investment_manage": "发布、编辑及结束投资产品",
       "property_manage": "发布、编辑及隐藏房源"
     }
+  },
+  "translationUsage": {
+    "title": "翻译用量",
+    "periodToday": "今天",
+    "periodMonth": "本月",
+    "cacheHitRate": "缓存命中率",
+    "cacheHitRateHelper": "{{total}} 次翻译请求中有 {{saved}} 次无需调用 API",
+    "apiCalls": "API 调用",
+    "cacheHits": "缓存命中",
+    "skipped": "无需翻译",
+    "failures": "翻译失败",
+    "billableChars": "发送至 API 的字符数",
+    "freeChars": "每月免费额度",
+    "chargeableChars": "计费字符数",
+    "estimatedCost": "预估费用",
+    "priceNotice": "按每百万字符 ${{price}} 估算。实际账单请在 Google Cloud 控制台查看。",
+    "loadFailedTitle": "无法加载用量",
+    "loadFailedDescription": "请稍后重试。",
+    "noPermissionTitle": "无访问权限",
+    "noPermissionDescription": "仅管理员可查看翻译用量。"
   }
 }

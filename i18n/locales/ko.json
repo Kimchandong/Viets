@@ -271,7 +271,8 @@
     "adminTitle": "운영",
     "registerProperty": "매물 등록",
     "registerInvestment": "투자상품 등록",
-    "managePermissions": "계정 권한 관리"
+    "managePermissions": "계정 권한 관리",
+    "translationUsage": "번역 사용량"
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",
@@ -470,5 +471,25 @@
       "investment_manage": "투자상품 등록·수정·삭제(모집 마감)",
       "property_manage": "매물 등록·수정·감추기"
     }
+  },
+  "translationUsage": {
+    "title": "번역 사용량",
+    "periodToday": "오늘",
+    "periodMonth": "이번 달",
+    "cacheHitRate": "캐시 적중률",
+    "cacheHitRateHelper": "번역 요청 {{total}}건 중 {{saved}}건을 API 호출 없이 처리했습니다",
+    "apiCalls": "API 호출",
+    "cacheHits": "캐시 적중",
+    "skipped": "번역 불필요",
+    "failures": "번역 실패",
+    "billableChars": "API 호출 문자 수",
+    "freeChars": "월 무료 제공량",
+    "chargeableChars": "과금 대상 문자 수",
+    "estimatedCost": "예상 비용",
+    "priceNotice": "100만 문자당 ${{price}} 기준으로 계산한 추정치입니다. 실제 청구액은 Google Cloud 콘솔에서 확인하세요.",
+    "loadFailedTitle": "사용량을 불러오지 못했습니다",
+    "loadFailedDescription": "잠시 후 다시 시도해 주세요.",
+    "noPermissionTitle": "접근 권한이 없습니다",
+    "noPermissionDescription": "번역 사용량은 관리자만 확인할 수 있습니다."
   }
 }

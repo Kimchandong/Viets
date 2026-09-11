@@ -271,7 +271,8 @@
     "adminTitle": "Quản trị",
     "registerProperty": "Đăng bất động sản",
     "registerInvestment": "Đăng sản phẩm đầu tư",
-    "managePermissions": "Quyền tài khoản"
+    "managePermissions": "Quyền tài khoản",
+    "translationUsage": "Mức sử dụng dịch"
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
@@ -470,5 +471,25 @@
       "investment_manage": "Đăng, sửa và đóng sản phẩm đầu tư",
       "property_manage": "Đăng, sửa và ẩn tin bất động sản"
     }
+  },
+  "translationUsage": {
+    "title": "Mức sử dụng dịch",
+    "periodToday": "Hôm nay",
+    "periodMonth": "Tháng này",
+    "cacheHitRate": "Tỷ lệ dùng bộ nhớ đệm",
+    "cacheHitRateHelper": "{{saved}}/{{total}} yêu cầu dịch được xử lý mà không gọi API",
+    "apiCalls": "Lượt gọi API",
+    "cacheHits": "Dùng bộ nhớ đệm",
+    "skipped": "Không cần dịch",
+    "failures": "Thất bại",
+    "billableChars": "Số ký tự đã gửi API",
+    "freeChars": "Miễn phí hàng tháng",
+    "chargeableChars": "Ký tự tính phí",
+    "estimatedCost": "Chi phí ước tính",
+    "priceNotice": "Ước tính theo ${{price}} cho mỗi triệu ký tự. Kiểm tra Google Cloud Console để biết hóa đơn thực tế.",
+    "loadFailedTitle": "Không tải được dữ liệu",
+    "loadFailedDescription": "Vui lòng thử lại sau.",
+    "noPermissionTitle": "Không có quyền truy cập",
+    "noPermissionDescription": "Chỉ quản trị viên mới xem được mức sử dụng dịch."
   }
 }

@@ -271,7 +271,8 @@
     "adminTitle": "Admin",
     "registerProperty": "Register property",
     "registerInvestment": "Register product",
-    "managePermissions": "Account permissions"
+    "managePermissions": "Account permissions",
+    "translationUsage": "Translation usage"
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",
@@ -470,5 +471,25 @@
       "investment_manage": "Create, edit and close investment products",
       "property_manage": "Create, edit and hide property listings"
     }
+  },
+  "translationUsage": {
+    "title": "Translation usage",
+    "periodToday": "Today",
+    "periodMonth": "This month",
+    "cacheHitRate": "Cache hit rate",
+    "cacheHitRateHelper": "{{saved}} of {{total}} translation requests were served without an API call",
+    "apiCalls": "API calls",
+    "cacheHits": "Cache hits",
+    "skipped": "Not needed",
+    "failures": "Failures",
+    "billableChars": "Characters sent to API",
+    "freeChars": "Monthly free tier",
+    "chargeableChars": "Chargeable characters",
+    "estimatedCost": "Estimated cost",
+    "priceNotice": "Estimated at ${{price}} per million characters. Check Google Cloud Console for actual billing.",
+    "loadFailedTitle": "Could not load usage",
+    "loadFailedDescription": "Please try again shortly.",
+    "noPermissionTitle": "No access",
+    "noPermissionDescription": "Only admins can view translation usage."
   }
 }

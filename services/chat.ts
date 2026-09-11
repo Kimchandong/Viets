@@ -38,6 +38,8 @@ import { supabase } from "./supabase";
 
 export type ChatSenderType = "customer" | "agent";
 
+export type MessageTranslationStatus = "not_required" | "pending" | "translated" | "failed";
+
 export type ChatMessage = {
   id: string;
   conversation_id: string;
@@ -47,7 +49,14 @@ export type ChatMessage = {
   translations: Record<string, string> | null;
   image_url: string | null;
   created_at: string;
+  // [STEP T-2] 번역 상태 — 기존 메시지에는 없을 수 있어(마이그레이션 기본값 'pending')
+  // optional로 둔다.
+  translation_status?: MessageTranslationStatus;
+  translation_attempts?: number;
 };
+
+/** 번역 실패 재시도 상한(§19 — 무한 재시도 금지). 이 횟수를 넘기면 원문만 보여준다. */
+const MAX_TRANSLATION_ATTEMPTS = 3;
 
 const CONVERSATIONS_TABLE = "property_conversations";
 const MESSAGES_TABLE = "property_messages";
@@ -318,35 +327,50 @@ export function subscribeToMessages(
 }
 
 /**
- * Google Cloud Translation API(v2, REST)를 직접 호출한다. API 키
- * (EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY)가 없으면 null을 반환해 호출부가
- * 원문으로 폴백하게 한다 — 앱을 crash시키지 않는다(services 전역 원칙).
+ * [STEP T-2, 2026-09-10] 번역 호출을 Edge Function(`translate`)으로 옮겼다.
+ *
+ * 이전에는 이 함수가 앱에서 Google Translation API를 직접 호출했고, API 키를
+ * `EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY`로 들고 있었다 — EXPO_PUBLIC_* 값은 APK
+ * 번들에 평문으로 들어가므로 디컴파일만 하면 누구나 키를 꺼내 무제한 호출할 수
+ * 있었다(비용 폭탄 위험). 이제 키는 Supabase Secrets에만 존재하고, 앱은 로그인
+ * 사용자의 JWT로 Edge Function을 호출한다.
+ *
+ * Edge Function은 (1) 같은 언어면 호출을 건너뛰고, (2) 전역 캐시
+ * (translation_cache)를 먼저 조회하며, (3) 없을 때만 Google을 호출하고 결과를
+ * 캐시에 저장한다. 즉 같은 문장은 사용자·메시지가 달라도 딱 한 번만 과금된다.
+ *
+ * 실패 시 null을 반환해 호출부가 원문으로 폴백하게 한다(앱을 crash시키지 않는다).
  */
-async function callTranslateApi(text: string, targetLang: string, sourceLang: string): Promise<string | null> {
-  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY;
-  if (!apiKey) {
-    console.warn("[services/chat] EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY가 설정되지 않아 번역을 건너뜁니다.");
+async function callTranslateApi(
+  text: string,
+  targetLang: string,
+  sourceLang: string,
+  messageId?: string,
+): Promise<{ text: string; outcome: string } | null> {
+  if (!supabase) {
     return null;
   }
 
   try {
-    const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: text, source: sourceLang, target: targetLang, format: "text" }),
+    const { data, error } = await supabase.functions.invoke("translate", {
+      body: { text, sourceLang, targetLang, messageId },
     });
 
-    const json = await response.json();
-    const translated = json?.data?.translations?.[0]?.translatedText;
-
-    if (typeof translated !== "string") {
-      console.warn("[services/chat] translate API returned an unexpected response shape");
+    if (error) {
+      console.warn("[services/chat] translate function failed:", error.message);
       return null;
     }
-    return translated;
+
+    const translated = (data as { translatedText?: unknown })?.translatedText;
+    const outcome = (data as { outcome?: unknown })?.outcome;
+    if (typeof translated !== "string") {
+      console.warn("[services/chat] translate function returned an unexpected response shape");
+      return null;
+    }
+    return { text: translated, outcome: typeof outcome === "string" ? outcome : "api_call" };
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown-error";
-    console.warn("[services/chat] translate API request failed:", message);
+    console.warn("[services/chat] translate function request failed:", message);
     return null;
   }
 }
@@ -368,23 +392,111 @@ export async function getTranslatedText(message: ChatMessage, targetLang: string
     return message.original_text;
   }
 
+  // 1차 캐시: 이 메시지에 이미 저장된 번역문. 서버 왕복조차 하지 않는다 —
+  // 채팅방 재진입/스크롤/새로고침이 여기서 끝난다(§18, §21).
   const cached = message.translations?.[targetLang];
   if (cached) {
     return cached;
   }
 
-  const translated = await callTranslateApi(message.original_text, targetLang, message.original_lang);
-  if (!translated) {
+  // [STEP T-2] 실패한 메시지를 화면 열 때마다 다시 시도하던 문제를 막는다.
+  // 기존에는 실패를 기록하지 않아, 번역이 안 되는 메시지가 조회될 때마다 API를
+  // 재호출했다. 이제 시도 횟수가 상한(3회)에 도달하면 더 호출하지 않고 원문을
+  // 보여준다(§19 — 무한 재시도 금지).
+  if (message.translation_status === "failed" && (message.translation_attempts ?? 0) >= MAX_TRANSLATION_ATTEMPTS) {
     return message.original_text;
   }
 
+  const result = await callTranslateApi(
+    message.original_text,
+    targetLang,
+    message.original_lang,
+    message.id,
+  );
+
+  if (!result) {
+    // 실패를 기록해 다음 조회에서 재시도 횟수를 누적한다(상한 도달 시 중단).
+    await recordTranslationFailure(message, "translate function unavailable");
+    return message.original_text;
+  }
+
+  if (result.outcome === "failed") {
+    await recordTranslationFailure(message, "translation provider failed");
+    return message.original_text;
+  }
+
+  // 2차 캐시: 메시지 단위 캐시에도 저장해, 다음 조회는 서버 왕복 없이 끝나게 한다.
   if (supabase) {
-    const nextTranslations = { ...(message.translations ?? {}), [targetLang]: translated };
-    const { error } = await supabase.from(MESSAGES_TABLE).update({ translations: nextTranslations }).eq("id", message.id);
+    const nextTranslations = { ...(message.translations ?? {}), [targetLang]: result.text };
+    const { error } = await supabase
+      .from(MESSAGES_TABLE)
+      .update({
+        translations: nextTranslations,
+        translation_status: "translated",
+        translation_error: null,
+        translated_at: new Date().toISOString(),
+      })
+      .eq("id", message.id);
     if (error) {
       console.warn("[services/chat] translation cache write failed:", error.message);
     }
+    // 로컬 객체도 갱신해, 같은 화면에서 이 메시지를 다시 렌더링할 때 재조회하지 않는다.
+    message.translations = nextTranslations;
+    message.translation_status = "translated";
   }
 
-  return translated;
+  return result.text;
+}
+
+/**
+ * [STEP T-2] 관리자용 번역 사용량 집계(§16, §17).
+ *
+ * 단가를 코드에 하드코딩하지 않는다 — Google 요금 체계가 바뀔 수 있어, 단가는
+ * 호출부(설정값)에서 곱한다. 이 함수는 "실제 과금 대상 문자 수"까지만 책임진다.
+ */
+export type TranslationUsage = {
+  api_calls: number;
+  cache_hits: number;
+  skipped: number;
+  failures: number;
+  billable_chars: number;
+  cache_hit_rate: number;
+};
+
+export async function fetchTranslationUsage(period: "today" | "month"): Promise<TranslationUsage | null> {
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase.rpc("admin_translation_usage", { period });
+
+  if (error) {
+    console.warn("[services/chat] fetchTranslationUsage failed:", error.message);
+    return null;
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as TranslationUsage) ?? null;
+}
+
+/** 번역 실패를 메시지에 기록한다 — 시도 횟수가 쌓여 상한에 도달하면 재시도를 멈춘다. */
+async function recordTranslationFailure(message: ChatMessage, reason: string): Promise<void> {
+  if (!supabase) {
+    return;
+  }
+
+  const nextAttempts = (message.translation_attempts ?? 0) + 1;
+  const { error } = await supabase
+    .from(MESSAGES_TABLE)
+    .update({
+      translation_status: "failed",
+      translation_attempts: nextAttempts,
+      translation_error: reason,
+    })
+    .eq("id", message.id);
+
+  if (error) {
+    console.warn("[services/chat] translation failure record failed:", error.message);
+  }
+  message.translation_status = "failed";
+  message.translation_attempts = nextAttempts;
 }

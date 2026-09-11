@@ -341,6 +341,15 @@ export default function MyScreen() {
                   label={t("my.managePermissions")}
                   onPress={() => router.push("/admin-permissions")}
                   theme={theme}
+                />
+              ) : null}
+              {/* [STEP T-2] 번역 API 사용량/비용 모니터링 — admin 전용. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="stats-chart-outline"
+                  label={t("my.translationUsage")}
+                  onPress={() => router.push("/admin-translation-usage")}
+                  theme={theme}
                   last
                 />
               ) : null}

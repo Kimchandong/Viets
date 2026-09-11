@@ -15,7 +15,6 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://nbfmodrxnduaxcpxgqpj.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_qNccbKG9HkgyFGY62HlRjA_0yC15_ra",
-        "EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY": "AIzaSyCGW2bmLyptYGnnMGubNoGSSNKdijoQztE",
         "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyDVX3Qm-EzrVJ8Odw6eIvmdepxx_GBcchg"
       }
     }

@@ -271,7 +271,8 @@
     "adminTitle": "ผู้ดูแลระบบ",
     "registerProperty": "ลงประกาศอสังหาริมทรัพย์",
     "registerInvestment": "ลงทะเบียนผลิตภัณฑ์ลงทุน",
-    "managePermissions": "จัดการสิทธิ์บัญชี"
+    "managePermissions": "จัดการสิทธิ์บัญชี",
+    "translationUsage": "การใช้งานการแปล"
   },
   "auth": {
     "tagline": "แพลตฟอร์มอสังหาริมทรัพย์และการลงทุนเวียดนาม",
@@ -470,5 +471,25 @@
       "investment_manage": "ลงทะเบียน แก้ไข และปิดผลิตภัณฑ์ลงทุน",
       "property_manage": "ลงประกาศ แก้ไข และซ่อนประกาศ"
     }
+  },
+  "translationUsage": {
+    "title": "การใช้งานการแปล",
+    "periodToday": "วันนี้",
+    "periodMonth": "เดือนนี้",
+    "cacheHitRate": "อัตราการใช้แคช",
+    "cacheHitRateHelper": "{{saved}} จาก {{total}} คำขอแปลถูกประมวลผลโดยไม่เรียก API",
+    "apiCalls": "การเรียก API",
+    "cacheHits": "ใช้แคช",
+    "skipped": "ไม่ต้องแปล",
+    "failures": "ล้มเหลว",
+    "billableChars": "จำนวนอักขระที่ส่ง API",
+    "freeChars": "โควตาฟรีรายเดือน",
+    "chargeableChars": "อักขระที่คิดค่าบริการ",
+    "estimatedCost": "ค่าใช้จ่ายโดยประมาณ",
+    "priceNotice": "ประมาณการที่ ${{price}} ต่อล้านอักขระ ตรวจสอบยอดจริงได้ที่ Google Cloud Console",
+    "loadFailedTitle": "โหลดข้อมูลไม่สำเร็จ",
+    "loadFailedDescription": "กรุณาลองใหม่อีกครั้ง",
+    "noPermissionTitle": "ไม่มีสิทธิ์เข้าถึง",
+    "noPermissionDescription": "เฉพาะผู้ดูแลระบบเท่านั้นที่ดูการใช้งานการแปลได้"
   }
 }

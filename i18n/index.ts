@@ -7,11 +7,12 @@
  * (I18N.md §1 참조).
  *
  * Locale 결정 순서 (I18N.md §2.4):
- *   1) 사용자가 Settings에서 명시적으로 선택한 언어 (아직 미구현 — Phase 3/10에서
- *      영구 저장소 연동 예정, 현재는 store/useLocaleStore.ts의 메모리 상태만 사용)
+ *   1) 사용자가 Settings에서 명시적으로 선택한 언어 (2026-09-11: AsyncStorage에
+ *      영구 저장 — 앱을 껐다 켜도 유지된다)
  *   2) Device locale이 지원 언어 목록에 있으면 그 언어
  *   3) 그 외에는 'en'
  */
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import * as Localization from "expo-localization";
@@ -55,6 +56,39 @@ export function detectInitialLanguage(): SupportedLanguage {
   return DEFAULT_LANGUAGE;
 }
 
+/**
+ * [2026-09-11] 선택한 언어를 기기에 저장한다.
+ *
+ * 이전에는 저장소가 없어 앱을 껐다 켤 때마다 언어 선택이 초기화됐다(위 §2.4의
+ * 1번 항목이 "미구현"으로 남아 있었다). AsyncStorage는 세션 유지용으로 이미
+ * 설치했으므로 그대로 쓴다.
+ */
+const LANGUAGE_STORAGE_KEY = "viets.language";
+
+export async function persistLanguage(language: SupportedLanguage): Promise<void> {
+  try {
+    await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  } catch (err) {
+    // 저장 실패가 언어 전환 자체를 막지는 않는다 — 이번 실행에서만 유지된다.
+    const message = err instanceof Error ? err.message : "unknown-error";
+    console.warn("[i18n] 언어 저장 실패:", message);
+  }
+}
+
+/** 저장된 선택 → 디바이스 언어 → en 순으로 실제 사용할 언어를 정한다. */
+export async function resolveInitialLanguage(): Promise<SupportedLanguage> {
+  try {
+    const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored && isSupportedLanguage(stored)) {
+      return stored;
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown-error";
+    console.warn("[i18n] 저장된 언어 읽기 실패:", message);
+  }
+  return detectInitialLanguage();
+}
+
 let initPromise: Promise<typeof i18n> | null = null;
 
 /**
@@ -69,17 +103,22 @@ let initPromise: Promise<typeof i18n> | null = null;
 export function initI18n(): Promise<typeof i18n> {
   if (initPromise) return initPromise;
 
-  initPromise = i18n
-    .use(initReactI18next)
-    .init({
-      resources,
-      lng: detectInitialLanguage(),
-      fallbackLng: DEFAULT_LANGUAGE,
-      compatibilityJSON: "v4",
-      interpolation: {
-        escapeValue: false, // React가 이미 XSS를 방어함
-      },
-    })
+  // 저장된 언어를 먼저 읽어야 하므로 init 자체가 비동기 체인으로 시작한다 —
+  // 읽은 뒤에 init해야 "영어로 잠깐 보였다가 한국어로 바뀌는" 깜빡임이 없다.
+  initPromise = resolveInitialLanguage()
+    .then((lng) =>
+      i18n
+        .use(initReactI18next)
+        .init({
+          resources,
+          lng,
+          fallbackLng: DEFAULT_LANGUAGE,
+          compatibilityJSON: "v4",
+          interpolation: {
+            escapeValue: false, // React가 이미 XSS를 방어함
+          },
+        }),
+    )
     .then(() => i18n);
 
   return initPromise;

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
@@ -104,18 +104,25 @@ export default function PropertyScreen() {
   const [properties, setProperties] = useState<MockProperty[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let mounted = true;
-    listProperties().then((result) => {
-      if (mounted) {
-        setProperties(result);
-        setLoading(false);
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // [2026-09-11 사용자 지시] 화면에 들어올 때마다 다시 조회한다.
+  // 이전에는 useEffect(..., [])로 **마운트 시 1회만** 불러왔다. Expo Router는 탭
+  // 화면을 언마운트하지 않고 그대로 두므로, 매물을 등록하고 목록 탭으로 돌아와도
+  // 새로 등록한 매물이 보이지 않았다(앱을 껐다 켜야 반영됐다).
+  // useFocusEffect는 포커스를 받을 때마다 실행되므로 이 문제가 사라진다.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      listProperties().then((result) => {
+        if (active) {
+          setProperties(result);
+          setLoading(false);
+        }
+      });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   function showComingSoon() {
     setToast(t("common.comingSoon"));

@@ -45,6 +45,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    // [2026-09-11 사용자 지시] 섹션 제목 위 여백이 0이라 앞 섹션의 카드와 붙어
+    // 보였다. 아래(marginBottom)만 있고 위가 없어 제목이 자기 섹션보다 앞
+    // 섹션에 딸린 것처럼 읽혔다.
+    marginTop: spacing.sm,
     marginBottom: spacing.sm,
   },
 });

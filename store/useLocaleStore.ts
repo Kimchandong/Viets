@@ -1,22 +1,48 @@
 /**
  * 현재 선택된 언어의 전역 상태 (Zustand).
  *
- * STEP 03 범위: 메모리 상태만 관리한다. 로그인 사용자의 영구 저장(user_preferences
- * 테이블 동기화)과 비로그인 사용자의 로컬 영구 저장(AsyncStorage/SecureStore)은
- * 별도 Phase(3/10)에서 연동한다 — 아직 관련 패키지를 추가하지 않았다(I18N.md §2.4).
+ * [2026-09-11 버그 수정] 이전에는 초기값이 무조건 DEFAULT_LANGUAGE("en")였다.
+ * i18next 자체는 디바이스 언어(예: ko)로 정상 초기화되므로, **화면은 한국어로
+ * 나오는데 설정 화면의 "언어" 항목만 English로 표시되는** 불일치가 생겼다
+ * (2026-09-11 실기기 QA에서 보고됨). 초기값을 디바이스 감지 결과로 바꾸고,
+ * i18n 초기화가 끝난 뒤 syncFromI18n()으로 실제 적용된 언어에 한 번 더 맞춘다
+ * (저장된 선택이 있으면 그 값이 디바이스 언어보다 우선하기 때문).
+ *
+ * 선택한 언어의 영구 저장도 이번에 함께 붙였다 — persistLanguage()가 AsyncStorage에
+ * 쓰고, 다음 실행에서 i18n이 그 값으로 초기화된다.
  */
 import { create } from "zustand";
-import i18n, { DEFAULT_LANGUAGE, SupportedLanguage } from "@/i18n";
+import i18n, {
+  detectInitialLanguage,
+  persistLanguage,
+  SUPPORTED_LANGUAGES,
+  SupportedLanguage,
+} from "@/i18n";
 
 type LocaleState = {
   language: SupportedLanguage;
   setLanguage: (language: SupportedLanguage) => void;
+  /** i18n 초기화 완료 후, 실제 적용된 언어로 화면 표기를 맞춘다(app/_layout.tsx에서 호출). */
+  syncFromI18n: () => void;
 };
 
+function isSupported(tag: string): tag is SupportedLanguage {
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(tag);
+}
+
 export const useLocaleStore = create<LocaleState>((set) => ({
-  language: DEFAULT_LANGUAGE,
+  language: detectInitialLanguage(),
   setLanguage: (language) => {
     i18n.changeLanguage(language);
     set({ language });
+    // 저장 실패는 persistLanguage 안에서 경고만 남기고 삼킨다 — 전환 자체는 이미 끝났다.
+    void persistLanguage(language);
+  },
+  syncFromI18n: () => {
+    // i18n.language는 "ko-KR"처럼 지역까지 붙어 올 수 있어 앞 두 글자만 본다.
+    const applied = (i18n.language ?? "").split("-")[0];
+    if (isSupported(applied)) {
+      set({ language: applied });
+    }
   },
 }));

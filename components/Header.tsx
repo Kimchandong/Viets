@@ -67,6 +67,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     minHeight: 48,
     paddingHorizontal: spacing.sm,
+    // [2026-09-11 사용자 지시] 화면 제목 위에 여백이 없어 상태바/화면 끝에 붙어
+    // 보였다. SafeAreaView(edges=["top"])는 상태바 높이만큼만 비켜줄 뿐 그 아래
+    // 여백은 만들지 않는다 — Android에서는 그 inset이 0인 경우도 있어 제목이
+    // 화면 최상단에 그대로 붙는다. 여기서 숨 쉴 공간을 명시적으로 준다.
+    paddingTop: spacing.sm,
   },
   slot: {
     minWidth: 40,

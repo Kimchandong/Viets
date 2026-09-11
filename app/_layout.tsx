@@ -8,6 +8,7 @@ import type { Session } from "@supabase/supabase-js";
 import { Loading } from "@/components/Loading";
 import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
+import { useLocaleStore } from "@/store/useLocaleStore";
 
 // STEP 03 범위: Navigation/Provider 골격만 구성한다. Supabase 클라이언트,
 // 인증 상태, 실제 화면 로직은 다음 단계(Phase 2 이후)에서 연결한다.
@@ -82,7 +83,11 @@ export default function RootLayout() {
     // 다시 렌더되며 hook 개수가 달라지는 오류로 이어진다(§아래 렌더 분기 주석 참고).
     let mounted = true;
     initI18n().then(() => {
-      if (mounted) setI18nReady(true);
+      if (!mounted) return;
+      // [2026-09-11] 실제 적용된 언어로 설정 화면 표기를 맞춘다 — 저장된 선택이
+      // 디바이스 언어보다 우선하므로, store의 초기 추정값과 다를 수 있다.
+      useLocaleStore.getState().syncFromI18n();
+      setI18nReady(true);
     });
     return () => {
       mounted = false;

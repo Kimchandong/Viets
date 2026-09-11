@@ -773,6 +773,16 @@ const PROPERTY_OPTION_TRANSLATIONS: Record<string, Partial<Record<string, string
   "Trường học nội khu": { ko: "단지 내 학교", en: "In-complex School", ja: "敷地内学校", th: "โรงเรียนในโครงการ", zh: "小区内学校" },
 };
 
+/**
+ * [2026-09-11] 매물 등록 화면의 편의시설 **선택 목록**.
+ *
+ * 기존에는 등록자가 쉼표로 직접 타이핑했다. 자유 입력이면 같은 시설이 "Hồ bơi",
+ * "hồ bơi", "수영장"처럼 제각각 저장되고, 그러면 아래 번역 사전에 걸리지 않아
+ * 다국어 표시가 깨진다. 그래서 사전의 키(베트남어 원문)를 그대로 선택지로 쓴다 —
+ * 저장 형식이 기존 데이터와 동일해 표시 로직(translateOption)을 건드릴 필요가 없다.
+ */
+export const PROPERTY_OPTION_KEYS: string[] = Object.keys(PROPERTY_OPTION_TRANSLATIONS);
+
 /** 옵션(편의시설) 원문(베트남어)을 현재 앱 언어로 변환 — 사전에 없으면 원문 그대로. */
 export function translateOption(optionVi: string, lang: string): string {
   return PROPERTY_OPTION_TRANSLATIONS[optionVi]?.[lang] ?? optionVi;

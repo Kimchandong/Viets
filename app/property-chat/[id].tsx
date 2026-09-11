@@ -30,6 +30,7 @@ import { getSession, onAuthStateChange } from "@/services/auth";
 import {
   ChatMessage,
   fetchMessages,
+  getConversation,
   getOrCreateConversation,
   getTranslatedText,
   sendCustomerImage,
@@ -69,7 +70,13 @@ export default function PropertyChatScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // [2026-09-11] 담당자는 상담 목록에서 특정 대화를 열기 때문에 conversationId가
+  // 함께 온다. 이 값이 있으면 새 대화를 만들지 않고 그 대화를 그대로 연다 —
+  // 없으면 기존처럼 "내(고객) 대화를 찾거나 만든다".
+  const { id, conversationId: conversationIdParam } = useLocalSearchParams<{
+    id: string;
+    conversationId?: string;
+  }>();
   const language = useLocaleStore((state) => state.language);
 
   const property = useMemo(() => (id ? findMockProperty(id) : undefined), [id]);
@@ -77,6 +84,8 @@ export default function PropertyChatScreen() {
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  /** 내가 이 대화의 담당자(중개업소/관리자)인가 — 보낼 때 sender_type을 정한다. */
+  const [isAgentView, setIsAgentView] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [displayTexts, setDisplayTexts] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState("");
@@ -118,11 +127,24 @@ export default function PropertyChatScreen() {
     }
     let mounted = true;
 
-    getOrCreateConversation(property.id).then(async (convId) => {
+    // 담당자 경로: 넘겨받은 대화를 연다. 고객 경로: 내 대화를 찾거나 만든다.
+    const resolve = conversationIdParam
+      ? Promise.resolve(conversationIdParam)
+      : getOrCreateConversation(property.id);
+
+    resolve.then(async (convId) => {
       if (!mounted || !convId) {
         return;
       }
       setConversationId(convId);
+
+      // 이 대화에서 내가 고객인지 담당자인지 판정한다 — 담당자가 customer로
+      // 보내면 서버(RLS)가 거부하므로 보내기 전에 반드시 정해져 있어야 한다.
+      const conversation = await getConversation(convId);
+      if (mounted && conversation) {
+        setIsAgentView(conversation.customer_id !== session.user.id);
+      }
+
       const initialMessages = await fetchMessages(convId);
       if (mounted) {
         setMessages(initialMessages);
@@ -132,7 +154,7 @@ export default function PropertyChatScreen() {
     return () => {
       mounted = false;
     };
-  }, [session, property]);
+  }, [session, property, conversationIdParam]);
 
   useEffect(() => {
     if (!conversationId) {
@@ -181,7 +203,7 @@ export default function PropertyChatScreen() {
       return;
     }
     setSending(true);
-    const success = await sendCustomerMessage(conversationId, text, language);
+    const success = await sendCustomerMessage(conversationId, text, language, isAgentView ? "agent" : "customer");
     setSending(false);
 
     if (success) {
@@ -212,7 +234,12 @@ export default function PropertyChatScreen() {
     }
 
     setSending(true);
-    const success = await sendCustomerImage(conversationId, result.assets[0].uri, language);
+    const success = await sendCustomerImage(
+      conversationId,
+      result.assets[0].uri,
+      language,
+      isAgentView ? "agent" : "customer",
+    );
     setSending(false);
 
     if (!success) {
@@ -295,7 +322,13 @@ export default function PropertyChatScreen() {
           </View>
 
           {messages.map((message) => {
-            const isCustomer = message.sender_type === "customer";
+            // [2026-09-11] "내 말풍선"은 보는 사람이 누구냐에 따라 달라진다.
+            // 고객이 보면 customer 메시지가 내 것이고, 담당자가 보면 agent 메시지가
+            // 내 것이다. 이 구분이 없으면 담당자 화면에서 자기 답장이 상대편 자리에
+            // 찍힌다.
+            const isCustomer = isAgentView
+              ? message.sender_type === "agent"
+              : message.sender_type === "customer";
             const text = displayTexts[`${message.id}:${language}`] ?? message.original_text;
             return (
               <View key={message.id} style={[styles.bubbleRow, isCustomer ? styles.bubbleRowCustomer : styles.bubbleRowAgent]}>

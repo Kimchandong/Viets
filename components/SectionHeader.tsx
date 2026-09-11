@@ -1,6 +1,6 @@
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 
-import { colors, opacity, spacing, textStyles } from "@/constants/theme";
+import { colors, opacity, spacing, textStyles, typography } from "@/constants/theme";
 
 export type SectionHeaderProps = {
   title: string;
@@ -19,7 +19,9 @@ export function SectionHeader({ title, actionLabel, onAction, style }: SectionHe
 
   return (
     <View style={[styles.row, style]}>
-      <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{title}</Text>
+      {/* [2026-09-11 사용자 지시] 콘텐츠 내 섹션 제목은 accent(파란색)로, 한 치수 크게.
+          본문과 같은 검정·같은 크기면 구획이 눈에 들어오지 않는다. */}
+      <Text style={[textStyles.sectionTitle, styles.title, { color: theme.accent }]}>{title}</Text>
       {actionLabel && onAction ? (
         <Pressable
           onPress={onAction}
@@ -40,15 +42,21 @@ export function SectionHeader({ title, actionLabel, onAction, style }: SectionHe
   );
 }
 
+/** 섹션 제목 위 여백(2026-09-11 사용자 지정 15px). 화면 상단 제목(Header)은 0이다. */
+const TITLE_TOP_SPACE = 15;
+
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    // [2026-09-11 사용자 지시] 섹션 제목 위 여백이 0이라 앞 섹션의 카드와 붙어
-    // 보였다. 아래(marginBottom)만 있고 위가 없어 제목이 자기 섹션보다 앞
-    // 섹션에 딸린 것처럼 읽혔다.
-    marginTop: spacing.sm,
+    // [2026-09-11 사용자 지시] 섹션 제목 위 여백 15px. 이전에는 0이라 앞 섹션의
+    // 카드와 붙어, 제목이 자기 섹션보다 앞 섹션에 딸린 것처럼 읽혔다.
+    marginTop: TITLE_TOP_SPACE,
     marginBottom: spacing.sm,
+  },
+  title: {
+    // textStyles.sectionTitle(md tier)보다 한 단계 위(lg tier).
+    fontSize: typography.size.lg,
   },
 });

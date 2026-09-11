@@ -132,6 +132,130 @@ export async function getOrCreateConversation(propertyId: string): Promise<strin
   }
 }
 
+/** 대화 한 건의 최소 정보 — 화면이 "내가 고객인가 담당자인가"를 판정하는 데 쓴다. */
+export type ChatConversation = {
+  id: string;
+  property_id: string;
+  customer_id: string;
+  created_at: string;
+};
+
+/**
+ * [2026-09-11] 대화 단건 조회.
+ *
+ * 담당자는 상담 목록에서 특정 대화를 열기 때문에 propertyId가 아니라 conversationId로
+ * 들어온다. 이때 customer_id를 보고 "내가 이 대화의 고객인지"를 판정해야 보낼 때
+ * sender_type을 옳게 정할 수 있다(담당자가 customer로 보내면 RLS가 막는다).
+ */
+export async function getConversation(conversationId: string): Promise<ChatConversation | null> {
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from(CONVERSATIONS_TABLE)
+    .select("id,property_id,customer_id,created_at")
+    .eq("id", conversationId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[services/chat] getConversation failed:", error.message);
+    return null;
+  }
+  return data as ChatConversation;
+}
+
+/** 상담 목록 한 줄. */
+export type ManagedConversation = {
+  id: string;
+  propertyId: string;
+  propertyTitle: string;
+  propertyAddress: string;
+  lastMessageText: string;
+  lastMessageAt: string;
+  lastSenderType: ChatSenderType | null;
+  /** 마지막 메시지가 고객이 보낸 것이면 답장이 필요하다는 뜻. */
+  needsReply: boolean;
+};
+
+/**
+ * [2026-09-11] 담당자가 볼 상담 목록.
+ *
+ * 어떤 대화가 보이는지는 전적으로 RLS가 정한다(can_manage_property_chat) — 이 함수는
+ * 그냥 전체를 요청하고, 서버가 내가 담당하는 매물의 대화만 돌려준다. 고객 계정이
+ * 호출하면 자기 대화만 나온다.
+ *
+ * 마지막 메시지는 별도 쿼리로 한 번에 가져와 클라이언트에서 대화별 최신 1건만 고른다.
+ * PostgREST로는 "대화별 최신 1건"을 한 번에 뽑을 수 없고, 대화마다 쿼리를 돌리면
+ * 목록 길이만큼 왕복이 생긴다.
+ */
+export async function listManagedConversations(): Promise<ManagedConversation[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data: convData, error: convError } = await supabase
+    .from(CONVERSATIONS_TABLE)
+    .select("id,property_id,created_at,properties(title,address)")
+    .order("created_at", { ascending: false });
+
+  if (convError) {
+    console.warn("[services/chat] listManagedConversations failed:", convError.message);
+    return [];
+  }
+
+  const conversations = (convData ?? []) as unknown as {
+    id: string;
+    property_id: string;
+    created_at: string;
+    properties: { title: string; address: string | null } | null;
+  }[];
+
+  if (conversations.length === 0) {
+    return [];
+  }
+
+  const { data: msgData } = await supabase
+    .from(MESSAGES_TABLE)
+    .select("conversation_id,original_text,image_url,sender_type,created_at")
+    .in(
+      "conversation_id",
+      conversations.map((c) => c.id),
+    )
+    .order("created_at", { ascending: false });
+
+  const latest = new Map<string, { text: string; at: string; sender: ChatSenderType }>();
+  for (const row of (msgData ?? []) as {
+    conversation_id: string;
+    original_text: string;
+    image_url: string | null;
+    sender_type: ChatSenderType;
+    created_at: string;
+  }[]) {
+    // 내림차순이라 각 대화에서 처음 만나는 행이 가장 최신이다.
+    if (latest.has(row.conversation_id)) continue;
+    latest.set(row.conversation_id, {
+      text: row.image_url ? "" : row.original_text,
+      at: row.created_at,
+      sender: row.sender_type,
+    });
+  }
+
+  return conversations.map((c) => {
+    const last = latest.get(c.id);
+    return {
+      id: c.id,
+      propertyId: c.property_id,
+      propertyTitle: c.properties?.title ?? "",
+      propertyAddress: c.properties?.address ?? "",
+      lastMessageText: last?.text ?? "",
+      lastMessageAt: last?.at ?? c.created_at,
+      lastSenderType: last?.sender ?? null,
+      needsReply: last?.sender === "customer",
+    };
+  });
+}
+
 export async function fetchMessages(conversationId: string): Promise<ChatMessage[]> {
   if (!supabase) {
     return [];
@@ -156,7 +280,14 @@ export async function fetchMessages(conversationId: string): Promise<ChatMessage
  * 절대 예외를 던지지 않는다 — 성공 여부를 boolean으로 반환해 호출부가 실패를
  * 사용자에게 알릴 수 있게 한다.
  */
-export async function sendCustomerMessage(conversationId: string, text: string, lang: string): Promise<boolean> {
+export async function sendCustomerMessage(
+  conversationId: string,
+  text: string,
+  lang: string,
+  // [2026-09-11] 담당자(중개업소/관리자)가 같은 대화에 답할 수 있게 되면서 보내는
+  // 주체가 둘이 됐다. 함수 이름은 호출부 호환을 위해 그대로 두고 인자로 구분한다.
+  senderType: ChatSenderType = "customer",
+): Promise<boolean> {
   if (!supabase) {
     return false;
   }
@@ -164,7 +295,7 @@ export async function sendCustomerMessage(conversationId: string, text: string, 
   try {
     const { error } = await supabase.from(MESSAGES_TABLE).insert({
       conversation_id: conversationId,
-      sender_type: "customer" satisfies ChatSenderType,
+      sender_type: senderType,
       original_text: text,
       original_lang: lang,
     });
@@ -174,7 +305,11 @@ export async function sendCustomerMessage(conversationId: string, text: string, 
       return false;
     }
 
-    scheduleAgentAutoReply(conversationId);
+    // 자동응답은 "아직 담당자가 붙지 않은 대화"를 위한 것이다 — 실제 담당자가
+    // 답하는 중에는 보내지 않는다.
+    if (senderType === "customer") {
+      scheduleAgentAutoReply(conversationId);
+    }
     return true;
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown-error";
@@ -189,7 +324,12 @@ export async function sendCustomerMessage(conversationId: string, text: string, 
  * 번역 대상이 아니므로 original_text는 빈 문자열로 둔다(getTranslatedText가
  * image_url이 있으면 번역을 건너뛴다).
  */
-export async function sendCustomerImage(conversationId: string, localUri: string, lang: string): Promise<boolean> {
+export async function sendCustomerImage(
+  conversationId: string,
+  localUri: string,
+  lang: string,
+  senderType: ChatSenderType = "customer",
+): Promise<boolean> {
   if (!supabase) {
     return false;
   }
@@ -230,7 +370,7 @@ export async function sendCustomerImage(conversationId: string, localUri: string
 
     const { error: insertError } = await supabase.from(MESSAGES_TABLE).insert({
       conversation_id: conversationId,
-      sender_type: "customer" satisfies ChatSenderType,
+      sender_type: senderType,
       original_text: "",
       original_lang: lang,
       image_url: imageUrl,
@@ -241,7 +381,9 @@ export async function sendCustomerImage(conversationId: string, localUri: string
       return false;
     }
 
-    scheduleAgentAutoReply(conversationId);
+    if (senderType === "customer") {
+      scheduleAgentAutoReply(conversationId);
+    }
     return true;
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown-error";

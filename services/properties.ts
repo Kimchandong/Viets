@@ -1,4 +1,4 @@
-import type { ImageSourcePropType } from "react-native";
+import { Platform, type ImageSourcePropType } from "react-native";
 import { File } from "expo-file-system";
 
 import { MOCK_PROPERTY_IMAGES, type PropertyImageCategory } from "@/constants/mockImages";
@@ -147,17 +147,52 @@ const PROPERTY_IMAGES_BUCKET = "property-images";
  * 못해 업로드가 조용히 실패하는 경우가 있어, services/chat.ts의 이미지 전송과 동일하게
  * expo-file-system의 File.arrayBuffer()로 바이트를 직접 읽는다(2026-09-09 진단 결과 재사용).
  */
+/**
+ * 고른 사진의 바이트를 읽어 온다 — 플랫폼마다 경로가 다르다.
+ *
+ * 네이티브: expo-file-system의 File.arrayBuffer(). RN에서
+ *   `fetch(localUri).then(r => r.blob())`는 로컬 파일을 온전히 읽지 못해 업로드가
+ *   조용히 실패하는 경우가 있어 쓰지 않는다(2026-09-09 채팅 이미지에서 진단한 내용).
+ *
+ * 웹: expo-file-system의 File은 **네이티브 전용**이라 웹에서는 동작하지 않는다.
+ *   ImagePicker가 돌려주는 blob:/data: URL은 브라우저의 fetch로 그대로 읽을 수 있다.
+ *   (2026-09-11 QA: 웹 미리보기에서 "사진 업로드에 실패했습니다"가 뜬 원인이 이것이다.)
+ *
+ * 확장자: 웹의 blob: URL에는 확장자가 없으므로 blob.type에서 되짚는다.
+ */
+async function readImageBytes(
+  localUri: string,
+): Promise<{ bytes: ArrayBuffer; contentType: string; fileExt: string }> {
+  const extMatch = localUri.split("?")[0].match(/\.(\w+)$/);
+  const uriExt = extMatch?.[1]?.toLowerCase() ?? "";
+
+  if (Platform.OS === "web") {
+    const response = await fetch(localUri);
+    const blob = await response.blob();
+    const contentType = blob.type || (uriExt === "png" ? "image/png" : "image/jpeg");
+    const typeExt = contentType.split("/")[1]?.split("+")[0];
+    return {
+      bytes: await blob.arrayBuffer(),
+      contentType,
+      fileExt: uriExt || typeExt || "jpg",
+    };
+  }
+
+  const fileExt = uriExt || "jpg";
+  return {
+    bytes: await new File(localUri).arrayBuffer(),
+    contentType: fileExt === "png" ? "image/png" : "image/jpeg",
+    fileExt,
+  };
+}
+
 export async function uploadPropertyImage(localUri: string): Promise<string | null> {
   if (!supabase) {
     return null;
   }
 
   try {
-    const file = new File(localUri);
-    const arrayBuffer = await file.arrayBuffer();
-    const extMatch = localUri.split("?")[0].match(/\.(\w+)$/);
-    const fileExt = extMatch?.[1]?.toLowerCase() ?? "jpg";
-    const contentType = fileExt === "png" ? "image/png" : "image/jpeg";
+    const { bytes, contentType, fileExt } = await readImageBytes(localUri);
     // 경로 앞머리를 uploads/<timestamp>로 두는 이유: 매물 id는 등록 완료 전이라 아직
     // 없다. 파일명 충돌만 피하면 되고, 조회는 property_images.url로 하므로 경로 자체에
     // 의미를 두지 않는다.
@@ -165,7 +200,7 @@ export async function uploadPropertyImage(localUri: string): Promise<string | nu
 
     const { error: uploadError } = await supabase.storage
       .from(PROPERTY_IMAGES_BUCKET)
-      .upload(path, arrayBuffer, { contentType });
+      .upload(path, bytes, { contentType });
 
     if (uploadError) {
       console.warn("[services/properties] uploadPropertyImage failed:", uploadError.message);

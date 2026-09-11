@@ -34,6 +34,7 @@ import {
   translateOption,
   type MockProperty,
 } from "@/constants/mockData";
+import { PROPERTY_OPTION_VALUE_PATTERN } from "@/constants/propertyOptions";
 import { localizedText, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { getPropertyById } from "@/services/properties";
@@ -54,7 +55,22 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function PropertyDetailScreen() {
   const theme = colors.light;
+
   const { t, i18n } = useTranslation();
+
+  /**
+   * [2026-09-11] 옵션 라벨.
+   * 2026-09-11부터 저장값이 `sale.nearby.park` 같은 키라 i18n에서 라벨을 가져온다.
+   * 그 이전에 자유 입력으로 저장된 베트남어 원문은 기존 사전(translateOption)으로
+   * 번역한다 — 두 형식이 DB에 섞여 있어 양쪽 다 처리해야 한다.
+   */
+  function optionLabel(value: string): string {
+    if (!PROPERTY_OPTION_VALUE_PATTERN.test(value)) {
+      return translateOption(value, i18n.language);
+    }
+    return t(`propertyOptions.${value}`);
+  }
+
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -365,7 +381,7 @@ export default function PropertyDetailScreen() {
                   {/* [STEP: 2026-09-09-8] 사용자 요청 — 옵션(편의시설) 다국어 지원.
                       options는 mock 데이터상 베트남어 원문 free text라 constants/mockData.ts의
                       PROPERTY_OPTION_TRANSLATIONS 사전으로 변환하고, 사전에 없으면 원문 그대로 표시한다. */}
-                  <Text style={[styles.optionText, { color: theme.text }]}>{translateOption(option, i18n.language)}</Text>
+                  <Text style={[styles.optionText, { color: theme.text }]}>{optionLabel(option)}</Text>
                 </View>
               ))}
             </View>

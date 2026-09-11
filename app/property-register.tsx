@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +15,7 @@ import { Loading } from "@/components/Loading";
 import { LocationPicker } from "@/components/LocationPicker";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
+import { SegmentedToggle } from "@/components/SegmentedToggle";
 import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
@@ -32,6 +33,12 @@ import {
   type NewPropertyInput,
 } from "@/services/properties";
 import { canRegisterProperty, isAdmin } from "@/services/roles";
+import { translateOption } from "@/constants/mockData";
+import {
+  belongsToListingType,
+  optionGroupsFor,
+  PROPERTY_OPTION_VALUE_PATTERN,
+} from "@/constants/propertyOptions";
 
 /**
  * [STEP 04] 매물 등록 화면 (Admin 전용, 최소 버전).
@@ -61,12 +68,16 @@ const DB_CATEGORIES = [
 
 type DbCategory = (typeof DB_CATEGORIES)[number];
 
-/** 한 매물에 첨부할 수 있는 사진 최대 장수 — 업로드 시간이 장수에 비례해 늘어난다. */
-const MAX_PHOTOS = 10;
+/** 한 매물에 첨부할 수 있는 사진 최대 장수(2026-09-11 사용자 지정: 6장).
+ *  화면에는 가로 3칸 × 2줄로 항상 6칸을 그려 두고, 빈 칸은 카메라 아이콘으로 보여준다. */
+const MAX_PHOTOS = 6;
+
+/** 사진 그리드 한 줄에 놓는 칸 수. MAX_PHOTOS / PHOTOS_PER_ROW = 줄 수(2줄). */
+const PHOTOS_PER_ROW = 3;
 
 export default function PropertyRegisterScreen() {
   const theme = colors.light;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
 
   // [STEP 04-수정] 같은 화면을 등록/수정 두 용도로 쓴다 — `?id=<매물id>`로 진입하면
@@ -93,7 +104,9 @@ export default function PropertyRegisterScreen() {
   const [address, setAddress] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
-  const [amenities, setAmenities] = useState("");
+  // [2026-09-11] 편의시설: 자유 입력 → 목록에서 선택. 값은 기존 데이터와 같은
+  // 베트남어 원문(PROPERTY_OPTION_KEYS)으로 저장해 표시 로직을 바꾸지 않는다.
+  const [amenities, setAmenities] = useState<string[]>([]);
   const [featured, setFeatured] = useState(false);
   const [publishNow, setPublishNow] = useState(true);
 
@@ -109,6 +122,35 @@ export default function PropertyRegisterScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ title?: string; price?: string }>({});
+
+  // [2026-09-11 사용자 지시] 옵션 목록은 거래 유형에 따라 완전히 달라진다.
+  // 매매는 입지·단지·건물·물건 특성, 임대는 실제로 쓰는 가구·가전·조건이다.
+  const amenityGroups = useMemo(() => optionGroupsFor(listingType), [listingType]);
+
+  // 예전에 자유 입력으로 저장된 값(키 형식이 아닌 것)은 목록 어디에도 속하지 않아
+  // 화면에서 사라진다 — 저장 시 조용히 지워지지 않도록 별도 그룹으로 보여준다.
+  const legacyAmenities = useMemo(
+    () => amenities.filter((item) => !PROPERTY_OPTION_VALUE_PATTERN.test(item)),
+    [amenities],
+  );
+
+  /** 옵션 라벨 — 키면 i18n에서, 예전 자유 입력값이면 기존 사전으로 번역한다. */
+  function optionLabel(value: string): string {
+    if (!PROPERTY_OPTION_VALUE_PATTERN.test(value)) {
+      return translateOption(value, i18n.language);
+    }
+    return t(`propertyOptions.${value}`);
+  }
+
+  /** 거래 유형을 바꾸면 반대 유형의 선택은 의미가 없으므로 걷어낸다(예전 값은 남긴다). */
+  function handleListingTypeChange(next: "for_sale" | "for_rent") {
+    setListingType(next);
+    setAmenities((prev) =>
+      prev.filter(
+        (value) => !PROPERTY_OPTION_VALUE_PATTERN.test(value) || belongsToListingType(value, next),
+      ),
+    );
+  }
 
   // 최대 장수는 "이미 등록된 사진 + 이번에 고른 사진" 합계로 센다.
   const remainingSlots = Math.max(0, MAX_PHOTOS - existingPhotos.length - photos.length);
@@ -242,7 +284,7 @@ export default function PropertyRegisterScreen() {
       setAddress(existing.address ?? "");
       setLatitude(existing.latitude !== null ? String(existing.latitude) : "");
       setLongitude(existing.longitude !== null ? String(existing.longitude) : "");
-      setAmenities((existing.amenities ?? []).join(", "));
+      setAmenities(existing.amenities ?? []);
       setFeatured(existing.featured);
       setPublishNow(existing.status === "active");
       setLoadingExisting(false);
@@ -298,11 +340,7 @@ export default function PropertyRegisterScreen() {
       address: address.trim(),
       latitude: parseNumber(latitude),
       longitude: parseNumber(longitude),
-      // 쉼표로 구분해 입력받고 빈 항목은 버린다(DB는 text[] 컬럼).
-      amenities: amenities
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0),
+      amenities,
       featured,
       status: publishNow ? "active" : "draft",
     };
@@ -413,6 +451,30 @@ export default function PropertyRegisterScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* [2026-09-11 사용자 지시] 카테고리를 콘텐츠 맨 위로. 무엇을 등록하는지가
+            먼저 정해져야 나머지 입력의 의미가 잡힌다.
+            셀렉트(모달) 대신 버튼을 가로로 늘어놓고 밀어서 고른다 — 8종뿐이라
+            모달을 여닫는 것보다 한 번에 보고 누르는 편이 빠르다. */}
+        <View style={styles.section}>
+          <SectionHeader title={t("propertyRegister.categorySection")} />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryScroll}
+          >
+            {DB_CATEGORIES.map((item) => (
+              <Chip
+                key={item}
+                label={t(`propertyRegister.dbCategory.${item}`)}
+                active={category === item}
+                onPress={() => setCategory(item)}
+                theme={theme}
+                tone="accent"
+              />
+            ))}
+          </ScrollView>
+        </View>
+
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.basicSection")} />
           <Input
@@ -431,38 +493,6 @@ export default function PropertyRegisterScreen() {
             style={styles.multiline}
             placeholder={t("propertyRegister.descriptionPlaceholder")}
           />
-        </View>
-
-        <View style={styles.section}>
-          <SectionHeader title={t("propertyRegister.categorySection")} />
-          <View style={styles.chipWrap}>
-            {DB_CATEGORIES.map((item) => (
-              <Chip
-                key={item}
-                label={t(`propertyRegister.dbCategory.${item}`)}
-                active={category === item}
-                onPress={() => setCategory(item)}
-                theme={theme}
-                tone="accent"
-              />
-            ))}
-          </View>
-          <View style={styles.chipWrap}>
-            <Chip
-              label={t("property.status.forSale")}
-              active={listingType === "for_sale"}
-              onPress={() => setListingType("for_sale")}
-              theme={theme}
-              tone="accent"
-            />
-            <Chip
-              label={t("property.status.forRent")}
-              active={listingType === "for_rent"}
-              onPress={() => setListingType("for_rent")}
-              theme={theme}
-              tone="accent"
-            />
-          </View>
         </View>
 
         <View style={styles.section}>
@@ -583,65 +613,63 @@ export default function PropertyRegisterScreen() {
             카테고리 기본 이미지로 표시된다. */}
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.photosSection")} />
+          {/* [2026-09-11 사용자 지시] 가로 3칸 × 2줄, 총 6칸을 항상 그린다.
+              채워진 칸은 사진 미리보기, 빈 칸은 카메라 아이콘(누르면 사진 선택).
+              앞쪽은 이미 등록된 사진(대표 사진이 맨 앞), 그 뒤가 이번에 고른 사진이다
+              — addPropertyImages가 붙이는 순서와 같다. */}
           <View style={styles.photoGrid}>
-            {/* 이미 등록된 사진이 먼저 온다 — 대표 사진(sort_order가 가장 작은 사진)이
-                맨 앞이고, 새로 고른 사진은 그 뒤에 붙는다(addPropertyImages도 같은 순서). */}
-            {existingPhotos.map((image, index) => (
-              <View key={image.id} style={styles.photoItem}>
-                <Image source={{ uri: image.url }} style={styles.photoImage} resizeMode="cover" />
-                <Pressable
-                  onPress={() => setPhotoPendingDelete(image)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("propertyRegister.deletePhoto")}
-                  hitSlop={6}
-                  style={styles.photoRemove}
-                  disabled={deletingPhoto}
-                >
-                  <Ionicons name="close-circle" size={22} color="#FFFFFF" />
-                </Pressable>
-                {index === 0 ? (
-                  <View style={[styles.photoBadge, { backgroundColor: theme.accent }]}>
-                    <Text style={[textStyles.caption, { color: theme.onAccent }]}>
-                      {t("propertyRegister.mainPhoto")}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-            {photos.map((uri, index) => (
-              <View key={uri} style={styles.photoItem}>
-                <Image source={{ uri }} style={styles.photoImage} resizeMode="cover" />
-                <Pressable
-                  onPress={() => setPhotos((prev) => prev.filter((item) => item !== uri))}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("propertyRegister.removePhoto")}
-                  hitSlop={6}
-                  style={styles.photoRemove}
-                >
-                  <Ionicons name="close-circle" size={22} color="#FFFFFF" />
-                </Pressable>
-                {index === 0 && existingPhotos.length === 0 ? (
-                  <View style={[styles.photoBadge, { backgroundColor: theme.accent }]}>
-                    <Text style={[textStyles.caption, { color: theme.onAccent }]}>
-                      {t("propertyRegister.mainPhoto")}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-            <Pressable
-              onPress={handlePickPhotos}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.photoAdd,
-                { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
-              ]}
-            >
-              <Ionicons name="camera-outline" size={24} color={theme.secondaryText} />
-              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-                {t("propertyRegister.addPhoto")}
-              </Text>
-            </Pressable>
+            {Array.from({ length: MAX_PHOTOS }).map((_, slot) => {
+              const existing = existingPhotos[slot];
+              const picked = existing ? undefined : photos[slot - existingPhotos.length];
+
+              if (!existing && !picked) {
+                return (
+                  <Pressable
+                    key={`empty-${slot}`}
+                    onPress={handlePickPhotos}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("propertyRegister.addPhoto")}
+                    style={({ pressed }) => [
+                      styles.photoSlot,
+                      styles.photoAdd,
+                      { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                    ]}
+                  >
+                    <Ionicons name="camera-outline" size={22} color={theme.secondaryText} />
+                  </Pressable>
+                );
+              }
+
+              const uri = existing ? existing.url : (picked as string);
+              return (
+                <View key={existing ? existing.id : uri} style={[styles.photoSlot, styles.photoFilled]}>
+                  <Image source={{ uri }} style={styles.photoImage} resizeMode="cover" />
+                  <Pressable
+                    onPress={() =>
+                      existing
+                        ? setPhotoPendingDelete(existing)
+                        : setPhotos((prev) => prev.filter((item) => item !== uri))
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      existing ? t("propertyRegister.deletePhoto") : t("propertyRegister.removePhoto")
+                    }
+                    hitSlop={6}
+                    style={styles.photoRemove}
+                    disabled={deletingPhoto}
+                  >
+                    <Ionicons name="close-circle" size={22} color="#FFFFFF" />
+                  </Pressable>
+                  {slot === 0 ? (
+                    <View style={[styles.photoBadge, { backgroundColor: theme.accent }]}>
+                      <Text style={[textStyles.caption, { color: theme.onAccent }]}>
+                        {t("propertyRegister.mainPhoto")}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })}
           </View>
           <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
             {t("propertyRegister.photosHelper")}
@@ -650,26 +678,101 @@ export default function PropertyRegisterScreen() {
 
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.optionsSection")} />
-          <Input
-            label={t("propertyRegister.amenitiesLabel")}
-            value={amenities}
-            onChangeText={setAmenities}
-            helperText={t("propertyRegister.amenitiesHelper")}
+
+          {/* [2026-09-11 사용자 지시] 거래 유형을 옵션 바로 위에 둔다 — 아래 옵션
+              목록이 이 선택에 따라 통째로 바뀌므로, 붙어 있어야 인과가 보인다.
+              모양은 홈 화면의 "부동산 투자 / 부동산 매물" 토글과 동일하다. */}
+          <SegmentedToggle
+            label={t("propertyRegister.listingTypeLabel")}
+            value={listingType}
+            options={[
+              { value: "for_sale", label: t("property.status.forSale") },
+              { value: "for_rent", label: t("property.status.forRent") },
+            ]}
+            onChange={(next) => handleListingTypeChange(next as "for_sale" | "for_rent")}
+            theme={theme}
           />
+
+          {/* [2026-09-11 사용자 지시] 옵션을 분류별로 모두 보여주고 골라서 넣는다.
+              거래 유형(매매/임대)에 따라 목록 자체가 바뀐다. */}
+          <Text style={[textStyles.bodySmall, styles.amenityTitle, { color: theme.text }]}>
+            {t("propertyRegister.amenitiesLabel")}
+          </Text>
+
+          {amenityGroups.map((group) => (
+            <View key={group.id} style={styles.amenityGroup}>
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                {t(`propertyOptions.groups.${listingType === "for_sale" ? "sale" : "rent"}.${group.id}`)}
+              </Text>
+              <View style={styles.chipWrap}>
+                {group.values.map((option) => (
+                  <Chip
+                    key={option}
+                    label={optionLabel(option)}
+                    active={amenities.includes(option)}
+                    onPress={() =>
+                      setAmenities((prev) =>
+                        prev.includes(option)
+                          ? prev.filter((item) => item !== option)
+                          : [...prev, option],
+                      )
+                    }
+                    theme={theme}
+                    tone="accent"
+                  />
+                ))}
+              </View>
+            </View>
+          ))}
+
+          {/* 예전 자유 입력으로 저장된 값 — 목록 어디에도 속하지 않지만 지우지 않는다. */}
+          {legacyAmenities.length > 0 ? (
+            <View style={styles.amenityGroup}>
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                {t("propertyRegister.amenitiesLegacyGroup")}
+              </Text>
+              <View style={styles.chipWrap}>
+                {legacyAmenities.map((option) => (
+                  <Chip
+                    key={option}
+                    label={optionLabel(option)}
+                    active
+                    onPress={() =>
+                      setAmenities((prev) => prev.filter((item) => item !== option))
+                    }
+                    theme={theme}
+                    tone="accent"
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+            {t("propertyRegister.amenitiesHelper", { selected: amenities.length })}
+          </Text>
+          {/* [2026-09-11 사용자 지시] 노출/미노출을 둘 다 보여준다 — 아이콘 하나로
+              켜짐/꺼짐을 표현하면 "지금 어느 쪽인지"는 알아도 "반대가 무엇인지"가
+              드러나지 않는다. */}
+          <SegmentedToggle
+            label={t("propertyRegister.publishLabel")}
+            value={publishNow ? "on" : "off"}
+            options={[
+              { value: "on", label: t("propertyRegister.publishOn") },
+              { value: "off", label: t("propertyRegister.publishOff") },
+            ]}
+            onChange={(next) => setPublishNow(next === "on")}
+            theme={theme}
+            description={t("propertyRegister.publishDescription")}
+          />
+
+          {/* [2026-09-11 사용자 지시] 추천 매물은 가장 아래로 — 선택 빈도가 낮고,
+              앞으로 유료 서비스가 붙을 자리라 다른 항목과 섞이지 않게 둔다. */}
           <ToggleRow
             label={t("propertyRegister.featuredLabel")}
             description={t("propertyRegister.featuredDescription")}
             value={featured}
             onToggle={() => setFeatured((prev) => !prev)}
-          />
-          <ToggleRow
-            label={
-              publishNow ? t("propertyRegister.publishOn") : t("propertyRegister.publishOff")
-            }
-            description={t("propertyRegister.publishDescription")}
-            value={publishNow}
-            onToggle={() => setPublishNow((prev) => !prev)}
-            variant="visibility"
           />
         </View>
 
@@ -797,17 +900,11 @@ function ToggleRow({
   description,
   value,
   onToggle,
-  // [2026-09-11 사용자 지시] "즉시공개"는 체크 표시가 아니라 **노출/미노출**을
-  // 뜻하는 눈 아이콘으로 보여준다 — 켜짐/꺼짐보다 "지금 목록에 보이는가"가
-  // 등록자가 실제로 판단하는 기준이기 때문이다. 다른 토글(추천 매물 등)은
-  // 기존 체크 아이콘을 그대로 쓴다.
-  variant = "check",
 }: {
   label: string;
   description: string;
   value: boolean;
   onToggle: () => void;
-  variant?: "check" | "visibility";
 }) {
   const theme = colors.light;
   return (
@@ -820,23 +917,17 @@ function ToggleRow({
         { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
       ]}
     >
+      {/* [2026-09-11 사용자 지시] 원형 체크를 이름 **앞**에 둔다. 오른쪽 끝에 있을
+          때보다 "무엇이 켜져 있는지"가 이름과 함께 한 번에 읽힌다. */}
+      <Ionicons
+        name={value ? "checkmark-circle" : "ellipse-outline"}
+        size={22}
+        color={value ? theme.accent : theme.secondaryText}
+      />
       <View style={styles.toggleTexts}>
         <Text style={[textStyles.body, { color: theme.text, fontWeight: typography.weight.medium }]}>{label}</Text>
         <Text style={[textStyles.caption, { color: theme.secondaryText }]}>{description}</Text>
       </View>
-      <Ionicons
-        name={
-          variant === "visibility"
-            ? value
-              ? "eye"
-              : "eye-off-outline"
-            : value
-              ? "checkmark-circle"
-              : "ellipse-outline"
-        }
-        size={24}
-        color={value ? theme.accent : theme.secondaryText}
-      />
     </Pressable>
   );
 }
@@ -858,6 +949,18 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.xs,
   },
+  // 가로 슬라이드 — 줄바꿈하지 않고 옆으로 밀어서 고른다.
+  categoryScroll: {
+    flexDirection: "row",
+    gap: spacing.xs,
+    paddingRight: spacing.md,
+  },
+  amenityTitle: {
+    fontWeight: typography.weight.medium,
+  },
+  amenityGroup: {
+    gap: spacing.xs,
+  },
   row: {
     flexDirection: "row",
     gap: spacing.sm,
@@ -872,7 +975,6 @@ const styles = StyleSheet.create({
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: spacing.sm,
     borderWidth: 1,
     borderRadius: radius.sm,
@@ -887,16 +989,22 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  // 가로 3칸 고정. 칸 너비를 32%로 두고 space-between으로 배치하면 남는 4%가
+  // 칸 사이 두 틈으로 나뉜다 — RN의 gap은 퍼센트를 받지 않아 이 방식이 가장 안전하다.
   photoGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.sm,
+    justifyContent: "space-between",
+    rowGap: spacing.sm,
   },
-  photoItem: {
-    width: 96,
-    height: 96,
+  photoSlot: {
+    width: "32%",
+    aspectRatio: 1,
     borderRadius: radius.sm,
     overflow: "hidden",
+  },
+  photoFilled: {
+    position: "relative",
   },
   photoImage: {
     width: "100%",
@@ -916,14 +1024,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.sm,
   },
   photoAdd: {
-    width: 96,
-    height: 96,
-    borderRadius: radius.sm,
     borderWidth: 1,
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
   },
   submitButton: {
     width: "100%",

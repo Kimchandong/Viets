@@ -181,19 +181,112 @@ export async function uploadPropertyImage(localUri: string): Promise<string | nu
   }
 }
 
-/** 업로드된 사진 URL들을 property_images에 연결한다(입력 순서를 sort_order로 보존). */
+/** 업로드된 사진 URL들을 property_images에 연결한다(입력 순서를 sort_order로 보존).
+ *
+ * sort_order는 0이 아니라 **기존 사진의 마지막 번호 다음**부터 매긴다 — 수정 모드에서
+ * 0부터 다시 시작하면 새로 추가한 사진이 대표 사진(sort_order가 가장 작은 사진) 자리를
+ * 빼앗아, 사진 한 장 추가했을 뿐인데 매물 썸네일이 바뀌어 버린다. */
 export async function addPropertyImages(propertyId: string, urls: string[]): Promise<boolean> {
   if (!supabase || urls.length === 0) {
     return true;
   }
 
+  const { data: last } = await supabase
+    .from("property_images")
+    .select("sort_order")
+    .eq("property_id", propertyId)
+    .order("sort_order", { ascending: false })
+    .limit(1);
+
+  const lastOrder = (last as { sort_order: number }[] | null)?.[0]?.sort_order;
+  const startOrder = lastOrder != null ? lastOrder + 1 : 0;
+
   const { error } = await supabase
     .from("property_images")
-    .insert(urls.map((url, index) => ({ property_id: propertyId, url, sort_order: index })));
+    .insert(urls.map((url, index) => ({ property_id: propertyId, url, sort_order: startOrder + index })));
 
   if (error) {
     console.warn("[services/properties] addPropertyImages failed:", error.message);
     return false;
+  }
+  return true;
+}
+
+/** 수정 화면에 이미 등록된 사진을 보여주기 위한 최소 형태(대표 사진 판단용 정렬값 포함). */
+export type ExistingPropertyImage = {
+  id: string;
+  url: string;
+  sortOrder: number;
+};
+
+/**
+ * 특정 매물에 이미 등록된 사진 목록. **status 필터를 걸지 않는다** — getPropertyForEdit과
+ * 같은 이유로 draft/archived 매물의 사진도 수정 화면에서 다룰 수 있어야 한다.
+ * 조회 가능 여부는 RLS(부모 매물 가시성과 동일)가 판정한다.
+ */
+export async function listPropertyImages(propertyId: string): Promise<ExistingPropertyImage[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("property_images")
+    .select("id,url,sort_order")
+    .eq("property_id", propertyId)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.warn("[services/properties] listPropertyImages failed:", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as { id: string; url: string; sort_order: number | null }[]).map((row) => ({
+    id: row.id,
+    url: row.url,
+    sortOrder: row.sort_order ?? 0,
+  }));
+}
+
+/** 공개 URL에서 버킷 내부 경로를 되뽑는다.
+ * `https://<ref>.supabase.co/storage/v1/object/public/property-images/uploads/x.jpg`
+ * → `uploads/x.jpg`. 형식이 다르면(외부 URL 등) null을 돌려주고 Storage는 건드리지 않는다. */
+function storagePathFromPublicUrl(url: string): string | null {
+  const marker = `/object/public/${PROPERTY_IMAGES_BUCKET}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+  const path = url.slice(index + marker.length).split("?")[0];
+  return path.length > 0 ? decodeURIComponent(path) : null;
+}
+
+/**
+ * 사진 한 장 삭제 — property_images 행을 지우고, 이어서 Storage 파일도 지운다.
+ *
+ * 성패의 기준은 **DB 행 삭제**다. 행이 지워지면 앱 어디에서도 그 사진은 보이지 않는다.
+ * Storage 삭제는 best-effort로 처리한다 — 버킷 정책 때문에 실패하더라도 사용자에게는
+ * 이미 사라진 사진이라 다시 지우라고 할 수 없고, 남는 것은 참조되지 않는 파일 하나뿐이다
+ * (경고 로그로 남긴다). 반대 순서로 하면 Storage만 지워지고 DB에 죽은 URL이 남아
+ * 화면에 깨진 이미지가 뜬다.
+ *
+ * 권한은 서버(property_images DELETE 정책: admin / 소속 Agency / `property_manage` 보유자)가
+ * 최종 판정한다.
+ */
+export async function deletePropertyImage(imageId: string, url: string): Promise<boolean> {
+  if (!supabase) {
+    return false;
+  }
+
+  const { error } = await supabase.from("property_images").delete().eq("id", imageId);
+  if (error) {
+    console.warn("[services/properties] deletePropertyImage failed:", error.message);
+    return false;
+  }
+
+  const path = storagePathFromPublicUrl(url);
+  if (path) {
+    const { error: storageError } = await supabase.storage.from(PROPERTY_IMAGES_BUCKET).remove([path]);
+    if (storageError) {
+      console.warn("[services/properties] deletePropertyImage storage cleanup failed:", storageError.message);
+    }
   }
   return true;
 }

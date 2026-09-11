@@ -394,7 +394,15 @@
     "archived": "Đã ẩn tin khỏi danh sách",
     "deleted": "Đã xóa vĩnh viễn tin đăng",
     "deleteFailed": "Xóa thất bại. Vui lòng kiểm tra quyền.",
-    "loadFailed": "Không tải được thông tin bất động sản."
+    "loadFailed": "Không tải được thông tin bất động sản.",
+    "deletePhoto": "Xoá ảnh",
+    "deletePhotoTitle": "Xoá ảnh này?",
+    "deletePhotoDescription": "Tệp ảnh sẽ bị xoá vĩnh viễn và không thể khôi phục. Các thông tin khác của bất động sản vẫn giữ nguyên.",
+    "deletePhotoConfirm": "Xoá",
+    "deletingPhoto": "Đang xoá...",
+    "photoDeleted": "Đã xoá ảnh",
+    "photoDeleteFailed": "Không thể xoá ảnh",
+    "photoLimitReached": "Bạn chỉ có thể đính kèm tối đa {{max}} ảnh"
   },
   "investRegister": {
     "title": "Đăng sản phẩm",

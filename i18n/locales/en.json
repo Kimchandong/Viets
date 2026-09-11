@@ -394,7 +394,15 @@
     "archived": "The listing is now hidden",
     "deleted": "The listing was permanently deleted",
     "deleteFailed": "Delete failed. Please check your permission.",
-    "loadFailed": "Could not load the property."
+    "loadFailed": "Could not load the property.",
+    "deletePhoto": "Delete photo",
+    "deletePhotoTitle": "Delete this photo?",
+    "deletePhotoDescription": "The image file is permanently removed and cannot be restored. The rest of the listing stays unchanged.",
+    "deletePhotoConfirm": "Delete",
+    "deletingPhoto": "Deleting...",
+    "photoDeleted": "Photo deleted",
+    "photoDeleteFailed": "Could not delete the photo",
+    "photoLimitReached": "You can attach up to {{max}} photos"
   },
   "investRegister": {
     "title": "Register product",

@@ -394,7 +394,15 @@
     "archived": "物件を一覧から非表示にしました",
     "deleted": "物件を完全に削除しました",
     "deleteFailed": "削除に失敗しました。権限をご確認ください。",
-    "loadFailed": "物件情報を読み込めませんでした。"
+    "loadFailed": "物件情報を読み込めませんでした。",
+    "deletePhoto": "写真を削除",
+    "deletePhotoTitle": "この写真を削除しますか？",
+    "deletePhotoDescription": "画像ファイルごと完全に削除され、元に戻せません。物件の他の情報はそのまま残ります。",
+    "deletePhotoConfirm": "削除",
+    "deletingPhoto": "削除中...",
+    "photoDeleted": "写真を削除しました",
+    "photoDeleteFailed": "写真を削除できませんでした",
+    "photoLimitReached": "写真は最大{{max}}枚まで添付できます"
   },
   "investRegister": {
     "title": "投資商品登録",

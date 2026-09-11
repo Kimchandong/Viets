@@ -20,10 +20,13 @@ import {
   addPropertyImages,
   archiveProperty,
   createProperty,
+  deletePropertyImage,
   deletePropertyPermanently,
   getPropertyForEdit,
+  listPropertyImages,
   updateProperty,
   uploadPropertyImage,
+  type ExistingPropertyImage,
   type NewPropertyInput,
 } from "@/services/properties";
 import { canRegisterProperty, isAdmin } from "@/services/roles";
@@ -32,9 +35,9 @@ import { canRegisterProperty, isAdmin } from "@/services/roles";
  * [STEP 04] 매물 등록 화면 (Admin 전용, 최소 버전).
  *
  * 지금까지 매물을 넣는 방법은 Supabase SQL Editor 수동 insert뿐이었다. 이 화면은
- * properties 테이블에 직접 INSERT하는 최소 폼이다 — 사진 업로드(property_images,
- * Storage 연동)와 Agency 계정 등록 경로는 이번 범위에 넣지 않았다(각각 Storage
- * 설계와 D46 Agency 온보딩 결정이 선행되어야 한다).
+ * properties 테이블에 직접 INSERT하는 최소 폼이다. 사진 업로드(Storage `property-images`
+ * 버킷 → property_images 연결)와 사진 개별 삭제까지 지원한다 — Agency 계정 등록 경로는
+ * 여전히 범위 밖이다(D46 Agency 온보딩 결정이 선행되어야 한다).
  *
  * 권한: 화면 진입 시 services/roles.ts로 admin 계열인지 확인해 아니면 안내만 띄운다.
  * 다만 이는 UI 가드일 뿐이고, 실제 차단은 properties RLS가 서버에서 수행한다.
@@ -93,13 +96,27 @@ export default function PropertyRegisterScreen() {
   const [publishNow, setPublishNow] = useState(true);
 
   const [photos, setPhotos] = useState<string[]>([]);
+  // [STEP 04-사진삭제] 수정 모드에서만 채워진다 — 이미 DB(property_images)에 등록된 사진.
+  // 위의 `photos`(아직 업로드 전인 로컬 파일)와 성격이 완전히 달라 따로 관리한다:
+  // 이쪽은 ×를 누르면 **서버에서 즉시 지워지고 되돌릴 수 없다**.
+  const [existingPhotos, setExistingPhotos] = useState<ExistingPropertyImage[]>([]);
+  const [photoPendingDelete, setPhotoPendingDelete] = useState<ExistingPropertyImage | null>(null);
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ title?: string; price?: string }>({});
 
+  // 최대 장수는 "이미 등록된 사진 + 이번에 고른 사진" 합계로 센다.
+  const remainingSlots = Math.max(0, MAX_PHOTOS - existingPhotos.length - photos.length);
+
   /** 갤러리에서 사진을 여러 장 고른다 — 업로드는 등록 제출 시점에 한 번에 수행한다. */
   async function handlePickPhotos() {
+    if (remainingSlots === 0) {
+      showToast(t("propertyRegister.photoLimitReached", { max: MAX_PHOTOS }));
+      return;
+    }
+
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       showToast(t("propertyRegister.photoPermissionDenied"));
@@ -109,16 +126,34 @@ export default function PropertyRegisterScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsMultipleSelection: true,
-      selectionLimit: MAX_PHOTOS,
+      selectionLimit: remainingSlots,
       quality: 0.8,
     });
     if (result.canceled) return;
 
     setPhotos((prev) => {
       const merged = [...prev, ...result.assets.map((asset) => asset.uri)];
-      // 같은 사진을 두 번 고르는 경우가 있어 중복 제거 후 최대 장수로 자른다.
-      return Array.from(new Set(merged)).slice(0, MAX_PHOTOS);
+      // 같은 사진을 두 번 고르는 경우가 있어 중복 제거 후 남은 칸수만큼만 받는다.
+      return Array.from(new Set(merged)).slice(0, MAX_PHOTOS - existingPhotos.length);
     });
+  }
+
+  /** 이미 등록된 사진 1장 삭제 — 확인 모달에서 확정된 뒤에만 호출된다. */
+  async function handleDeleteExistingPhoto() {
+    const target = photoPendingDelete;
+    if (!target) return;
+
+    setDeletingPhoto(true);
+    const ok = await deletePropertyImage(target.id, target.url);
+    setDeletingPhoto(false);
+    setPhotoPendingDelete(null);
+
+    if (!ok) {
+      showToast(t("propertyRegister.photoDeleteFailed"));
+      return;
+    }
+    setExistingPhotos((prev) => prev.filter((item) => item.id !== target.id));
+    showToast(t("propertyRegister.photoDeleted"));
   }
 
   useEffect(() => {
@@ -168,6 +203,13 @@ export default function PropertyRegisterScreen() {
       setPublishNow(existing.status === "active");
       setLoadingExisting(false);
     });
+
+    // 사진은 본문 로딩과 별개로 가져온다 — 사진 조회가 늦거나 실패해도 폼 자체는
+    // 열려야 한다(사진이 없으면 빈 목록으로 표시될 뿐이다).
+    listPropertyImages(editingId).then((images) => {
+      if (mounted) setExistingPhotos(images);
+    });
+
     return () => {
       mounted = false;
     };
@@ -236,8 +278,8 @@ export default function PropertyRegisterScreen() {
       uploadedUrls.push(url);
     }
 
-    // 수정 모드에서는 새로 고른 사진만 추가한다(기존 사진은 그대로 둔다 — 기존 사진
-    // 개별 삭제는 이번 범위 밖).
+    // 수정 모드에서는 새로 고른 사진만 추가한다 — 기존 사진은 그대로 두고, 지우는 것은
+    // 사진 칸의 ×(즉시 삭제, 저장 버튼과 무관)로 처리한다.
     const targetId = isEditing ? (editingId as string) : await createProperty(payload);
 
     if (isEditing) {
@@ -456,6 +498,30 @@ export default function PropertyRegisterScreen() {
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.photosSection")} />
           <View style={styles.photoGrid}>
+            {/* 이미 등록된 사진이 먼저 온다 — 대표 사진(sort_order가 가장 작은 사진)이
+                맨 앞이고, 새로 고른 사진은 그 뒤에 붙는다(addPropertyImages도 같은 순서). */}
+            {existingPhotos.map((image, index) => (
+              <View key={image.id} style={styles.photoItem}>
+                <Image source={{ uri: image.url }} style={styles.photoImage} resizeMode="cover" />
+                <Pressable
+                  onPress={() => setPhotoPendingDelete(image)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("propertyRegister.deletePhoto")}
+                  hitSlop={6}
+                  style={styles.photoRemove}
+                  disabled={deletingPhoto}
+                >
+                  <Ionicons name="close-circle" size={22} color="#FFFFFF" />
+                </Pressable>
+                {index === 0 ? (
+                  <View style={[styles.photoBadge, { backgroundColor: theme.accent }]}>
+                    <Text style={[textStyles.caption, { color: theme.onAccent }]}>
+                      {t("propertyRegister.mainPhoto")}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ))}
             {photos.map((uri, index) => (
               <View key={uri} style={styles.photoItem}>
                 <Image source={{ uri }} style={styles.photoImage} resizeMode="cover" />
@@ -468,7 +534,7 @@ export default function PropertyRegisterScreen() {
                 >
                   <Ionicons name="close-circle" size={22} color="#FFFFFF" />
                 </Pressable>
-                {index === 0 ? (
+                {index === 0 && existingPhotos.length === 0 ? (
                   <View style={[styles.photoBadge, { backgroundColor: theme.accent }]}>
                     <Text style={[textStyles.caption, { color: theme.onAccent }]}>
                       {t("propertyRegister.mainPhoto")}
@@ -543,7 +609,7 @@ export default function PropertyRegisterScreen() {
             style={styles.submitButton}
           />
         ) : null}
-        {photos.length === 0 ? (
+        {photos.length === 0 && existingPhotos.length === 0 ? (
           <Text style={[textStyles.caption, styles.noticeText, { color: theme.secondaryText }]}>
             {t("propertyRegister.photoNotice")}
           </Text>
@@ -590,6 +656,34 @@ export default function PropertyRegisterScreen() {
             </Text>
           </Pressable>
         ) : null}
+      </Modal>
+
+      {/* [STEP 04-사진삭제] 사진 1장 삭제 확인 — Storage 파일까지 지우므로 되돌릴 수 없다.
+          매물 삭제 모달과 달리 선택지가 하나뿐이라 확인/취소 두 버튼으로 끝낸다. */}
+      <Modal
+        visible={!!photoPendingDelete}
+        onClose={() => setPhotoPendingDelete(null)}
+        accessibilityLabel={t("common.cancel")}
+      >
+        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
+          {t("propertyRegister.deletePhotoTitle")}
+        </Text>
+        <Text style={[textStyles.caption, { color: theme.secondaryText, marginBottom: spacing.md }]}>
+          {t("propertyRegister.deletePhotoDescription")}
+        </Text>
+        <Button
+          title={deletingPhoto ? t("propertyRegister.deletingPhoto") : t("propertyRegister.deletePhotoConfirm")}
+          onPress={handleDeleteExistingPhoto}
+          disabled={deletingPhoto}
+          style={styles.submitButton}
+        />
+        <Button
+          title={t("common.cancel")}
+          variant="outline"
+          onPress={() => setPhotoPendingDelete(null)}
+          disabled={deletingPhoto}
+          style={[styles.submitButton, styles.modalSecondaryButton]}
+        />
       </Modal>
 
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
@@ -731,6 +825,9 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     width: "100%",
+  },
+  modalSecondaryButton: {
+    marginTop: spacing.sm,
   },
   noticeText: {
     textAlign: "center",

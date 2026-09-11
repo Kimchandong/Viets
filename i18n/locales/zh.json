@@ -394,7 +394,15 @@
     "archived": "已将房源从列表中隐藏",
     "deleted": "已永久删除该房源",
     "deleteFailed": "删除失败，请检查权限。",
-    "loadFailed": "无法加载房源信息。"
+    "loadFailed": "无法加载房源信息。",
+    "deletePhoto": "删除照片",
+    "deletePhotoTitle": "要删除这张照片吗？",
+    "deletePhotoDescription": "图片文件将被永久删除且无法恢复。房源的其他信息保持不变。",
+    "deletePhotoConfirm": "删除",
+    "deletingPhoto": "删除中...",
+    "photoDeleted": "已删除照片",
+    "photoDeleteFailed": "删除照片失败",
+    "photoLimitReached": "最多可附加 {{max}} 张照片"
   },
   "investRegister": {
     "title": "发布投资产品",

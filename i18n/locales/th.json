@@ -394,7 +394,15 @@
     "archived": "ซ่อนประกาศจากรายการแล้ว",
     "deleted": "ลบประกาศถาวรแล้ว",
     "deleteFailed": "ลบไม่สำเร็จ กรุณาตรวจสอบสิทธิ์",
-    "loadFailed": "ไม่สามารถโหลดข้อมูลอสังหาริมทรัพย์ได้"
+    "loadFailed": "ไม่สามารถโหลดข้อมูลอสังหาริมทรัพย์ได้",
+    "deletePhoto": "ลบรูปภาพ",
+    "deletePhotoTitle": "ลบรูปภาพนี้หรือไม่",
+    "deletePhotoDescription": "ไฟล์รูปภาพจะถูกลบถาวรและกู้คืนไม่ได้ ข้อมูลอื่นของอสังหาริมทรัพย์ยังคงเดิม",
+    "deletePhotoConfirm": "ลบ",
+    "deletingPhoto": "กำลังลบ...",
+    "photoDeleted": "ลบรูปภาพแล้ว",
+    "photoDeleteFailed": "ลบรูปภาพไม่สำเร็จ",
+    "photoLimitReached": "แนบรูปภาพได้สูงสุด {{max}} รูป"
   },
   "investRegister": {
     "title": "ลงทะเบียนผลิตภัณฑ์",

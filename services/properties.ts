@@ -4,6 +4,7 @@ import { MOCK_PROPERTY_IMAGES, type PropertyImageCategory } from "@/constants/mo
 import { MOCK_REGIONS, type MockProperty, type MockPropertyCategory, type MockPropertyStatus } from "@/constants/mockData";
 import { formatVndAmount } from "@/utils/format";
 import { readImageBytes } from "@/utils/imageBytes";
+import { isAdmin } from "./roles";
 import { supabase } from "./supabase";
 
 /**
@@ -618,26 +619,44 @@ type ManagedPropertyRow = {
   listing_type: "for_sale" | "for_rent";
   status: string;
   featured: boolean;
+  created_by: string | null;
   property_images: PropertyImageRow[] | null;
 };
 
 /**
- * 내가 관리하는 매물 전체 — **status 필터를 걸지 않는다.**
+ * 내가 등록한 매물 — **status 필터를 걸지 않는다**(공개/완료/보류를 한 화면에서 다룬다).
  *
- * 무엇이 돌아오는지는 서버(properties SELECT 정책)가 정한다: admin/reviewer는 전체,
- * Agency 소속 계정은 자기 Agency 매물, `property_manage` 보유자는 **자기가 등록한**
- * 매물(created_by = auth.uid()). 클라이언트가 created_by로 한 번 더 거르지 않는 이유는
- * 그러면 관리자가 전체를 보는 동작까지 함께 막히기 때문이다 — 소유 판정은 RLS에 맡긴다.
+ * 소유 필터를 왜 클라이언트에서 하는가: RLS로는 표현할 수 없다. properties에는
+ * `properties_select_active_public`(status='active'면 anon/authenticated 모두 SELECT 허용)이
+ * 있고, 공개 매물 목록·상세가 바로 그 정책으로 동작한다. 정책은 OR로 합쳐지므로
+ * `properties_select_permitted`를 "본인 매물"로 좁혀도 공개 중인 매물은 여전히 누구에게나
+ * 보인다 — 2026-09-11 이 화면에서 teststore가 관리자 매물까지 보고 있던 이유가 이것이다.
+ *
+ * 그래서 여기서 created_by로 거른다. 관리자는 예외로 전체를 본다(운영상 필요).
+ * 이것은 화면 필터일 뿐 보안 경계가 아니다 — 남의 매물을 고치거나 지우는 것은
+ * properties UPDATE 정책(created_by = auth.uid())이 서버에서 막는다.
  */
 export async function listManagedProperties(): Promise<ManagedProperty[]> {
   if (!supabase) {
     return [];
   }
 
-  const { data, error } = await supabase
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) {
+    return [];
+  }
+
+  let request = supabase
     .from("properties")
-    .select("id,title,address,price,listing_type,status,featured,property_images(url,sort_order)")
+    .select("id,title,address,price,listing_type,status,featured,created_by,property_images(url,sort_order)")
     .order("created_at", { ascending: false });
+
+  if (!(await isAdmin())) {
+    request = request.eq("created_by", userId);
+  }
+
+  const { data, error } = await request;
 
   if (error) {
     console.warn("[services/properties] listManagedProperties failed:", error.message);

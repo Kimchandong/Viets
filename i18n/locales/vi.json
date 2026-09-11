@@ -782,6 +782,7 @@
       "featured": "Chưa có tin nào đang chạy dịch vụ đề xuất trả phí."
     },
     "noPermissionTitle": "Không có quyền",
-    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này."
+    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này.",
+    "pendingInquiries": "Hỏi {{pending}}"
   }
 }

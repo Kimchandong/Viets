@@ -782,6 +782,7 @@
       "featured": "유료 추천이 진행 중인 매물이 없습니다."
     },
     "noPermissionTitle": "권한이 없습니다",
-    "noPermissionDescription": "매물 관리 권한이 있는 계정만 등록 매물을 볼 수 있습니다."
+    "noPermissionDescription": "매물 관리 권한이 있는 계정만 등록 매물을 볼 수 있습니다.",
+    "pendingInquiries": "문의 {{pending}}"
   }
 }

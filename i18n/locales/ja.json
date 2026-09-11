@@ -782,6 +782,7 @@
       "featured": "有料のおすすめ掲載中の物件がありません。"
     },
     "noPermissionTitle": "権限がありません",
-    "noPermissionDescription": "物件管理権限のあるアカウントのみ登録物件を表示できます。"
+    "noPermissionDescription": "物件管理権限のあるアカウントのみ登録物件を表示できます。",
+    "pendingInquiries": "問合せ {{pending}}"
   }
 }

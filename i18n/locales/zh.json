@@ -782,6 +782,7 @@
       "featured": "暂无正在进行付费推荐的房源。"
     },
     "noPermissionTitle": "没有权限",
-    "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。"
+    "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。",
+    "pendingInquiries": "咨询 {{pending}}"
   }
 }

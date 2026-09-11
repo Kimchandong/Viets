@@ -782,6 +782,7 @@
       "featured": "No listings have a paid feature running."
     },
     "noPermissionTitle": "No permission",
-    "noPermissionDescription": "Only accounts with listing management permission can see registered listings."
+    "noPermissionDescription": "Only accounts with listing management permission can see registered listings.",
+    "pendingInquiries": "{{pending}} new"
   }
 }

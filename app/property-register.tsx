@@ -478,14 +478,12 @@ export default function PropertyRegisterScreen() {
             keyboardType="numeric"
             error={errors.price}
             helperText={t("propertyRegister.priceHelper")}
-            placeholder="4200000000"
           />
           <Input
             label={t("propertyRegister.areaLabel")}
             value={area}
             onChangeText={setArea}
             keyboardType="numeric"
-            placeholder="72"
           />
           <View style={styles.row}>
             <Input
@@ -494,7 +492,6 @@ export default function PropertyRegisterScreen() {
               onChangeText={setBedrooms}
               keyboardType="numeric"
               containerStyle={styles.rowItem}
-              placeholder="2"
             />
             <Input
               label={t("propertyRegister.bathroomsLabel")}
@@ -502,7 +499,6 @@ export default function PropertyRegisterScreen() {
               onChangeText={setBathrooms}
               keyboardType="numeric"
               containerStyle={styles.rowItem}
-              placeholder="2"
             />
           </View>
         </View>
@@ -513,7 +509,7 @@ export default function PropertyRegisterScreen() {
             label={t("propertyRegister.addressLabel")}
             value={address}
             onChangeText={setAddress}
-            placeholder="TP. Thủ Đức, TP. Hồ Chí Minh"
+            placeholder={t("propertyRegister.addressPlaceholder")}
             helperText={t("propertyRegister.addressHelper")}
           />
           {/* [STEP 04-지오코딩] 입력한 주소로 지도를 대략적인 위치까지 옮겨 준다.
@@ -553,7 +549,6 @@ export default function PropertyRegisterScreen() {
               onChangeText={setLatitude}
               keyboardType="numeric"
               containerStyle={styles.rowItem}
-              placeholder="10.8411"
             />
             <Input
               label={t("propertyRegister.longitudeLabel")}
@@ -561,7 +556,6 @@ export default function PropertyRegisterScreen() {
               onChangeText={setLongitude}
               keyboardType="numeric"
               containerStyle={styles.rowItem}
-              placeholder="106.8296"
             />
           </View>
           {hasPickedLocation ? (
@@ -660,7 +654,6 @@ export default function PropertyRegisterScreen() {
             label={t("propertyRegister.amenitiesLabel")}
             value={amenities}
             onChangeText={setAmenities}
-            placeholder="Hồ bơi, Phòng gym, Bãi đỗ xe"
             helperText={t("propertyRegister.amenitiesHelper")}
           />
           <ToggleRow
@@ -670,10 +663,13 @@ export default function PropertyRegisterScreen() {
             onToggle={() => setFeatured((prev) => !prev)}
           />
           <ToggleRow
-            label={t("propertyRegister.publishLabel")}
+            label={
+              publishNow ? t("propertyRegister.publishOn") : t("propertyRegister.publishOff")
+            }
             description={t("propertyRegister.publishDescription")}
             value={publishNow}
             onToggle={() => setPublishNow((prev) => !prev)}
+            variant="visibility"
           />
         </View>
 
@@ -801,11 +797,17 @@ function ToggleRow({
   description,
   value,
   onToggle,
+  // [2026-09-11 사용자 지시] "즉시공개"는 체크 표시가 아니라 **노출/미노출**을
+  // 뜻하는 눈 아이콘으로 보여준다 — 켜짐/꺼짐보다 "지금 목록에 보이는가"가
+  // 등록자가 실제로 판단하는 기준이기 때문이다. 다른 토글(추천 매물 등)은
+  // 기존 체크 아이콘을 그대로 쓴다.
+  variant = "check",
 }: {
   label: string;
   description: string;
   value: boolean;
   onToggle: () => void;
+  variant?: "check" | "visibility";
 }) {
   const theme = colors.light;
   return (
@@ -823,7 +825,15 @@ function ToggleRow({
         <Text style={[textStyles.caption, { color: theme.secondaryText }]}>{description}</Text>
       </View>
       <Ionicons
-        name={value ? "checkmark-circle" : "ellipse-outline"}
+        name={
+          variant === "visibility"
+            ? value
+              ? "eye"
+              : "eye-off-outline"
+            : value
+              ? "checkmark-circle"
+              : "ellipse-outline"
+        }
         size={24}
         color={value ? theme.accent : theme.secondaryText}
       />

@@ -86,6 +86,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     fontSize: typography.size.md,
+    // [2026-09-11 사용자 지시] 앱의 모든 입력 placeholder에 bold를 쓰지 않는다.
+    // RN은 placeholder에만 별도 굵기를 줄 수 없고 TextInput의 굵기를 그대로 따르므로,
+    // 기본값에 기대지 않고 여기서 regular(400)를 명시한다.
+    fontWeight: typography.weight.regular,
   },
   helper: {
     fontSize: typography.size.xs,

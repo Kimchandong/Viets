@@ -311,7 +311,6 @@ export default function InvestRegisterScreen() {
             value={title}
             onChangeText={setTitle}
             error={errors.title}
-            placeholder="Vinhomes Grand Park REIT #3"
           />
           <Input
             label={t("investRegister.descriptionLabel")}
@@ -320,7 +319,6 @@ export default function InvestRegisterScreen() {
             multiline
             numberOfLines={4}
             style={styles.multiline}
-            placeholder={t("investRegister.descriptionPlaceholder")}
           />
         </View>
 
@@ -422,7 +420,6 @@ export default function InvestRegisterScreen() {
             keyboardType="numeric"
             error={errors.target}
             helperText={t("investRegister.amountHelper")}
-            placeholder="15000000000"
           />
           <Input
             label={t("investRegister.minimumLabel")}
@@ -430,7 +427,6 @@ export default function InvestRegisterScreen() {
             onChangeText={setMinimumInvestment}
             keyboardType="numeric"
             error={errors.minimum}
-            placeholder="5000000"
           />
           <Input
             label={t("investRegister.raisedAmountLabel")}
@@ -438,7 +434,6 @@ export default function InvestRegisterScreen() {
             onChangeText={setRaisedAmount}
             keyboardType="numeric"
             helperText={t("investRegister.raisedAmountHelper")}
-            placeholder="0"
           />
         </View>
 
@@ -451,7 +446,6 @@ export default function InvestRegisterScreen() {
               onChangeText={setExpectedReturn}
               keyboardType="numeric"
               containerStyle={styles.rowItem}
-              placeholder="9.2"
             />
             <Input
               label={t("investRegister.periodLabel")}
@@ -459,7 +453,6 @@ export default function InvestRegisterScreen() {
               onChangeText={setPeriodMonths}
               keyboardType="numeric"
               containerStyle={styles.rowItem}
-              placeholder="24"
             />
           </View>
           <Text style={[textStyles.caption, { color: theme.secondaryText }]}>

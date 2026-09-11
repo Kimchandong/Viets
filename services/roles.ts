@@ -1,3 +1,4 @@
+import { getMyAgency } from "./agencies";
 import { supabase } from "./supabase";
 
 /**
@@ -58,14 +59,26 @@ export async function isAdmin(): Promise<boolean> {
 }
 
 /**
- * 매물 등록/수정 진입점을 노출할지 여부 — admin 계열이거나 `property_manage` 권한 보유자.
+ * 매물 등록/수정 진입점을 노출할지 여부 — 세 갈래 중 하나면 된다.
+ *   · admin 계열
+ *   · 관리자가 계정별로 켜 준 `property_manage` 권한
+ *   · [2026-09-11] 부동산 등록신청이 **승인된** Agency 소속
  *
- * Agency 소속 계정의 등록 권한(agency_permissions.property_listing)은 Agency 온보딩
- * 플로우(D46 PENDING)가 정해진 뒤 STEP 03에서 함께 연결한다.
+ * 세 번째가 이번에 붙은 정식 경로다(MY > 부동산 등록신청 → 관리자 승인). 승인 시점에
+ * 서버가 agency_permissions.property_listing까지 함께 켜므로 여기서는 승인 상태만 봐도
+ * 된다 — 실제 등록 가능 여부는 properties RLS가 그 권한을 보고 최종 판정한다.
  */
 export async function canRegisterProperty(): Promise<boolean> {
-  const [roles, permissions] = await Promise.all([fetchMyRoles(), fetchMyPermissions()]);
-  return roles.some((role) => ADMIN_ROLES.includes(role)) || permissions.includes("property_manage");
+  const [roles, permissions, agency] = await Promise.all([
+    fetchMyRoles(),
+    fetchMyPermissions(),
+    getMyAgency(),
+  ]);
+  return (
+    roles.some((role) => ADMIN_ROLES.includes(role)) ||
+    permissions.includes("property_manage") ||
+    agency?.approvalStatus === "approved"
+  );
 }
 
 /**

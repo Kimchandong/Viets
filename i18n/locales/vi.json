@@ -285,7 +285,17 @@
       "missingFields": "Vui lòng nhập ID và mật khẩu"
     },
     "chatInbox": "Danh sách tư vấn",
-    "myProperties": "Tin đăng"
+    "myProperties": "Tin đăng",
+    "agencyTitle": "Môi giới",
+    "agencyApply": "Đăng ký môi giới",
+    "agencyStatusRow": "Trạng thái đăng ký",
+    "reviewAgencies": "Duyệt đăng ký môi giới",
+    "agencyStatus": {
+      "pending": "Đang xét duyệt",
+      "approved": "Môi giới đã duyệt",
+      "rejected": "Bị từ chối",
+      "suspended": "Tạm ngưng"
+    }
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
@@ -782,7 +792,62 @@
       "featured": "Chưa có tin nào đang chạy dịch vụ đề xuất trả phí."
     },
     "noPermissionTitle": "Không có quyền",
-    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này.",
-    "pendingInquiries": "Hỏi {{pending}}"
+    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này."
+  },
+  "agencyApply": {
+    "title": "Đăng ký môi giới",
+    "sectionBasic": "Thông tin công ty",
+    "sectionLicense": "Số chứng chỉ môi giới",
+    "name": "Tên công ty",
+    "namePlaceholder": "Tên trên giấy đăng ký kinh doanh",
+    "region": "Khu vực",
+    "regionPlaceholder": "Chọn khu vực",
+    "contactName": "Người phụ trách",
+    "contactNamePlaceholder": "Tên người liên hệ",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "Số có thể liên lạc",
+    "address": "Địa chỉ",
+    "addressPlaceholder": "Địa chỉ văn phòng",
+    "noLicense": "Không có số chứng chỉ môi giới",
+    "registrationNo": "Số chứng chỉ môi giới",
+    "registrationNoPlaceholder": "Nhập số chứng chỉ",
+    "licenseFileHint": "Đính kèm ảnh chứng chỉ sẽ được duyệt nhanh hơn.",
+    "attachFile": "Đính kèm tệp",
+    "removeFile": "Xóa tệp đính kèm",
+    "submit": "Gửi đăng ký",
+    "submitted": "Đã gửi đăng ký",
+    "submitFailed": "Gửi đăng ký không thành công",
+    "alreadyApplied": "Bạn đã có một đăng ký đang xử lý",
+    "uploadFailed": "Tải tệp lên không thành công",
+    "filePermissionDenied": "Cần quyền truy cập ảnh",
+    "errorRequired": "Bắt buộc",
+    "errorCheckForm": "Còn mục chưa điền",
+    "pendingTitle": "Đang xét duyệt",
+    "pendingDescription": "Bạn có thể đăng tin sau khi quản trị viên duyệt.",
+    "approvedTitle": "Đã được duyệt",
+    "approvedDescription": "Mục đăng tin và quản lý tin đã mở trong MY.",
+    "rejectedTitle": "Đăng ký bị từ chối"
+  },
+  "adminAgencies": {
+    "title": "Duyệt đăng ký môi giới",
+    "status": {
+      "pending": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối",
+      "suspended": "Tạm ngưng"
+    },
+    "emptyTitle": "Chưa có đăng ký",
+    "emptyDescription": "Chưa có đăng ký nào ở trạng thái này.",
+    "approve": "Duyệt",
+    "reject": "Từ chối",
+    "approved": "Đã duyệt",
+    "rejected": "Đã từ chối",
+    "actionFailed": "Không xử lý được",
+    "rejectTitle": "Lý do từ chối",
+    "rejectReasonPlaceholder": "Ghi rõ cần sửa gì trước khi gửi lại",
+    "viewDocument": "Xem tệp đính kèm",
+    "documentFailed": "Không mở được tệp",
+    "noPermissionTitle": "Không có quyền",
+    "noPermissionDescription": "Chỉ quản trị viên mới duyệt được đăng ký."
   }
 }

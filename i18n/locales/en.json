@@ -285,7 +285,17 @@
       "missingFields": "Enter your ID and password"
     },
     "chatInbox": "Inquiries",
-    "myProperties": "Listings"
+    "myProperties": "Listings",
+    "agencyTitle": "Agency",
+    "agencyApply": "Apply as an agency",
+    "agencyStatusRow": "Application status",
+    "reviewAgencies": "Agency applications",
+    "agencyStatus": {
+      "pending": "Under review",
+      "approved": "Approved agency",
+      "rejected": "Application rejected",
+      "suspended": "Suspended"
+    }
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",
@@ -782,7 +792,62 @@
       "featured": "No listings have a paid feature running."
     },
     "noPermissionTitle": "No permission",
-    "noPermissionDescription": "Only accounts with listing management permission can see registered listings.",
-    "pendingInquiries": "{{pending}} new"
+    "noPermissionDescription": "Only accounts with listing management permission can see registered listings."
+  },
+  "agencyApply": {
+    "title": "Agency application",
+    "sectionBasic": "Agency details",
+    "sectionLicense": "License number",
+    "name": "Agency name",
+    "namePlaceholder": "Name on your business registration",
+    "region": "Region",
+    "regionPlaceholder": "Select a region",
+    "contactName": "Contact name",
+    "contactNamePlaceholder": "Who we should contact",
+    "phone": "Phone",
+    "phonePlaceholder": "A number we can reach",
+    "address": "Address",
+    "addressPlaceholder": "Office address",
+    "noLicense": "No brokerage licence number",
+    "registrationNo": "Brokerage licence no.",
+    "registrationNoPlaceholder": "Enter the licence number",
+    "licenseFileHint": "Attaching a photo of the licence speeds up review.",
+    "attachFile": "Attach a file",
+    "removeFile": "Remove attachment",
+    "submit": "Submit",
+    "submitted": "Application submitted",
+    "submitFailed": "Could not submit the application",
+    "alreadyApplied": "You already have an application in progress",
+    "uploadFailed": "File upload failed",
+    "filePermissionDenied": "Photo access permission is required",
+    "errorRequired": "Required",
+    "errorCheckForm": "Some fields are missing",
+    "pendingTitle": "Under review",
+    "pendingDescription": "You can list properties once an administrator approves it.",
+    "approvedTitle": "Approved",
+    "approvedDescription": "Property registration and listing management are now available in MY.",
+    "rejectedTitle": "Your application was rejected"
+  },
+  "adminAgencies": {
+    "title": "Agency applications",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "suspended": "Suspended"
+    },
+    "emptyTitle": "No applications",
+    "emptyDescription": "There are no applications in this state yet.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "actionFailed": "Could not complete the action",
+    "rejectTitle": "Reason for rejection",
+    "rejectReasonPlaceholder": "Say what should be fixed before reapplying",
+    "viewDocument": "View attachment",
+    "documentFailed": "Could not open the file",
+    "noPermissionTitle": "No permission",
+    "noPermissionDescription": "Only administrators can review applications."
   }
 }

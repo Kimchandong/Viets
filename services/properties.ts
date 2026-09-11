@@ -325,9 +325,15 @@ export async function createProperty(input: NewPropertyInput): Promise<string | 
     return null;
   }
 
+  // [2026-09-11] agency_id를 채우는 이유: 승인된 중개업소 계정은 properties_insert_agency
+  // 정책(can_manage_agency_property(agency_id))으로 통과하는데, 이 값이 비어 있으면 그
+  // 함수가 false를 돌려줘 등록 자체가 막힌다. 관리자/개별 property_manage 계정은 Agency가
+  // 없어 NULL이 돌아오고, 그쪽은 각자의 정책으로 통과한다.
+  const { data: agencyId } = await supabase.rpc("my_active_agency_id");
+
   const { data, error } = await supabase
     .from("properties")
-    .insert({ ...input, currency: "VND" })
+    .insert({ ...input, currency: "VND", agency_id: (agencyId as string | null) ?? null })
     .select("id")
     .single();
 

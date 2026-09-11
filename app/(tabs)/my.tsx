@@ -22,6 +22,7 @@ import { type MockInvestmentProduct, type MockProperty } from "@/constants/mockD
 import { getPropertiesByIds } from "@/services/properties";
 import { getInvestmentProductsByIds } from "@/services/investments";
 import { canManageInvestment, canRegisterProperty, isAdmin } from "@/services/roles";
+import { getMyAgency, type MyAgency } from "@/services/agencies";
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/i18n";
 import {
   getSession,
@@ -139,8 +140,14 @@ export default function MyScreen() {
   // [STEP 04] 매물 등록 진입점은 admin 계열에게만 노출한다(실제 차단은 properties
   // RLS가 서버에서 수행 — 이건 UI 가드일 뿐이다). 로그인 상태가 바뀌면 다시 확인한다.
   const [canRegister, setCanRegister] = useState(false);
+  // 권한 확인이 끝나기 전에는 등록신청 메뉴를 그리지 않는다 — 이미 승인된 계정에게
+  // "부동산 등록신청"이 잠깐 보였다 사라지면 잘못 만든 화면처럼 읽힌다.
+  const [permissionChecked, setPermissionChecked] = useState(false);
   const [canManageInvest, setCanManageInvest] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  // [2026-09-11 사용자 지시] 부동산 등록신청 상태. 신청을 마치면 상단에 업체명이 뜨고,
+  // 승인되면 매물 등록/매물 정보 메뉴가 열린다(그 판정은 canRegisterProperty가 한다).
+  const [agency, setAgency] = useState<MyAgency | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -148,16 +155,24 @@ export default function MyScreen() {
       setCanRegister(false);
       setCanManageInvest(false);
       setIsAdminUser(false);
+      setAgency(null);
+      setPermissionChecked(false);
       return;
     }
     canRegisterProperty().then((ok) => {
-      if (mounted) setCanRegister(ok);
+      if (mounted) {
+        setCanRegister(ok);
+        setPermissionChecked(true);
+      }
     });
     canManageInvestment().then((ok) => {
       if (mounted) setCanManageInvest(ok);
     });
     isAdmin().then((ok) => {
       if (mounted) setIsAdminUser(ok);
+    });
+    getMyAgency().then((result) => {
+      if (mounted) setAgency(result);
     });
     return () => {
       mounted = false;
@@ -268,12 +283,20 @@ export default function MyScreen() {
                 <Ionicons name="person-outline" size={28} color={theme.secondaryText} />
               </View>
               <View style={styles.profileText}>
+                {/* [2026-09-11 사용자 지시] 등록신청을 마쳤으면 이메일 대신 **업체명**을
+                    앞세운다 — 중개업소 계정에게 자기 계정을 알아보는 이름은 이메일이
+                    아니라 업체명이다. 아직 심사 중이면 그 사실을 함께 알려 준다. */}
                 <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-                  {t("my.signedInLabel")}
+                  {agency ? t(`my.agencyStatus.${agency.approvalStatus}`) : t("my.signedInLabel")}
                 </Text>
                 <Text style={[textStyles.cardTitle, { color: theme.text }]} numberOfLines={1}>
-                  {session?.user.email ?? "—"}
+                  {agency?.name ?? session?.user.email ?? "—"}
                 </Text>
+                {agency ? (
+                  <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+                    {session?.user.email ?? ""}
+                  </Text>
+                ) : null}
               </View>
             </>
           ) : (
@@ -398,6 +421,25 @@ export default function MyScreen() {
           </Card>
         </View>
 
+        {/* [2026-09-11 사용자 지시] 부동산 등록신청 — **아직 매물 등록 권한이 없는**
+            계정에게만 보인다. 승인을 이미 받았거나(승인된 Agency) 관리자가 직접
+            property_manage를 켜 준 계정은 신청할 이유가 없으므로 감춘다. 아직
+            신청하지 않았으면 폼으로, 심사 중/반려면 상태 화면으로 간다. */}
+        {isLoggedIn && permissionChecked && !canRegister ? (
+          <View style={styles.section}>
+            <SectionHeader title={t("my.agencyTitle")} />
+            <Card style={styles.rowsCard}>
+              <SettingsRow
+                icon="business-outline"
+                label={agency ? t("my.agencyStatusRow") : t("my.agencyApply")}
+                onPress={() => router.push("/agency-apply")}
+                theme={theme}
+                last
+              />
+            </Card>
+          </View>
+        ) : null}
+
         {/* [STEP 04] 매물 등록 — admin 계열 계정에만 노출되는 운영 진입점. */}
         {canRegister || canManageInvest || isAdminUser ? (
           <View style={styles.section}>
@@ -408,16 +450,6 @@ export default function MyScreen() {
                   icon="add-circle-outline"
                   label={t("my.registerProperty")}
                   onPress={() => router.push("/property-register")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-11 사용자 지시] 매물 정보 — 등록한 매물을 공개/완료/보류/추천
-                  으로 나눠 보고 상태를 바꾸는 화면. */}
-              {canRegister ? (
-                <SettingsRow
-                  icon="business-outline"
-                  label={t("my.myProperties")}
-                  onPress={() => router.push("/my-properties")}
                   theme={theme}
                 />
               ) : null}
@@ -447,6 +479,15 @@ export default function MyScreen() {
                   icon="key-outline"
                   label={t("my.managePermissions")}
                   onPress={() => router.push("/admin-permissions")}
+                  theme={theme}
+                />
+              ) : null}
+              {/* [2026-09-11] 부동산 등록신청 심사 — admin 전용. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="shield-checkmark-outline"
+                  label={t("my.reviewAgencies")}
+                  onPress={() => router.push("/admin-agencies")}
                   theme={theme}
                 />
               ) : null}

@@ -285,7 +285,17 @@
       "missingFields": "กรุณากรอก ID และรหัสผ่าน"
     },
     "chatInbox": "รายการสอบถาม",
-    "myProperties": "ข้อมูลประกาศ"
+    "myProperties": "ข้อมูลประกาศ",
+    "agencyTitle": "ผู้ประกอบการอสังหาฯ",
+    "agencyApply": "ยื่นคำขอเป็นนายหน้า",
+    "agencyStatusRow": "สถานะคำขอ",
+    "reviewAgencies": "ตรวจคำขอนายหน้า",
+    "agencyStatus": {
+      "pending": "กำลังตรวจสอบ",
+      "approved": "นายหน้าที่อนุมัติแล้ว",
+      "rejected": "คำขอถูกปฏิเสธ",
+      "suspended": "ระงับการใช้งาน"
+    }
   },
   "auth": {
     "tagline": "แพลตฟอร์มอสังหาริมทรัพย์และการลงทุนเวียดนาม",
@@ -782,7 +792,62 @@
       "featured": "ยังไม่มีประกาศที่ใช้บริการแนะนำแบบเสียค่าบริการ"
     },
     "noPermissionTitle": "ไม่มีสิทธิ์",
-    "noPermissionDescription": "เฉพาะบัญชีที่มีสิทธิ์จัดการประกาศเท่านั้นที่ดูรายการนี้ได้",
-    "pendingInquiries": "สอบถาม {{pending}}"
+    "noPermissionDescription": "เฉพาะบัญชีที่มีสิทธิ์จัดการประกาศเท่านั้นที่ดูรายการนี้ได้"
+  },
+  "agencyApply": {
+    "title": "ยื่นคำขอเป็นนายหน้า",
+    "sectionBasic": "ข้อมูลบริษัท",
+    "sectionLicense": "เลขที่ใบอนุญาตนายหน้า",
+    "name": "ชื่อผู้ลงทะเบียน (บริษัท)",
+    "namePlaceholder": "ชื่อตามหนังสือจดทะเบียนธุรกิจ",
+    "region": "พื้นที่",
+    "regionPlaceholder": "เลือกพื้นที่",
+    "contactName": "ชื่อผู้ติดต่อ",
+    "contactNamePlaceholder": "ชื่อผู้ที่เราจะติดต่อ",
+    "phone": "เบอร์โทร",
+    "phonePlaceholder": "เบอร์ที่ติดต่อได้",
+    "address": "ที่อยู่",
+    "addressPlaceholder": "ที่อยู่สำนักงาน",
+    "noLicense": "ไม่มีเลขที่ใบอนุญาตนายหน้า",
+    "registrationNo": "เลขที่ใบอนุญาตนายหน้า",
+    "registrationNoPlaceholder": "กรอกเลขที่ใบอนุญาต",
+    "licenseFileHint": "แนบรูปใบอนุญาตจะช่วยให้ตรวจสอบเร็วขึ้น",
+    "attachFile": "แนบไฟล์",
+    "removeFile": "ลบไฟล์แนบ",
+    "submit": "ส่งคำขอ",
+    "submitted": "ส่งคำขอแล้ว",
+    "submitFailed": "ส่งคำขอไม่สำเร็จ",
+    "alreadyApplied": "คุณมีคำขอที่กำลังดำเนินการอยู่แล้ว",
+    "uploadFailed": "อัปโหลดไฟล์ไม่สำเร็จ",
+    "filePermissionDenied": "ต้องได้รับสิทธิ์เข้าถึงรูปภาพ",
+    "errorRequired": "จำเป็นต้องกรอก",
+    "errorCheckForm": "ยังมีช่องที่ยังไม่ได้กรอก",
+    "pendingTitle": "กำลังตรวจสอบ",
+    "pendingDescription": "คุณจะลงประกาศได้เมื่อผู้ดูแลอนุมัติ",
+    "approvedTitle": "อนุมัติแล้ว",
+    "approvedDescription": "เมนูลงประกาศและข้อมูลประกาศเปิดใช้งานแล้วใน MY",
+    "rejectedTitle": "คำขอถูกปฏิเสธ"
+  },
+  "adminAgencies": {
+    "title": "ตรวจคำขอนายหน้า",
+    "status": {
+      "pending": "รอตรวจสอบ",
+      "approved": "อนุมัติ",
+      "rejected": "ปฏิเสธ",
+      "suspended": "ระงับ"
+    },
+    "emptyTitle": "ไม่มีคำขอ",
+    "emptyDescription": "ยังไม่มีคำขอในสถานะนี้",
+    "approve": "อนุมัติ",
+    "reject": "ปฏิเสธ",
+    "approved": "อนุมัติแล้ว",
+    "rejected": "ปฏิเสธแล้ว",
+    "actionFailed": "ดำเนินการไม่สำเร็จ",
+    "rejectTitle": "เหตุผลที่ปฏิเสธ",
+    "rejectReasonPlaceholder": "ระบุสิ่งที่ต้องแก้ไขก่อนยื่นใหม่",
+    "viewDocument": "ดูไฟล์แนบ",
+    "documentFailed": "เปิดไฟล์ไม่ได้",
+    "noPermissionTitle": "ไม่มีสิทธิ์",
+    "noPermissionDescription": "เฉพาะผู้ดูแลเท่านั้นที่ตรวจคำขอได้"
   }
 }

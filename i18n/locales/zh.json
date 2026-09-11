@@ -285,7 +285,17 @@
       "missingFields": "请输入账号和密码"
     },
     "chatInbox": "咨询列表",
-    "myProperties": "房源信息"
+    "myProperties": "房源信息",
+    "agencyTitle": "房产经纪",
+    "agencyApply": "申请成为经纪",
+    "agencyStatusRow": "申请状态",
+    "reviewAgencies": "经纪申请审核",
+    "agencyStatus": {
+      "pending": "审核中",
+      "approved": "已通过的经纪",
+      "rejected": "申请被驳回",
+      "suspended": "已暂停"
+    }
   },
   "auth": {
     "tagline": "越南房地产与投资平台",
@@ -782,7 +792,62 @@
       "featured": "暂无正在进行付费推荐的房源。"
     },
     "noPermissionTitle": "没有权限",
-    "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。",
-    "pendingInquiries": "咨询 {{pending}}"
+    "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。"
+  },
+  "agencyApply": {
+    "title": "经纪入驻申请",
+    "sectionBasic": "公司信息",
+    "sectionLicense": "中介编号",
+    "name": "登记方(公司)名称",
+    "namePlaceholder": "请填写营业执照上的名称",
+    "region": "地区",
+    "regionPlaceholder": "请选择地区",
+    "contactName": "负责人姓名",
+    "contactNamePlaceholder": "联系人姓名",
+    "phone": "电话号码",
+    "phonePlaceholder": "可联系的号码",
+    "address": "地址",
+    "addressPlaceholder": "办公地址",
+    "noLicense": "无中介编号",
+    "registrationNo": "中介编号",
+    "registrationNoPlaceholder": "请填写中介登记编号",
+    "licenseFileHint": "附上中介登记证照片可加快审核。",
+    "attachFile": "添加附件",
+    "removeFile": "删除附件",
+    "submit": "提交申请",
+    "submitted": "申请已提交",
+    "submitFailed": "提交申请失败",
+    "alreadyApplied": "您已有正在处理的申请",
+    "uploadFailed": "文件上传失败",
+    "filePermissionDenied": "需要相册访问权限",
+    "errorRequired": "必填项",
+    "errorCheckForm": "还有未填写的项目",
+    "pendingTitle": "审核中",
+    "pendingDescription": "管理员通过后即可发布房源。",
+    "approvedTitle": "已通过",
+    "approvedDescription": "MY 中的房源登记与房源信息已开放。",
+    "rejectedTitle": "申请被驳回"
+  },
+  "adminAgencies": {
+    "title": "经纪申请审核",
+    "status": {
+      "pending": "待审核",
+      "approved": "已通过",
+      "rejected": "已驳回",
+      "suspended": "已暂停"
+    },
+    "emptyTitle": "暂无申请",
+    "emptyDescription": "该状态下暂无申请。",
+    "approve": "通过",
+    "reject": "驳回",
+    "approved": "已通过",
+    "rejected": "已驳回",
+    "actionFailed": "处理失败",
+    "rejectTitle": "驳回原因",
+    "rejectReasonPlaceholder": "请写明重新提交前需要修改的内容",
+    "viewDocument": "查看附件",
+    "documentFailed": "无法打开文件",
+    "noPermissionTitle": "没有权限",
+    "noPermissionDescription": "只有管理员可以审核申请。"
   }
 }

@@ -272,7 +272,17 @@
     "registerProperty": "Đăng bất động sản",
     "registerInvestment": "Đăng sản phẩm đầu tư",
     "managePermissions": "Quyền tài khoản",
-    "translationUsage": "Mức sử dụng dịch"
+    "translationUsage": "Mức sử dụng dịch",
+    "signOut": "Đăng xuất",
+    "signingOut": "Đang đăng xuất...",
+    "signedOut": "Đã đăng xuất",
+    "passwordLogin": {
+      "title": "Đăng nhập bằng ID",
+      "idLabel": "ID",
+      "idPlaceholder": "ID hoặc email",
+      "passwordLabel": "Mật khẩu",
+      "missingFields": "Vui lòng nhập ID và mật khẩu"
+    }
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",

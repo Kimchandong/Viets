@@ -1,4 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ExpoCrypto from "expo-crypto";
+import { Platform } from "react-native";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -98,9 +100,40 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
  * 동작할 수 있다 — 이 프로젝트는 모바일 앱이므로 Supabase가 공식 권장하는
  * PKCE만 사용한다(해시 프래그먼트 파싱을 하지 않는다).
  */
+/**
+ * [2026-09-11] 세션 유지 — 앱을 완전히 종료하면 로그인이 풀리던 버그 수정.
+ *
+ * 원인: supabase-js는 세션을 `storage` 옵션에 저장하는데, 기본값이 브라우저의
+ * `localStorage`다. React Native에는 localStorage가 없어 auth-js가 메모리 저장으로
+ * 조용히 물러나고, 그 결과 세션이 **프로세스가 살아 있는 동안에만** 유지됐다.
+ * 앱을 내렸다 올리면 매번 다시 로그인해야 했다(2026-09-11 실기기 QA에서 확인).
+ *
+ * 해결: 네이티브에서는 AsyncStorage를 저장소로 넘긴다. 웹(Expo web)에서는 기본
+ * localStorage가 정상 동작하므로 건드리지 않는다 — AsyncStorage의 웹 구현도
+ * 결국 localStorage지만, 굳이 한 겹 더 감쌀 이유가 없다.
+ *
+ * 나머지 옵션의 의미:
+ *   - persistSession: 저장소에 세션을 쓴다(기본 true지만, 이 설정의 의도를 명시한다).
+ *   - autoRefreshToken: access token 만료 전에 자동 갱신한다. 이게 없으면 한 시간쯤
+ *     뒤 모든 요청이 401이 되고 사용자에게는 "갑자기 로그아웃된" 것처럼 보인다.
+ *   - detectSessionInUrl: URL 해시에서 세션을 읽는 웹 전용 동작이다. 이 앱의
+ *     OAuth 콜백은 services/auth.ts가 exchangeCodeForSession()으로 직접 처리하므로
+ *     네이티브에서는 꺼 둔다(웹에서는 기본값 그대로 둔다).
+ */
+const isNative = Platform.OS !== "web";
+
 export const supabase: SupabaseClient | null =
   supabaseUrl && supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey, { auth: { flowType: "pkce" } })
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          flowType: "pkce",
+          persistSession: true,
+          autoRefreshToken: true,
+          ...(isNative
+            ? { storage: AsyncStorage, detectSessionInUrl: false }
+            : {}),
+        },
+      })
     : null;
 
 if (!supabase) {

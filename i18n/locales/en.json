@@ -272,7 +272,17 @@
     "registerProperty": "Register property",
     "registerInvestment": "Register product",
     "managePermissions": "Account permissions",
-    "translationUsage": "Translation usage"
+    "translationUsage": "Translation usage",
+    "signOut": "Sign out",
+    "signingOut": "Signing out...",
+    "signedOut": "Signed out",
+    "passwordLogin": {
+      "title": "Sign in with an ID",
+      "idLabel": "ID",
+      "idPlaceholder": "ID or email",
+      "passwordLabel": "Password",
+      "missingFields": "Enter your ID and password"
+    }
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",

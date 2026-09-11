@@ -193,6 +193,44 @@ export async function signUpWithPassword(email: string, password: string): Promi
   return { session: data.session, user: data.user, error: null };
 }
 
+/**
+ * [2026-09-11] 로그아웃. MY탭의 로그아웃 버튼이 호출한다.
+ *
+ * scope는 기본값('global' — 이 사용자의 모든 기기 세션 무효화) 대신 'local'을 쓴다:
+ * 테스트 중 한쪽 기기에서 로그아웃했다고 다른 기기까지 풀리면 계정 두 개를 번갈아
+ * 쓰는 테스트가 번거로워진다. 저장소(AsyncStorage)의 세션도 함께 지워진다.
+ */
+export async function signOut(): Promise<{ error: string | null }> {
+  if (!supabase) {
+    return { error: "auth/unavailable" };
+  }
+
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+  if (error) {
+    console.warn("[services/auth] signOut failed:", error.message);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+/**
+ * [2026-09-11] 테스트 계정용 아이디 → 이메일 변환.
+ *
+ * Supabase Auth의 식별자는 이메일이지만, 테스트 계정은 `teststore` / `testuser`처럼
+ * 짧은 아이디로 로그인하는 편이 빠르다. 입력값에 `@`가 없으면 이 도메인을 붙인다.
+ * `.test`는 RFC 2606이 예약한 테스트 전용 TLD라 실제로 존재할 수 없는 주소다 —
+ * 실메일로 오배송될 여지가 없다.
+ */
+const TEST_ACCOUNT_DOMAIN = "viets.test";
+
+export function normalizeLoginId(input: string): string {
+  const trimmed = input.trim();
+  if (trimmed.length === 0 || trimmed.includes("@")) {
+    return trimmed;
+  }
+  return `${trimmed.toLowerCase()}@${TEST_ACCOUNT_DOMAIN}`;
+}
+
 export type OAuthProvider = "google" | "apple";
 
 /**

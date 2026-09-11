@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Header } from "@/components/Header";
+import { Input } from "@/components/Input";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { Modal } from "@/components/Modal";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -25,9 +26,12 @@ import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/i18n";
 import {
   getSession,
   mapAuthErrorToMessageKey,
+  normalizeLoginId,
   onAuthStateChange,
   signInWithApple,
   signInWithGoogle,
+  signInWithPassword,
+  signOut,
 } from "@/services/auth";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { useLocaleStore } from "@/store/useLocaleStore";
@@ -88,6 +92,12 @@ export default function MyScreen() {
   const setCurrency = useCurrencyStore((state) => state.setCurrency);
 
   const [session, setSession] = useState<Session | null>(null);
+  // [2026-09-11] 아이디/비번 로그인 — 소셜 로그인만 있으면 테스트 계정
+  // (중개업소/고객)을 만들 수도, 웹 미리보기에서 로그인할 수도 없다.
+  const [loginId, setLoginId] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -213,6 +223,36 @@ export default function MyScreen() {
     }
   }
 
+  /** 아이디/비번 로그인. `@`가 없는 입력은 테스트 도메인을 붙여 이메일로 만든다. */
+  async function handlePasswordLogin() {
+    const email = normalizeLoginId(loginId);
+    if (email.length === 0 || loginPassword.length === 0) {
+      setToast(t("my.passwordLogin.missingFields"));
+      setTimeout(() => setToast(null), 1600);
+      return;
+    }
+
+    setPasswordLoading(true);
+    const result = await signInWithPassword(email, loginPassword);
+    setPasswordLoading(false);
+
+    if (result.error) {
+      setToast(t(mapAuthErrorToMessageKey(result.error)));
+      setTimeout(() => setToast(null), 2400);
+      return;
+    }
+    // 성공 시 onAuthStateChange가 세션을 밀어 넣어 화면이 로그인 상태로 바뀐다.
+    setLoginPassword("");
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    const { error } = await signOut();
+    setSigningOut(false);
+    setToast(error ? t(mapAuthErrorToMessageKey(error)) : t("my.signedOut"));
+    setTimeout(() => setToast(null), 1600);
+  }
+
   const isLoggedIn = !!session;
 
   return (
@@ -280,9 +320,56 @@ export default function MyScreen() {
                   </Text>
                 </Button>
               </View>
+
+              {/* [2026-09-11] 아이디/비번 로그인.
+                  소셜 로그인은 실제 사용자용이고, 이쪽은 역할이 다른 계정
+                  (중개업소·고객·관리자)을 번갈아 쓰며 테스트하기 위한 경로다.
+                  웹 미리보기는 OAuth 콜백을 처리할 수 없어 이 경로로만 로그인된다. */}
+              <View style={[styles.passwordLogin, { borderTopColor: theme.border }]}>
+                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                  {t("my.passwordLogin.title")}
+                </Text>
+                <Input
+                  label={t("my.passwordLogin.idLabel")}
+                  value={loginId}
+                  onChangeText={setLoginId}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  placeholder={t("my.passwordLogin.idPlaceholder")}
+                />
+                <Input
+                  label={t("my.passwordLogin.passwordLabel")}
+                  value={loginPassword}
+                  onChangeText={setLoginPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  secureTextEntry
+                />
+                <Button
+                  size="small"
+                  title={t("auth.login.submit")}
+                  onPress={handlePasswordLogin}
+                  loading={passwordLoading}
+                  disabled={passwordLoading || !!loadingProvider}
+                />
+              </View>
             </View>
           )}
         </Card>
+
+        {/* [2026-09-11] 로그아웃 — 기존에는 아예 없어서 다른 계정으로 바꿔 로그인할
+            방법이 없었다(테스트에 특히 필요). 세션만 지우고 화면 이동은 하지 않는다. */}
+        {isLoggedIn ? (
+          <Button
+            size="small"
+            variant="outline"
+            title={signingOut ? t("my.signingOut") : t("my.signOut")}
+            onPress={handleSignOut}
+            disabled={signingOut}
+            style={styles.signOutButton}
+          />
+        ) : null}
 
         <View style={styles.section}>
           <SectionHeader title={t("my.activityTitle")} />
@@ -565,6 +652,16 @@ const styles = StyleSheet.create({
   profileText: {
     flex: 1,
     gap: 2,
+  },
+  // 아이디/비번 로그인 블록 — 소셜 버튼과 구분되도록 위쪽에 구분선을 둔다.
+  passwordLogin: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: spacing.sm,
+  },
+  signOutButton: {
+    alignSelf: "flex-end",
   },
   authButtons: {
     flexDirection: "row",

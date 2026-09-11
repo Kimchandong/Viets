@@ -272,7 +272,17 @@
     "registerProperty": "매물 등록",
     "registerInvestment": "투자상품 등록",
     "managePermissions": "계정 권한 관리",
-    "translationUsage": "번역 사용량"
+    "translationUsage": "번역 사용량",
+    "signOut": "로그아웃",
+    "signingOut": "로그아웃 중...",
+    "signedOut": "로그아웃했습니다",
+    "passwordLogin": {
+      "title": "아이디로 로그인",
+      "idLabel": "아이디",
+      "idPlaceholder": "아이디 또는 이메일",
+      "passwordLabel": "비밀번호",
+      "missingFields": "아이디와 비밀번호를 입력해 주세요"
+    }
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",

@@ -272,7 +272,17 @@
     "registerProperty": "物件登録",
     "registerInvestment": "投資商品登録",
     "managePermissions": "アカウント権限管理",
-    "translationUsage": "翻訳使用量"
+    "translationUsage": "翻訳使用量",
+    "signOut": "ログアウト",
+    "signingOut": "ログアウト中...",
+    "signedOut": "ログアウトしました",
+    "passwordLogin": {
+      "title": "IDでログイン",
+      "idLabel": "ID",
+      "idPlaceholder": "IDまたはメール",
+      "passwordLabel": "パスワード",
+      "missingFields": "IDとパスワードを入力してください"
+    }
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",

@@ -272,7 +272,17 @@
     "registerProperty": "ลงประกาศอสังหาริมทรัพย์",
     "registerInvestment": "ลงทะเบียนผลิตภัณฑ์ลงทุน",
     "managePermissions": "จัดการสิทธิ์บัญชี",
-    "translationUsage": "การใช้งานการแปล"
+    "translationUsage": "การใช้งานการแปล",
+    "signOut": "ออกจากระบบ",
+    "signingOut": "กำลังออกจากระบบ...",
+    "signedOut": "ออกจากระบบแล้ว",
+    "passwordLogin": {
+      "title": "เข้าสู่ระบบด้วย ID",
+      "idLabel": "ID",
+      "idPlaceholder": "ID หรืออีเมล",
+      "passwordLabel": "รหัสผ่าน",
+      "missingFields": "กรุณากรอก ID และรหัสผ่าน"
+    }
   },
   "auth": {
     "tagline": "แพลตฟอร์มอสังหาริมทรัพย์และการลงทุนเวียดนาม",

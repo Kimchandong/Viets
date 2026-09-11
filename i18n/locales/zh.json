@@ -272,7 +272,17 @@
     "registerProperty": "发布房源",
     "registerInvestment": "发布投资产品",
     "managePermissions": "账户权限管理",
-    "translationUsage": "翻译用量"
+    "translationUsage": "翻译用量",
+    "signOut": "退出登录",
+    "signingOut": "退出中...",
+    "signedOut": "已退出登录",
+    "passwordLogin": {
+      "title": "使用账号登录",
+      "idLabel": "账号",
+      "idPlaceholder": "账号或邮箱",
+      "passwordLabel": "密码",
+      "missingFields": "请输入账号和密码"
+    }
   },
   "auth": {
     "tagline": "越南房地产与投资平台",

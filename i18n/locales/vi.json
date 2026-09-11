@@ -402,7 +402,12 @@
     "deletingPhoto": "Đang xoá...",
     "photoDeleted": "Đã xoá ảnh",
     "photoDeleteFailed": "Không thể xoá ảnh",
-    "photoLimitReached": "Bạn chỉ có thể đính kèm tối đa {{max}} ảnh"
+    "photoLimitReached": "Bạn chỉ có thể đính kèm tối đa {{max}} ảnh",
+    "mapHintEmpty": "Chạm vào bản đồ để đặt vị trí bất động sản",
+    "mapHintPicked": "Kéo điểm đánh dấu để chỉnh vị trí chính xác hơn",
+    "mapUnavailable": "Bản đồ chỉ hiển thị trong ứng dụng di động. Trên web, hãy nhập vĩ độ và kinh độ bên dưới.",
+    "clearLocation": "Xoá vị trí đã chọn",
+    "locationOptionalNotice": "Không có vị trí thì bất động sản sẽ không hiển thị trên bản đồ"
   },
   "investRegister": {
     "title": "Đăng sản phẩm",
@@ -454,7 +459,15 @@
       "co_investment": "Đồng đầu tư",
       "fund": "Quỹ",
       "bond_like": "Dạng trái phiếu"
-    }
+    },
+    "propertySection": "Bất động sản liên kết",
+    "propertyNone": "Chưa liên kết bất động sản",
+    "propertySelectHint": "Chạm để chọn bất động sản",
+    "propertyHelper": "Liên kết sản phẩm này với một bất động sản cụ thể. Khi đã liên kết, địa chỉ sẽ hiển thị trong danh sách và chi tiết sản phẩm. Để trống nếu sản phẩm gồm nhiều bất động sản.",
+    "propertyPickerTitle": "Chọn bất động sản",
+    "propertySearchPlaceholder": "Tìm theo tên hoặc địa chỉ",
+    "propertyEmpty": "Không có bất động sản phù hợp",
+    "propertyUnlink": "Huỷ liên kết"
   },
   "adminPermissions": {
     "title": "Quyền tài khoản",

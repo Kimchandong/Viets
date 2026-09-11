@@ -393,6 +393,79 @@ export async function deletePropertyPermanently(id: string): Promise<boolean> {
   return true;
 }
 
+/** 투자상품 등록 화면의 "연계 매물" 선택 목록에 쓰는 최소 형태. */
+export type PropertyOption = {
+  id: string;
+  title: string;
+  address: string;
+};
+
+/** PostgREST `or=` 문법은 쉼표/괄호로 조건을 구분한다 — 검색어에 그 문자가 들어가면
+ * 필터 자체가 깨지므로 미리 제거한다. `%`/`*`는 와일드카드라 함께 막는다. */
+function sanitizeSearchTerm(term: string): string {
+  return term.replace(/[,()%*]/g, " ").trim();
+}
+
+/**
+ * 연계할 매물 후보 목록. 검색어가 있으면 매물명/주소로 부분 일치 검색한다.
+ *
+ * **status 필터를 걸지 않는다** — 아직 공개하지 않은(draft) 매물에 대한 투자상품을
+ * 미리 만들어 둘 수 있어야 하기 때문이다. 실제로 무엇이 보이는지는 RLS가 판정한다
+ * (admin은 전체, Agency 소속은 자기 매물 + 공개 매물).
+ * 한 번에 50건까지만 가져온다 — 그 이상은 검색어로 좁히는 것을 전제한다.
+ */
+export async function listPropertyOptions(query?: string): Promise<PropertyOption[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  let request = supabase
+    .from("properties")
+    .select("id,title,address")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  const term = sanitizeSearchTerm(query ?? "");
+  if (term.length > 0) {
+    request = request.or(`title.ilike.%${term}%,address.ilike.%${term}%`);
+  }
+
+  const { data, error } = await request;
+
+  if (error) {
+    console.warn("[services/properties] listPropertyOptions failed:", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as { id: string; title: string; address: string | null }[]).map((row) => ({
+    id: row.id,
+    title: row.title,
+    address: row.address ?? "",
+  }));
+}
+
+/** 이미 연결된 매물의 이름을 보여주기 위한 단건 조회(수정 화면 진입 시 1회).
+ * 매물이 지워졌거나 볼 권한이 없으면 null — 호출부는 "연결된 매물 없음"으로 표시한다. */
+export async function getPropertyOption(id: string): Promise<PropertyOption | null> {
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select("id,title,address")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[services/properties] getPropertyOption failed:", error.message);
+    return null;
+  }
+
+  const row = data as { id: string; title: string; address: string | null };
+  return { id: row.id, title: row.title, address: row.address ?? "" };
+}
+
 /**
  * 수정 화면용 단건 조회 — getPropertyById와 달리 **status 필터를 걸지 않는다**.
  * 비공개(draft)/보관(archived) 매물도 관리자가 열어서 고칠 수 있어야 하기 때문이다.

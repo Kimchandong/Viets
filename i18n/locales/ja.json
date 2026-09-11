@@ -402,7 +402,12 @@
     "deletingPhoto": "削除中...",
     "photoDeleted": "写真を削除しました",
     "photoDeleteFailed": "写真を削除できませんでした",
-    "photoLimitReached": "写真は最大{{max}}枚まで添付できます"
+    "photoLimitReached": "写真は最大{{max}}枚まで添付できます",
+    "mapHintEmpty": "地図をタップして物件の位置を指定してください",
+    "mapHintPicked": "マーカーをドラッグして位置を微調整できます",
+    "mapUnavailable": "地図はモバイルアプリでのみ表示されます。ウェブでは下の緯度・経度を直接入力してください。",
+    "clearLocation": "指定した位置を消す",
+    "locationOptionalNotice": "位置を指定しないと地図に表示されません"
   },
   "investRegister": {
     "title": "投資商品登録",
@@ -454,7 +459,15 @@
       "co_investment": "共同投資",
       "fund": "ファンド",
       "bond_like": "債券型"
-    }
+    },
+    "propertySection": "関連物件",
+    "propertyNone": "関連物件なし",
+    "propertySelectHint": "タップして物件を選択",
+    "propertyHelper": "特定の物件を対象とする商品であれば関連付けてください。関連付けると商品一覧・詳細にその物件の住所が表示されます。複数物件をまとめた商品は空のままにします。",
+    "propertyPickerTitle": "物件を選択",
+    "propertySearchPlaceholder": "物件名または住所で検索",
+    "propertyEmpty": "該当する物件がありません",
+    "propertyUnlink": "関連付けを解除"
   },
   "adminPermissions": {
     "title": "アカウント権限管理",

@@ -24,6 +24,11 @@ import {
   updateInvestmentProduct,
   type NewInvestmentProductInput,
 } from "@/services/investments";
+import {
+  getPropertyOption,
+  listPropertyOptions,
+  type PropertyOption,
+} from "@/services/properties";
 import { canManageInvestment, isAdmin } from "@/services/roles";
 
 /**
@@ -84,6 +89,15 @@ export default function InvestRegisterScreen() {
   const [periodMonths, setPeriodMonths] = useState("");
   const [publishNow, setPublishNow] = useState(true);
 
+  // [STEP 06-매물연결] 연계 매물(investment_products.property_id). 선택 사항이다 —
+  // 여러 매물을 묶은 펀드형 상품처럼 특정 매물 하나에 대응하지 않는 상품도 있다.
+  // 연결하면 상품 목록/상세에 그 매물의 주소가 표시된다(services/investments.ts mapRow).
+  const [linkedProperty, setLinkedProperty] = useState<PropertyOption | null>(null);
+  const [propertyPickerVisible, setPropertyPickerVisible] = useState(false);
+  const [propertyQuery, setPropertyQuery] = useState("");
+  const [propertyOptions, setPropertyOptions] = useState<PropertyOption[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(false);
+
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ title?: string; target?: string; minimum?: string }>({});
@@ -135,12 +149,42 @@ export default function InvestRegisterScreen() {
       );
       setPublishNow(existing.status === "open");
       setLoadingExisting(false);
+
+      // 연결된 매물이 있으면 이름을 한 번 더 조회해 화면에 보여준다. 그 사이 매물이
+      // 삭제됐거나 볼 권한이 없으면 null이 돌아오고 "연결된 매물 없음"으로 표시된다
+      // — 이때 저장하면 연결이 실제로 해제되므로, 그 편이 화면과 DB가 어긋나는 것보다 낫다.
+      if (existing.property_id) {
+        getPropertyOption(existing.property_id).then((option) => {
+          if (mounted) setLinkedProperty(option);
+        });
+      }
     });
     return () => {
       mounted = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingId]);
+
+  // 매물 선택 모달이 열려 있는 동안에만 검색한다. 타자 한 글자마다 요청하지 않도록
+  // 300ms 쉬었을 때만 보낸다(선택 모달을 닫으면 타이머도 함께 정리된다).
+  useEffect(() => {
+    if (!propertyPickerVisible) return;
+
+    let mounted = true;
+    setLoadingProperties(true);
+    const timer = setTimeout(() => {
+      listPropertyOptions(propertyQuery).then((options) => {
+        if (!mounted) return;
+        setPropertyOptions(options);
+        setLoadingProperties(false);
+      });
+    }, 300);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
+  }, [propertyPickerVisible, propertyQuery]);
 
   function parseNumber(value: string): number | null {
     const cleaned = value.replace(/[,\s]/g, "");
@@ -178,8 +222,7 @@ export default function InvestRegisterScreen() {
       investment_period_months: parseNumber(periodMonths),
       dividend_frequency: dividendFrequency,
       risk_level: riskLevel,
-      // 연계 매물 선택은 이번 범위 밖 — 매물 검색 UI가 별도로 필요하다.
-      property_id: null,
+      property_id: linkedProperty?.id ?? null,
       raised_amount: parseNumber(raisedAmount) ?? 0,
       status: publishNow ? "open" : "draft",
     };
@@ -328,6 +371,46 @@ export default function InvestRegisterScreen() {
               />
             ))}
           </View>
+        </View>
+
+        {/* [STEP 06-매물연결] 연계 매물 — 선택 사항. 연결하면 상품 목록/상세에 해당
+            매물의 주소가 함께 표시되고, 상세 화면에서 매물로 이동할 수 있다. */}
+        <View style={styles.section}>
+          <SectionHeader title={t("investRegister.propertySection")} />
+          <Pressable
+            onPress={() => {
+              setPropertyQuery("");
+              setPropertyPickerVisible(true);
+            }}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.toggleRow,
+              { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+            ]}
+          >
+            <View style={styles.toggleTexts}>
+              <Text
+                style={[
+                  textStyles.body,
+                  {
+                    color: linkedProperty ? theme.text : theme.secondaryText,
+                    fontWeight: typography.weight.medium,
+                  },
+                ]}
+              >
+                {linkedProperty ? linkedProperty.title : t("investRegister.propertyNone")}
+              </Text>
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                {linkedProperty && linkedProperty.address.length > 0
+                  ? linkedProperty.address
+                  : t("investRegister.propertySelectHint")}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.secondaryText} />
+          </Pressable>
+          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+            {t("investRegister.propertyHelper")}
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -488,6 +571,74 @@ export default function InvestRegisterScreen() {
         ) : null}
       </Modal>
 
+      {/* [STEP 06-매물연결] 매물 선택 — 검색어 없이 열면 최근 등록순 50건을 보여준다. */}
+      <Modal
+        visible={propertyPickerVisible}
+        onClose={() => setPropertyPickerVisible(false)}
+        accessibilityLabel={t("common.cancel")}
+      >
+        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
+          {t("investRegister.propertyPickerTitle")}
+        </Text>
+        <Input
+          value={propertyQuery}
+          onChangeText={setPropertyQuery}
+          placeholder={t("investRegister.propertySearchPlaceholder")}
+          autoCorrect={false}
+        />
+
+        <ScrollView style={styles.pickerList} keyboardShouldPersistTaps="handled">
+          {loadingProperties ? (
+            <Text style={[textStyles.caption, styles.pickerNotice, { color: theme.secondaryText }]}>
+              {t("common.loading")}
+            </Text>
+          ) : propertyOptions.length === 0 ? (
+            <Text style={[textStyles.caption, styles.pickerNotice, { color: theme.secondaryText }]}>
+              {t("investRegister.propertyEmpty")}
+            </Text>
+          ) : (
+            propertyOptions.map((option) => (
+              <Pressable
+                key={option.id}
+                onPress={() => {
+                  setLinkedProperty(option);
+                  setPropertyPickerVisible(false);
+                }}
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.pickerRow,
+                  { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                ]}
+              >
+                <Text style={[textStyles.body, { color: theme.text }]} numberOfLines={1}>
+                  {option.title}
+                </Text>
+                {option.address.length > 0 ? (
+                  <Text
+                    style={[textStyles.caption, { color: theme.secondaryText }]}
+                    numberOfLines={1}
+                  >
+                    {option.address}
+                  </Text>
+                ) : null}
+              </Pressable>
+            ))
+          )}
+        </ScrollView>
+
+        {linkedProperty ? (
+          <Button
+            title={t("investRegister.propertyUnlink")}
+            variant="outline"
+            onPress={() => {
+              setLinkedProperty(null);
+              setPropertyPickerVisible(false);
+            }}
+            style={styles.submitButton}
+          />
+        ) : null}
+      </Modal>
+
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </SafeAreaView>
   );
@@ -554,5 +705,20 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     width: "100%",
+  },
+  // 목록이 길어져도 모달이 화면을 넘기지 않도록 높이를 제한하고 안에서 스크롤한다.
+  pickerList: {
+    maxHeight: 280,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  pickerRow: {
+    gap: 2,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  pickerNotice: {
+    paddingVertical: spacing.lg,
+    textAlign: "center",
   },
 });

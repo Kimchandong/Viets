@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
+import { LocationPicker } from "@/components/LocationPicker";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
@@ -109,6 +110,13 @@ export default function PropertyRegisterScreen() {
 
   // 최대 장수는 "이미 등록된 사진 + 이번에 고른 사진" 합계로 센다.
   const remainingSlots = Math.max(0, MAX_PHOTOS - existingPhotos.length - photos.length);
+
+  // 지도에 넘길 좌표 — 입력란(문자열)이 좌표의 단일 원본이고, 지도는 그 값을 읽고
+  // 쓰기만 한다. 둘 중 하나라도 비어 있으면 "위치 미지정"으로 본다
+  // (properties_geom_sync 트리거도 같은 규칙으로 geom을 NULL 처리한다).
+  const pickedLatitude = parseNumber(latitude);
+  const pickedLongitude = parseNumber(longitude);
+  const hasPickedLocation = pickedLatitude !== null && pickedLongitude !== null;
 
   /** 갤러리에서 사진을 여러 장 고른다 — 업로드는 등록 제출 시점에 한 번에 수행한다. */
   async function handlePickPhotos() {
@@ -472,6 +480,27 @@ export default function PropertyRegisterScreen() {
             placeholder="TP. Thủ Đức, TP. Hồ Chí Minh"
             helperText={t("propertyRegister.addressHelper")}
           />
+          {/* [STEP 04-위치선택] 지도에서 마커로 위치 지정(2026-09-11 요구사항).
+              베트남 매물은 상세주소를 끝까지 적지 않는 경우가 많아 주소 문자열만으로는
+              위치가 특정되지 않는다 — 지도를 눌러 좌표를 직접 찍는다. 아래 위도/경도
+              입력란은 그대로 두어(지도가 없는 웹 미리보기, 좌표를 이미 아는 경우)
+              양쪽 어느 쪽으로 넣어도 같은 값이 되도록 했다. */}
+          <LocationPicker
+            latitude={pickedLatitude ?? undefined}
+            longitude={pickedLongitude ?? undefined}
+            onChange={({ latitude: nextLat, longitude: nextLng }) => {
+              // 소수점 6자리 ≈ 0.1m — 그 이상은 GPS 정밀도를 넘어서는 자릿수다.
+              setLatitude(nextLat.toFixed(6));
+              setLongitude(nextLng.toFixed(6));
+            }}
+            theme={theme}
+            hintLabel={
+              hasPickedLocation
+                ? t("propertyRegister.mapHintPicked")
+                : t("propertyRegister.mapHintEmpty")
+            }
+            unavailableLabel={t("propertyRegister.mapUnavailable")}
+          />
           <View style={styles.row}>
             <Input
               label={t("propertyRegister.latitudeLabel")}
@@ -490,6 +519,24 @@ export default function PropertyRegisterScreen() {
               placeholder="106.8296"
             />
           </View>
+          {hasPickedLocation ? (
+            <Pressable
+              onPress={() => {
+                setLatitude("");
+                setLongitude("");
+              }}
+              accessibilityRole="button"
+              style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
+            >
+              <Text style={[textStyles.caption, styles.noticeText, { color: theme.accent }]}>
+                {t("propertyRegister.clearLocation")}
+              </Text>
+            </Pressable>
+          ) : (
+            <Text style={[textStyles.caption, styles.noticeText, { color: theme.secondaryText }]}>
+              {t("propertyRegister.locationOptionalNotice")}
+            </Text>
+          )}
         </View>
 
         {/* [STEP 04-사진] 매물 사진 첨부 — Storage(property-images 버킷)에 업로드하고

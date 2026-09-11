@@ -402,7 +402,12 @@
     "deletingPhoto": "删除中...",
     "photoDeleted": "已删除照片",
     "photoDeleteFailed": "删除照片失败",
-    "photoLimitReached": "最多可附加 {{max}} 张照片"
+    "photoLimitReached": "最多可附加 {{max}} 张照片",
+    "mapHintEmpty": "点击地图以设置房源位置",
+    "mapHintPicked": "拖动标记可微调位置",
+    "mapUnavailable": "地图仅在手机应用中显示。在网页端请在下方直接输入经纬度。",
+    "clearLocation": "清除已选位置",
+    "locationOptionalNotice": "未设置位置的房源不会显示在地图上"
   },
   "investRegister": {
     "title": "发布投资产品",
@@ -454,7 +459,15 @@
       "co_investment": "共同投资",
       "fund": "基金",
       "bond_like": "债券型"
-    }
+    },
+    "propertySection": "关联房源",
+    "propertyNone": "未关联房源",
+    "propertySelectHint": "点击选择房源",
+    "propertyHelper": "如果该产品对应某个具体房源，请进行关联。关联后房源地址会显示在产品列表和详情中。涵盖多个房源的产品请留空。",
+    "propertyPickerTitle": "选择房源",
+    "propertySearchPlaceholder": "按名称或地址搜索",
+    "propertyEmpty": "没有匹配的房源",
+    "propertyUnlink": "取消关联"
   },
   "adminPermissions": {
     "title": "账户权限管理",

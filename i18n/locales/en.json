@@ -402,7 +402,12 @@
     "deletingPhoto": "Deleting...",
     "photoDeleted": "Photo deleted",
     "photoDeleteFailed": "Could not delete the photo",
-    "photoLimitReached": "You can attach up to {{max}} photos"
+    "photoLimitReached": "You can attach up to {{max}} photos",
+    "mapHintEmpty": "Tap the map to set the property location",
+    "mapHintPicked": "Drag the marker to fine-tune the location",
+    "mapUnavailable": "The map is only available in the mobile app. On web, enter latitude and longitude below.",
+    "clearLocation": "Clear the selected location",
+    "locationOptionalNotice": "Without a location the listing will not appear on the map"
   },
   "investRegister": {
     "title": "Register product",
@@ -454,7 +459,15 @@
       "co_investment": "Co-investment",
       "fund": "Fund",
       "bond_like": "Bond-like"
-    }
+    },
+    "propertySection": "Linked property",
+    "propertyNone": "No property linked",
+    "propertySelectHint": "Tap to choose a property",
+    "propertyHelper": "Link this product to a specific property. Once linked, the property's address appears in the product list and detail. Leave it empty for products covering multiple properties.",
+    "propertyPickerTitle": "Choose a property",
+    "propertySearchPlaceholder": "Search by name or address",
+    "propertyEmpty": "No matching property",
+    "propertyUnlink": "Unlink"
   },
   "adminPermissions": {
     "title": "Account permissions",

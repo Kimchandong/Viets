@@ -156,6 +156,8 @@ export type NewInvestmentProductInput = {
   investment_period_months: number | null;
   dividend_frequency: "monthly" | "quarterly" | "yearly";
   risk_level: "low" | "medium" | "high";
+  /** [2026-09-11] 지역 — 매물 지역 필터(MOCK_REGIONS)와 같은 값. 고르지 않으면 빈 문자열. */
+  region: string;
   /** 연계 매물(선택) — properties.id. 없으면 null. */
   property_id: string | null;
   /** 모집 금액. D10 범위에서는 실제 입금이 없어 관리자가 직접 관리하는 값이다. */
@@ -177,7 +179,7 @@ export async function createInvestmentProduct(
 
   const { data, error } = await supabase
     .from("investment_products")
-    .insert({ ...input, currency: "VND" })
+    .insert({ ...input, region: input.region.length > 0 ? input.region : null, currency: "VND" })
     .select("id")
     .single();
 
@@ -196,7 +198,10 @@ export async function updateInvestmentProduct(
     return false;
   }
 
-  const { error } = await supabase.from("investment_products").update(input).eq("id", id);
+  const { error } = await supabase
+    .from("investment_products")
+    .update({ ...input, region: input.region.length > 0 ? input.region : null })
+    .eq("id", id);
 
   if (error) {
     console.warn("[services/investments] updateInvestmentProduct failed:", error.message);
@@ -253,7 +258,7 @@ export async function getInvestmentProductForEdit(
   const { data, error } = await supabase
     .from("investment_products")
     .select(
-      "title,description,category,product_type,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,property_id,raised_amount,status",
+      "title,description,category,product_type,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,region,property_id,raised_amount,status",
     )
     .eq("id", id)
     .maybeSingle();
@@ -262,7 +267,9 @@ export async function getInvestmentProductForEdit(
     if (error) console.warn("[services/investments] getInvestmentProductForEdit failed:", error.message);
     return null;
   }
-  return data as unknown as NewInvestmentProductInput;
+  // region은 DB에서 NULL로 올 수 있다 — 폼은 "고르지 않음"을 빈 문자열로 다룬다.
+  const row = data as unknown as NewInvestmentProductInput & { region: string | null };
+  return { ...row, region: row.region ?? "" };
 }
 
 /**
@@ -341,4 +348,31 @@ export async function listMyInvestmentOrders(): Promise<MyInvestmentOrder[]> {
     return [];
   }
   return (data ?? []) as MyInvestmentOrder[];
+}
+
+/**
+ * [2026-09-11 사용자 지시] 이 매물에 연결된 투자상품 — 매물 상세 하단에 쓴다.
+ *
+ * "투자 카테고리에 매물이 있으면 노출하고 없으면 노출하지 마시오"(사용자) — 그래서
+ * 빈 배열이면 화면은 섹션 자체를 그리지 않는다. 무엇이 보이는지는 RLS가 정한다
+ * (공개 상태인 상품만 일반 사용자에게 돌아온다).
+ */
+export async function listInvestmentProductsByPropertyId(
+  propertyId: string,
+): Promise<MockInvestmentProduct[]> {
+  if (!supabase || propertyId.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("investment_products")
+    .select(PRODUCT_SELECT)
+    .eq("property_id", propertyId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("[services/investments] listInvestmentProductsByPropertyId failed:", error.message);
+    return [];
+  }
+  return ((data ?? []) as unknown as InvestmentProductRow[]).map(mapRow);
 }

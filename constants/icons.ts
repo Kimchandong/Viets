@@ -3,15 +3,26 @@
  *
  * [STEP: 2026-09-09] 사용자 요청 — 로그인 팝업(components/LoginPromptModal.tsx)에서도
  * app/(tabs)/my.tsx와 동일한 Google 브랜드 컬러 아이콘을 써야 해서, my.tsx에 로컬로
- * 있던 GOOGLE_ICON_URI를 이 파일로 공용 추출했다(값 자체는 전혀 바꾸지 않음 — 두
- * 화면에서 아이콘이 서로 다른 값으로 갈라지지 않도록 단일 소스로만 옮긴 것).
+ * 있던 GOOGLE_ICON_URI를 이 파일로 공용 추출했다.
  *
- * @expo/vector-icons의 "logo-google"은 단일 색상 글리프라 Google의 4색 브랜드
- * 마크를 표현할 수 없고, 이 프로젝트에는 react-native-svg 등 벡터 아이콘 라이브러리가
- * 설치돼 있지 않다(새 npm dependency 추가 금지 원칙). 별도 이미지 asset 파일을
- * 추가하는 대신, Google 공식 4색(Blue #4285F4, Green #34A853, Yellow #FBBC05,
- * Red #EA4335)을 반영한 작은 PNG를 base64 data URI로 내장했다(1.5KB — 번들 크기
- * 영향 미미).
+ * [2026-09-11 수정] 여기 들어 있던 base64 PNG는 **깨진 파일**이었다. PNG 청크를
+ * 검사해 보면 IHDR / PLTE / tRNS / IEND는 멀쩡한데 IDAT(실제 픽셀 데이터)의 CRC가
+ * 맞지 않아 디코딩 자체가 실패한다. <Image>는 조용히 아무것도 그리지 않으므로
+ * "아이콘이 안 보인다"로만 드러났다 — 주석에는 4색 로고를 내장했다고 적혀 있었지만
+ * 실제로는 유효한 이미지가 아니었다.
+ *
+ * 대신 Google이 자사 로그인 연동 문서에서 공개적으로 제공하는 공식 로고 파일을
+ * 가리킨다. 브랜드 로고는 임의로 다시 그리면 안 되고(모양·색·비율이 가이드라인으로
+ * 정해져 있다), Google도 공식 에셋 사용을 요구한다.
+ *
+ * @expo/vector-icons의 "logo-google"은 단일 색상 글리프라 4색 마크를 표현할 수 없고,
+ * 이 프로젝트에는 벡터 아이콘 라이브러리를 추가하지 않는다(새 npm dependency 추가
+ * 금지 원칙).
+ *
+ * 트레이드오프: 원격 이미지라 첫 표시에 네트워크가 필요하다. 이 아이콘이 쓰이는
+ * 곳은 로그인 버튼뿐이고 로그인 자체가 네트워크를 쓰므로 실사용에서는 문제가 없다.
+ * 완전한 오프라인 표시가 필요해지면 Google 브랜딩 가이드라인 페이지에서 공식 에셋을
+ * 내려받아 assets/images/google-logo.png 로 두고 아래를 require(...)로 바꾸면 된다.
+ * https://developers.google.com/identity/branding-guidelines
  */
-export const GOOGLE_ICON_URI =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgBAMAAAAQtmoLAAAAMFBMVEUAAABChfTrQzU0qVP6uwT3Ghj+xQT3XxxLmfn/9QAAAP/8tgExqVMnfPXrQzR9ff+YtKAVAAAAEHRSTlMA/P39/Aj7FBQEARMgB50CHamGDwAABUJJREFUeNrVWF9oHEUY/+3crndL9pILNJKmKss9WESwJ6eCIGVbkUKVshRCH/JSJBH8A66GRksUrkhBK+qCBRVFpVAkSsuhKdJa4tVUiWhw7YMSU8vaYGlQmo25eHe53p4Pd7szczuXXB7dp5nd+c33+/7M932zwCYfSfhW2a/Dn893uIdimSYAKErc7ESCmQfiFoCKDSjVDbcH4taNdDqdTqdvxC3AXF+CUoX1vBFOtbkKzPw6AKWqqFu4N1NWfh0JSjU+b7RQ0NI8IsZOfOVy63qsre78pZ2EuP+7ETWDdgnJFTolzKdKTbAeFWAlJ6RkPvCPyNDnExcT368JAAdOrQg9Uzx+M7nsvRqhpExcFa7XXh8DUiknorT14Rax6+/K9wI3yXIrpdmt4lg5f6iaAEihv8ADrP7rYkDxaykB4NSFCkcpjm3i9dol9AIAnrVSrNLmo22it4IjjYHtshKU6lVDDJjSpcbO9fK7BxkJ3W3W4yOkmjuXM6wORG+nQlMAUC+XQwnxwZb1U4PZ7ODfjUAKPVb2AEAGgMpZzmm+2cBXqvpcwAgAbEqJYzSlQyH7sM3No3v3Eapcg5MEQNn/AxsLc6ZuN89H1bmXkfDSaCChm2Hku9x5izOApVyuobShYWZJxmIBt9SZSf+OQALjtWmdT10OdvFKSEB83ywbOvyTKEuUVOVaCgTwz9LvXx5oAZS9n+jkXxeQAJMExwn3NA1Enx5fppy8hg7UC7H5aHTkjqRYAAFADTkvyO9vMIbqASQouJ0yEtUQh9ppCYjB93tDJ38ritj+B2dCEwAS6+cpYZAnyr2Mr2NANVSq+J0IIMtKMOz7HBIsEhJfYLz8KR3eGSoRLy1LjFX9P9tUNHrqaisEZmhVhUnlyV7mCTlLL3sSE3qxu6lVk7JQ1pJHYIah+hXzRZzJkYOs5NPBTO+k7LMVyOoMoBSCsdsJQq7iDhyA/hrc7sfdTgCAYk50rAFAgEl5M/2SDOzBe2l3BEC+EyVkFVXjM+hPbELCbt13XQCkIzUICK40rWN2pHTpkc01iQRG6Lg9jB+S7WKJIe7Lhzfc/xhYH/SRNtFKD9ArYzLc00Gyk29igyOaKEECjjtN7mT0V5HnElDDXL0Agq5nwk97xI4oh6OFHCR0rQ4H1tn+8arIMpLNZD4Cvyu0ZsUWCTBt3g+lk98Ek6sjAkQyQ9N9D39E4T8t8MQo03guAxJgy4GZkN4bifDWgkKAcWomd0htFfDHNB17DiAB6v7F8NVtKcPcsCiW7g+1xrX3h3gBMw5dX/dTDaXV01TtoZO8EpldjLRPmonMeox62M1zueY3tje//nOQ+cZpj+vjLAu4lSuPuSag1FegjnTf1tiCSEs46uNhbh1fo5ys4e2ZJl6LZY0djFFfDBss1T7lB3adOGcBsz8CuC8LqJO0mix5qbAjs8d2NhkpZ2IZhlLNETaJDKeRDzLcjWc27AO8GaY++PaJxtsBc5h3XBZeU0DCYQCl+Js6AJBFdZoHPITgOjNzkG10VTJ0BQB5yuRUAGqOuFkvHTV1AAOmxq9HrNDgpL2V4mvc+CAByKJdbA1vo5EDv3iu9Upj65MuOYfp1gOkXgR3pQmP6GHzhD7QhUiXX0TOQ33lQqTslt5ZI38dbVUBiBWOAZ6XidbpJ/N7z6AYTQKGXy8lU6K7aNeqWpqO5krVKSKXE15eX9hqZaMSag53eeUv4FopEwXYRrteAyiqzgbrI38dtCLParZgbPSbovAwpVW7XOzgz4k2aTSkzGqTRoe/WrQCgKKB/8fzH0RvmOULh4U9AAAAAElFTkSuQmCC";
+export const GOOGLE_ICON_URI = "https://developers.google.com/identity/images/g-logo.png";

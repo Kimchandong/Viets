@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Pressable,
@@ -31,10 +32,22 @@ export default function AiScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
 
+  // [2026-09-11 사용자 지시] 홈 검색창의 AI 버튼에서 넘어올 때 적어 둔 말을 받는다 —
+  // 홈에서 친 것을 여기서 다시 치게 만들 이유가 없다.
+  const { q } = useLocalSearchParams<{ q?: string }>();
+
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // 넘어온 값으로 입력창을 채우기만 하고 보내지는 않는다 — 사용자가 문장을 다듬을
+  // 기회를 뺏지 않기 위해서다. AI 탭은 언마운트되지 않으므로 q가 바뀔 때마다 반영한다.
+  useEffect(() => {
+    if (typeof q === "string" && q.length > 0) {
+      setQuery(q);
+    }
+  }, [q]);
 
   function handleSend(text?: string) {
     const value = (text ?? query).trim();

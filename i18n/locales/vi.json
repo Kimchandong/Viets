@@ -16,7 +16,8 @@
     "favoriteAdded": "Đã thêm vào yêu thích",
     "favoriteRemoved": "Đã xóa khỏi yêu thích",
     "noSimilarResultsTitle": "Không có mục tương tự",
-    "noSimilarResultsDescription": "Không tìm thấy bất động sản/sản phẩm phù hợp với điều kiện này"
+    "noSimilarResultsDescription": "Không tìm thấy bất động sản/sản phẩm phù hợp với điều kiện này",
+    "save": "Lưu"
   },
   "tabs": {
     "home": "Trang chủ",
@@ -37,7 +38,11 @@
     "categoryTabs": {
       "property": "BĐS",
       "invest": "Đầu tư"
-    }
+    },
+    "noticeTitle": "Thông báo",
+    "faqTitle": "Câu hỏi thường gặp",
+    "noticeEmpty": "Chưa có thông báo.",
+    "faqEmpty": "Chưa có câu hỏi."
   },
   "property": {
     "title": "Bất động sản",
@@ -86,7 +91,8 @@
     "expectedYieldLabel1": "AI Lợi nhuận dự kiến",
     "expectedYieldLabel2": "Tỷ suất lợi nhuận dự kiến AI chỉ áp dụng cho bất động sản bán.\n(Chỉ mang tính tham khảo đầu tư)",
     "locationTitle": "Vị trí",
-    "editButton": "Sửa tin đăng"
+    "editButton": "Sửa tin đăng",
+    "linkedInvestmentsTitle": "Sản phẩm đầu tư của tin này"
   },
   "invest": {
     "title": "Đầu tư",
@@ -249,7 +255,10 @@
     "stats": {
       "reservations": "Đặt chỗ",
       "investments": "Đầu tư",
-      "propertyActivity": "Hoạt động BĐS"
+      "propertyActivity": "Hoạt động BĐS",
+      "myProperties": "Tin đăng",
+      "myInvestments": "Đầu tư",
+      "favorites": "Đã lưu"
     },
     "favoritesTitle": "Yêu thích",
     "favoritePropertiesTitle": "Bất động sản yêu thích",
@@ -261,7 +270,8 @@
       "notifications": "Thông báo",
       "language": "Ngôn ngữ",
       "currency": "Đơn vị tiền tệ",
-      "support": "Hỗ trợ khách hàng"
+      "support": "Hỗ trợ khách hàng",
+      "notices": "Thông báo"
     },
     "languageModalTitle": "Chọn ngôn ngữ",
     "currencyModalTitle": "Chọn đơn vị tiền tệ",
@@ -272,7 +282,6 @@
     "adminTitle": "Quản trị",
     "registerProperty": "Đăng bất động sản",
     "registerInvestment": "Đăng sản phẩm đầu tư",
-    "managePermissions": "Quyền tài khoản",
     "translationUsage": "Mức sử dụng dịch",
     "signOut": "Đăng xuất",
     "signingOut": "Đang đăng xuất...",
@@ -286,18 +295,20 @@
     },
     "chatInbox": "Danh sách tư vấn",
     "myProperties": "Tin đăng",
-    "payment": "Thanh toán",
-    "managePayments": "Quản lý nạp tiền",
+    "managePayments": "Quản lý quyết toán",
     "agencyTitle": "Môi giới",
     "agencyApply": "Đăng ký môi giới",
     "agencyStatusRow": "Trạng thái đăng ký",
-    "reviewAgencies": "Duyệt đăng ký môi giới",
     "agencyStatus": {
       "pending": "Đang xét duyệt",
       "approved": "Môi giới đã duyệt",
       "rejected": "Bị từ chối",
       "suspended": "Tạm ngưng"
-    }
+    },
+    "refundNotice": "Khoản phí quảng cáo {{amount}} của bạn sẽ được hoàn lại",
+    "manageRegisterPermission": "Quản lý quyền đăng tin",
+    "adSettlement": "Thanh toán quảng cáo",
+    "manageBoards": "Quản lý bảng tin"
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
@@ -452,7 +463,7 @@
     "title": "Đăng sản phẩm",
     "editTitle": "Sửa sản phẩm",
     "basicSection": "Thông tin cơ bản",
-    "titleLabel": "Tên sản phẩm",
+    "titleLabel": "Tên khoản đầu tư",
     "descriptionLabel": "Mô tả sản phẩm",
     "descriptionPlaceholder": "Mô tả cấu trúc sản phẩm và cách phân phối lợi nhuận",
     "categorySection": "Phân loại",
@@ -506,7 +517,16 @@
     "propertyPickerTitle": "Chọn bất động sản",
     "propertySearchPlaceholder": "Tìm theo tên hoặc địa chỉ",
     "propertyEmpty": "Không có bất động sản phù hợp",
-    "propertyUnlink": "Huỷ liên kết"
+    "propertyUnlink": "Huỷ liên kết",
+    "regionLabel": "Khu vực",
+    "permissionSection": "Quản lý quyền đăng sản phẩm đầu tư",
+    "permissionSearchPlaceholder": "Tìm tài khoản theo email (từ 2 ký tự)",
+    "permissionSearch": "Tìm",
+    "permissionHelper": "Tìm tài khoản bằng email đăng nhập mạng xã hội rồi bật/tắt quyền đăng sản phẩm đầu tư.",
+    "permissionNoResults": "Không có tài khoản phù hợp.",
+    "permissionAdminBadge": "Quản trị viên",
+    "permissionOn": "Có quyền",
+    "permissionOff": "Không có quyền"
   },
   "adminPermissions": {
     "title": "Quyền tài khoản",
@@ -534,8 +554,6 @@
   },
   "translationUsage": {
     "title": "Mức sử dụng dịch",
-    "periodToday": "Hôm nay",
-    "periodMonth": "Tháng này",
     "cacheHitRate": "Tỷ lệ dùng bộ nhớ đệm",
     "cacheHitRateHelper": "{{saved}}/{{total}} yêu cầu dịch được xử lý mà không gọi API",
     "apiCalls": "Lượt gọi API",
@@ -550,7 +568,15 @@
     "loadFailedTitle": "Không tải được dữ liệu",
     "loadFailedDescription": "Vui lòng thử lại sau.",
     "noPermissionTitle": "Không có quyền truy cập",
-    "noPermissionDescription": "Chỉ quản trị viên mới xem được mức sử dụng dịch."
+    "noPermissionDescription": "Chỉ quản trị viên mới xem được mức sử dụng dịch.",
+    "period": {
+      "today": "Hôm nay",
+      "week": "Tuần này",
+      "month": "Tháng này",
+      "all": "Tất cả"
+    },
+    "chartTitle": "Ký tự tính phí, 12 tháng gần nhất",
+    "chartHelper": "Tháng cao nhất: {{max}} ký tự"
   },
   "propertyOptions": {
     "sale": {
@@ -798,19 +824,9 @@
     "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này."
   },
   "payment": {
-    "title": "Thông tin thanh toán",
-    "agencyLabel": "Tên công ty",
-    "amountLabel": "Số tiền cần nạp",
-    "amountNotSet": "Chưa thiết lập",
-    "withLicense": "Mức cho công ty có số chứng chỉ",
-    "withoutLicense": "Mức cho công ty không có số chứng chỉ",
+    "title": "Thanh toán quảng cáo",
     "qrTitle": "Mã QR nạp tiền",
     "qrNotSet": "Chưa có mã QR. Vui lòng liên hệ quản trị viên.",
-    "balanceTitle": "Số dư",
-    "available": "Số dư khả dụng",
-    "totalDeposited": "Tổng đã nạp",
-    "totalSpent": "Tổng đã dùng",
-    "declareTitle": "Báo đã nạp",
     "noteLabel": "Tên người nạp / ghi chú",
     "notePlaceholder": "Tên hiển thị trên sao kê ngân hàng",
     "declare": "Tôi đã nạp tiền",
@@ -820,19 +836,27 @@
     "alreadyPending": "Bạn đã có một báo nạp đang chờ xác nhận",
     "pendingNotice": "Khoản nạp {{amount}} đang chờ xác nhận.",
     "notApprovedTitle": "Cần được duyệt",
-    "notApproved": "Chỉ tài khoản môi giới đã duyệt mới thanh toán được."
+    "notApproved": "Chỉ tài khoản môi giới đã duyệt mới thanh toán được.",
+    "amountInputLabel": "Số tiền đã nạp",
+    "amountInputPlaceholder": "Nhập số tiền bạn nạp",
+    "amountRequired": "Vui lòng nhập số tiền",
+    "settlementTitle": "Thanh toán quảng cáo",
+    "depositorLabel": "Tên người nạp",
+    "historyTitle": "Lịch sử chi tiêu",
+    "historyEmpty": "Chưa có khoản trừ nào.",
+    "entryKind": {
+      "deposit": "Nạp tiền",
+      "property_register": "Đăng tin",
+      "featured": "Đề xuất",
+      "adjustment": "Điều chỉnh"
+    }
   },
   "adminPayments": {
-    "title": "Quản lý nạp tiền",
-    "settingsTitle": "Phí và mã QR",
-    "depositWithLicense": "Số tiền nạp — có chứng chỉ",
-    "depositWithoutLicense": "Số tiền nạp — không có chứng chỉ",
-    "registerFee": "Phí đăng tin",
-    "registerFeeHint": "Trừ vào số dư cho mỗi tin đăng.",
-    "featuredFee": "Phí đề xuất mỗi ngày",
+    "title": "Quản lý quyết toán",
+    "settingsTitle": "Thiết lập phí quảng cáo",
+    "registerFeeHint": "Trừ cho mỗi tin đăng. Mức phí khác nhau tùy có số chứng chỉ hay không.",
+    "featuredFee": "Đề xuất (1 ngày)",
     "featuredFeeHint": "Nhân với số ngày đã mua.",
-    "bankInfo": "Thông tin ngân hàng",
-    "bankInfoPlaceholder": "Ngân hàng / số tài khoản / chủ tài khoản",
     "qrHint": "Hiển thị nguyên trạng trên màn hình thanh toán.",
     "pickQr": "Chọn ảnh QR",
     "qrUploadFailed": "Tải mã QR lên không thành công",
@@ -840,13 +864,13 @@
     "saved": "Đã lưu",
     "saveFailed": "Không lưu được",
     "permissionDenied": "Cần quyền truy cập ảnh",
-    "requestsTitle": "Báo nạp tiền",
+    "requestsTitle": "Lịch sử quyết toán",
     "status": {
-      "pending": "Chờ xác nhận",
-      "approved": "Đã duyệt",
+      "pending": "Đã gửi",
+      "approved": "Đã xác nhận",
       "rejected": "Từ chối"
     },
-    "emptyRequests": "Không có báo nạp ở trạng thái này.",
+    "emptyRequests": "Chưa có lịch sử quyết toán.",
     "noteLabel": "Ghi chú",
     "approve": "Xác nhận đã nhận",
     "reject": "Từ chối",
@@ -856,7 +880,12 @@
     "rejectTitle": "Lý do từ chối",
     "rejectReasonPlaceholder": "Nêu lý do chưa xác nhận được khoản nạp",
     "noPermissionTitle": "Không có quyền",
-    "noPermissionDescription": "Chỉ quản trị viên mới quản lý nạp tiền."
+    "noPermissionDescription": "Chỉ quản trị viên mới quản lý nạp tiền.",
+    "registerFeeAgency": "Phí đăng tin (môi giới)",
+    "registerFeeGeneral": "Phí đăng tin (thường)",
+    "bankName": "Ngân hàng",
+    "accountHolder": "Chủ tài khoản",
+    "accountNumber": "Số tài khoản"
   },
   "agencyApply": {
     "title": "Đăng ký môi giới",
@@ -893,9 +922,9 @@
     "rejectedTitle": "Đăng ký bị từ chối"
   },
   "adminAgencies": {
-    "title": "Duyệt đăng ký môi giới",
+    "title": "Quản lý quyền đăng tin",
     "status": {
-      "pending": "Chờ duyệt",
+      "pending": "Đã gửi",
       "approved": "Đã duyệt",
       "rejected": "Từ chối",
       "suspended": "Tạm ngưng"
@@ -912,6 +941,62 @@
     "viewDocument": "Xem tệp đính kèm",
     "documentFailed": "Không mở được tệp",
     "noPermissionTitle": "Không có quyền",
-    "noPermissionDescription": "Chỉ quản trị viên mới duyệt được đăng ký."
+    "noPermissionDescription": "Chỉ quản trị viên mới duyệt được đăng ký.",
+    "licensedBadge": "Có chứng chỉ"
+  },
+  "board": {
+    "title": "Bảng tin",
+    "kind": {
+      "notice": "Thông báo",
+      "qa": "Hỏi đáp",
+      "faq": "FAQ"
+    },
+    "empty": "Chưa có bài viết.",
+    "ask": "Đặt câu hỏi",
+    "asked": "Đã gửi câu hỏi.",
+    "askFailed": "Không gửi được câu hỏi.",
+    "questionRequired": "Vui lòng nhập tiêu đề.",
+    "questionLabel": "Tiêu đề",
+    "questionBodyLabel": "Nội dung",
+    "signInToAsk": "Đăng nhập để đặt câu hỏi.",
+    "qaAnonymousHint": "Tên người hỏi không được hiển thị.",
+    "answered": "Đã trả lời",
+    "waiting": "Chờ trả lời",
+    "adminAnswer": "Trả lời",
+    "prevPost": "Bài trước",
+    "nextPost": "Bài sau",
+    "noPrevPost": "Không có bài trước.",
+    "noNextPost": "Không có bài sau.",
+    "goToList": "Danh sách"
+  },
+  "adminBoards": {
+    "title": "Quản lý bảng tin",
+    "adminOnly": "Chỉ dành cho quản trị viên.",
+    "empty": "Chưa có bài viết.",
+    "write": "Viết bài",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "deleted": "Đã xóa.",
+    "deleteFailed": "Không xóa được.",
+    "saved": "Đã lưu.",
+    "saveFailed": "Không lưu được.",
+    "titleLabel": "Tiêu đề",
+    "bodyLabel": "Nội dung",
+    "questionLabel": "Câu hỏi",
+    "answerLabel": "Trả lời",
+    "answer": "Trả lời",
+    "editAnswer": "Sửa trả lời",
+    "answered": "Đã đăng trả lời.",
+    "answeredBadge": "Đã trả lời",
+    "waitingBadge": "Chờ trả lời",
+    "hidden": "Ẩn",
+    "titleRequired": "Vui lòng nhập tiêu đề.",
+    "imagesLabel": "Hình ảnh {{count}}/{{max}}",
+    "removeImage": "Xóa ảnh",
+    "imageFailed": "Tải ảnh lên thất bại.",
+    "imagePermission": "Cần quyền truy cập ảnh.",
+    "translateHint": "Khi lưu, bài viết được dịch sang 6 ngôn ngữ.",
+    "notFound": "Không tìm thấy bài viết.",
+    "deleteConfirm": "Xóa bài viết này?"
   }
 }

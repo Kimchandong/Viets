@@ -18,6 +18,7 @@ import { StatTile } from "@/components/StatTile";
 import { colors, layout, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import { MOCK_INVEST_OVERVIEW, type MockInvestmentProduct } from "@/constants/mockData";
 import { listInvestmentProducts } from "@/services/investments";
+import { markRead } from "@/services/notifications";
 import { splitYieldText } from "@/utils/format";
 import type { InvestImageCategory } from "@/constants/mockImages";
 
@@ -78,6 +79,9 @@ export default function InvestScreen() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      // [2026-09-11 사용자 지시] 투자 목록을 봤으므로 홈 상단의 투자 알림 숫자를 0으로
+      // 되돌린다 — 다음에 등록되는 상품부터 다시 센다.
+      markRead("investment_list");
       listInvestmentProducts().then((result) => {
         if (active) {
           setProducts(result);

@@ -38,6 +38,11 @@ import { PROPERTY_OPTION_VALUE_PATTERN } from "@/constants/propertyOptions";
 import { localizedText, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { getPropertyById } from "@/services/properties";
+import {
+  listInvestmentProductsByPropertyId,
+} from "@/services/investments";
+import { InvestmentCard } from "@/components/InvestmentCard";
+import { type MockInvestmentProduct } from "@/constants/mockData";
 import { isAdmin } from "@/services/roles";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 
@@ -92,6 +97,9 @@ export default function PropertyDetailScreen() {
         setPropertyLoading(false);
       }
     });
+    listInvestmentProductsByPropertyId(id).then((result) => {
+      if (mounted) setLinkedProducts(result);
+    });
     return () => {
       mounted = false;
     };
@@ -128,6 +136,9 @@ export default function PropertyDetailScreen() {
   // 판단한다 — 관리자는 예외로 전부 수정할 수 있다.
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  // [2026-09-11 사용자 지시 — 4차] 이 매물에 연결된 투자상품. "투자 카테고리에 매물이
+  // 있으면 노출하고 없으면 노출하지 마시오" — 비어 있으면 섹션 자체를 그리지 않는다.
+  const [linkedProducts, setLinkedProducts] = useState<MockInvestmentProduct[]>([]);
   // [STEP: 2026-09-09] 사용자 요청 — "문의하기"를 비로그인 상태에서 누르면
   // 전체 화면 전환 대신 팝업으로 Google/Apple 로그인을 바로 띄운다.
   const [loginPromptVisible, setLoginPromptVisible] = useState(false);
@@ -395,6 +406,21 @@ export default function PropertyDetailScreen() {
               ))}
             </View>
           </View>
+
+          {/* [2026-09-11 사용자 지시 — 4차] 이 매물의 투자상품 — 연결된 상품이 있을
+              때만 섹션째로 보인다("있으면 노출하고 없으면 노출하지 마시오"). */}
+          {linkedProducts.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title={t("propertyDetail.linkedInvestmentsTitle")} />
+              {linkedProducts.map((product) => (
+                <InvestmentCard
+                  key={product.id}
+                  product={product}
+                  onPress={() => router.push(`/invest-detail/${product.id}`)}
+                />
+              ))}
+            </View>
+          ) : null}
 
           <View style={[styles.section, styles.lastSection]}>
             <SectionHeader title={t("propertyDetail.aiPropertiesTitle")} />

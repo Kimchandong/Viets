@@ -16,7 +16,8 @@
     "favoriteAdded": "お気に入りに追加しました",
     "favoriteRemoved": "お気に入りから削除しました",
     "noSimilarResultsTitle": "類似の項目がありません",
-    "noSimilarResultsDescription": "条件に合う物件・商品が見つかりませんでした"
+    "noSimilarResultsDescription": "条件に合う物件・商品が見つかりませんでした",
+    "save": "保存"
   },
   "tabs": {
     "home": "ホーム",
@@ -37,7 +38,11 @@
     "categoryTabs": {
       "property": "物件",
       "invest": "投資"
-    }
+    },
+    "noticeTitle": "お知らせ",
+    "faqTitle": "よくある質問",
+    "noticeEmpty": "お知らせはまだありません。",
+    "faqEmpty": "質問はまだありません。"
   },
   "property": {
     "title": "不動産",
@@ -86,7 +91,8 @@
     "expectedYieldLabel1": "AI予想収益",
     "expectedYieldLabel2": "AI予想収益率は売買物件にのみ適用されます。\n（投資参考用）",
     "locationTitle": "所在地",
-    "editButton": "物件を編集"
+    "editButton": "物件を編集",
+    "linkedInvestmentsTitle": "この物件の投資商品"
   },
   "invest": {
     "title": "投資",
@@ -249,7 +255,10 @@
     "stats": {
       "reservations": "予約",
       "investments": "投資",
-      "propertyActivity": "物件アクティビティ"
+      "propertyActivity": "物件アクティビティ",
+      "myProperties": "物件",
+      "myInvestments": "投資",
+      "favorites": "関心"
     },
     "favoritesTitle": "お気に入り",
     "favoritePropertiesTitle": "お気に入り物件",
@@ -261,7 +270,8 @@
       "notifications": "通知",
       "language": "言語",
       "currency": "通貨",
-      "support": "カスタマーサポート"
+      "support": "カスタマーサポート",
+      "notices": "お知らせ"
     },
     "languageModalTitle": "言語を選択",
     "currencyModalTitle": "通貨を選択",
@@ -272,7 +282,6 @@
     "adminTitle": "運営",
     "registerProperty": "物件登録",
     "registerInvestment": "投資商品登録",
-    "managePermissions": "アカウント権限管理",
     "translationUsage": "翻訳使用量",
     "signOut": "ログアウト",
     "signingOut": "ログアウト中...",
@@ -286,18 +295,20 @@
     },
     "chatInbox": "相談一覧",
     "myProperties": "物件情報",
-    "payment": "決済",
-    "managePayments": "入金管理",
+    "managePayments": "精算管理",
     "agencyTitle": "不動産事業者",
     "agencyApply": "不動産登録申請",
     "agencyStatusRow": "申請状況",
-    "reviewAgencies": "登録申請の審査",
     "agencyStatus": {
       "pending": "審査中",
       "approved": "承認済みの仲介業者",
       "rejected": "申請却下",
       "suspended": "利用停止"
-    }
+    },
+    "refundNotice": "申請された広告費 {{amount}} は返金予定です",
+    "manageRegisterPermission": "登録権限アカウント管理",
+    "adSettlement": "広告費精算",
+    "manageBoards": "掲示板管理"
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",
@@ -452,7 +463,7 @@
     "title": "投資商品登録",
     "editTitle": "投資商品編集",
     "basicSection": "基本情報",
-    "titleLabel": "商品名",
+    "titleLabel": "投資名",
     "descriptionLabel": "商品説明",
     "descriptionPlaceholder": "商品構造と収益分配方法を入力してください",
     "categorySection": "分類",
@@ -506,7 +517,16 @@
     "propertyPickerTitle": "物件を選択",
     "propertySearchPlaceholder": "物件名または住所で検索",
     "propertyEmpty": "該当する物件がありません",
-    "propertyUnlink": "関連付けを解除"
+    "propertyUnlink": "関連付けを解除",
+    "regionLabel": "地域",
+    "permissionSection": "投資登録の権限管理",
+    "permissionSearchPlaceholder": "メールでアカウント検索(2文字以上)",
+    "permissionSearch": "検索",
+    "permissionHelper": "ソーシャルログインのメールでアカウントを探し、投資商品の登録権限をオン/オフします。",
+    "permissionNoResults": "該当するアカウントがありません。",
+    "permissionAdminBadge": "管理者",
+    "permissionOn": "権限あり",
+    "permissionOff": "権限なし"
   },
   "adminPermissions": {
     "title": "アカウント権限管理",
@@ -534,8 +554,6 @@
   },
   "translationUsage": {
     "title": "翻訳使用量",
-    "periodToday": "今日",
-    "periodMonth": "今月",
     "cacheHitRate": "キャッシュヒット率",
     "cacheHitRateHelper": "翻訳リクエスト{{total}}件のうち{{saved}}件をAPI呼び出しなしで処理しました",
     "apiCalls": "API呼び出し",
@@ -550,7 +568,15 @@
     "loadFailedTitle": "使用量を読み込めませんでした",
     "loadFailedDescription": "しばらくしてから再度お試しください。",
     "noPermissionTitle": "アクセス権限がありません",
-    "noPermissionDescription": "翻訳使用量は管理者のみ確認できます。"
+    "noPermissionDescription": "翻訳使用量は管理者のみ確認できます。",
+    "period": {
+      "today": "今日",
+      "week": "今週",
+      "month": "今月",
+      "all": "全体"
+    },
+    "chartTitle": "直近12か月の課金文字数",
+    "chartHelper": "最多の月 {{max}} 文字"
   },
   "propertyOptions": {
     "sale": {
@@ -798,19 +824,9 @@
     "noPermissionDescription": "物件管理権限のあるアカウントのみ登録物件を表示できます。"
   },
   "payment": {
-    "title": "決済情報",
-    "agencyLabel": "登録者(会社)名",
-    "amountLabel": "入金金額",
-    "amountNotSet": "金額未設定",
-    "withLicense": "仲介番号あり業者の金額",
-    "withoutLicense": "仲介番号なし業者の金額",
+    "title": "広告費精算",
     "qrTitle": "入金QR",
     "qrNotSet": "登録されたQRがありません。管理者にお問い合わせください。",
-    "balanceTitle": "残高",
-    "available": "利用可能残高",
-    "totalDeposited": "累計入金額",
-    "totalSpent": "利用合計",
-    "declareTitle": "入金報告",
     "noteLabel": "振込名義/メモ",
     "notePlaceholder": "銀行明細に表示される名義を入力してください",
     "declare": "入金しました",
@@ -820,19 +836,27 @@
     "alreadyPending": "確認待ちの報告がすでにあります",
     "pendingNotice": "{{amount}} の入金報告が確認待ちです。",
     "notApprovedTitle": "承認が必要です",
-    "notApproved": "登録申請が承認されたアカウントのみ決済できます。"
+    "notApproved": "登録申請が承認されたアカウントのみ決済できます。",
+    "amountInputLabel": "入金金額",
+    "amountInputPlaceholder": "入金する金額を入力してください",
+    "amountRequired": "入金金額を入力してください",
+    "settlementTitle": "広告費精算",
+    "depositorLabel": "振込名義",
+    "historyTitle": "広告内訳",
+    "historyEmpty": "差し引かれた記録がありません。",
+    "entryKind": {
+      "deposit": "入金",
+      "property_register": "物件登録",
+      "featured": "おすすめ掲載",
+      "adjustment": "調整"
+    }
   },
   "adminPayments": {
-    "title": "入金管理",
-    "settingsTitle": "料金・QR設定",
-    "depositWithLicense": "入金額 — 仲介番号あり",
-    "depositWithoutLicense": "入金額 — 仲介番号なし",
-    "registerFee": "物件登録料金",
-    "registerFeeHint": "物件1件ごとに残高から差し引かれます。",
-    "featuredFee": "おすすめ掲載 1日料金",
+    "title": "精算管理",
+    "settingsTitle": "広告費設定",
+    "registerFeeHint": "物件1件ごとに差し引かれます。仲介番号の有無で金額が分かれます。",
+    "featuredFee": "おすすめ掲載(1日)",
     "featuredFeeHint": "購入日数を掛けて差し引かれます。",
-    "bankInfo": "口座案内",
-    "bankInfoPlaceholder": "銀行/口座番号/名義",
     "qrHint": "決済画面にそのまま表示されます。",
     "pickQr": "QR画像を選択",
     "qrUploadFailed": "QRのアップロードに失敗しました",
@@ -840,13 +864,13 @@
     "saved": "保存しました",
     "saveFailed": "保存できませんでした",
     "permissionDenied": "写真へのアクセス許可が必要です",
-    "requestsTitle": "入金報告",
+    "requestsTitle": "精算履歴",
     "status": {
-      "pending": "確認待ち",
-      "approved": "承認",
+      "pending": "申請",
+      "approved": "確認",
       "rejected": "却下"
     },
-    "emptyRequests": "この状態の報告はありません。",
+    "emptyRequests": "精算履歴がありません。",
     "noteLabel": "メモ",
     "approve": "入金確認",
     "reject": "却下",
@@ -856,7 +880,12 @@
     "rejectTitle": "却下の理由",
     "rejectReasonPlaceholder": "確認できなかった理由を記入してください",
     "noPermissionTitle": "権限がありません",
-    "noPermissionDescription": "管理者のみ入金を管理できます。"
+    "noPermissionDescription": "管理者のみ入金を管理できます。",
+    "registerFeeAgency": "登録費(仲介業者)",
+    "registerFeeGeneral": "登録費(一般)",
+    "bankName": "銀行名",
+    "accountHolder": "口座名義",
+    "accountNumber": "口座番号"
   },
   "agencyApply": {
     "title": "不動産登録申請",
@@ -893,9 +922,9 @@
     "rejectedTitle": "申請が却下されました"
   },
   "adminAgencies": {
-    "title": "登録申請の審査",
+    "title": "登録権限アカウント管理",
     "status": {
-      "pending": "審査中",
+      "pending": "申請",
       "approved": "承認",
       "rejected": "却下",
       "suspended": "停止"
@@ -912,6 +941,62 @@
     "viewDocument": "添付ファイルを見る",
     "documentFailed": "ファイルを開けませんでした",
     "noPermissionTitle": "権限がありません",
-    "noPermissionDescription": "管理者のみ申請を審査できます。"
+    "noPermissionDescription": "管理者のみ申請を審査できます。",
+    "licensedBadge": "仲介業"
+  },
+  "board": {
+    "title": "掲示板",
+    "kind": {
+      "notice": "お知らせ",
+      "qa": "QA",
+      "faq": "FAQ"
+    },
+    "empty": "投稿がありません。",
+    "ask": "質問する",
+    "asked": "質問を投稿しました。",
+    "askFailed": "質問の投稿に失敗しました。",
+    "questionRequired": "タイトルを入力してください。",
+    "questionLabel": "タイトル",
+    "questionBodyLabel": "内容",
+    "signInToAsk": "ログインすると質問できます。",
+    "qaAnonymousHint": "投稿者は公開されません。",
+    "answered": "回答済み",
+    "waiting": "回答待ち",
+    "adminAnswer": "回答",
+    "prevPost": "前の記事",
+    "nextPost": "次の記事",
+    "noPrevPost": "前の記事はありません。",
+    "noNextPost": "次の記事はありません。",
+    "goToList": "一覧"
+  },
+  "adminBoards": {
+    "title": "掲示板管理",
+    "adminOnly": "管理者のみ利用できます。",
+    "empty": "投稿がありません。",
+    "write": "新規投稿",
+    "edit": "編集",
+    "delete": "削除",
+    "deleted": "削除しました。",
+    "deleteFailed": "削除に失敗しました。",
+    "saved": "保存しました。",
+    "saveFailed": "保存に失敗しました。",
+    "titleLabel": "タイトル",
+    "bodyLabel": "内容",
+    "questionLabel": "質問",
+    "answerLabel": "回答",
+    "answer": "回答する",
+    "editAnswer": "回答を編集",
+    "answered": "回答を登録しました。",
+    "answeredBadge": "回答済み",
+    "waitingBadge": "回答待ち",
+    "hidden": "非公開",
+    "titleRequired": "タイトルを入力してください。",
+    "imagesLabel": "添付画像 {{count}}/{{max}}",
+    "removeImage": "画像を削除",
+    "imageFailed": "画像のアップロードに失敗しました。",
+    "imagePermission": "写真へのアクセス許可が必要です。",
+    "translateHint": "保存すると6言語に自動翻訳されます。",
+    "notFound": "投稿が見つかりません。",
+    "deleteConfirm": "この投稿を削除しますか？"
   }
 }

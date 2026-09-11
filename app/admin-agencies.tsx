@@ -32,7 +32,8 @@ import { isAdmin } from "@/services/roles";
  * 서명 URL을 새로 받아 연다.
  */
 
-const STATUS_ORDER: AgencyApprovalStatus[] = ["pending", "approved", "rejected", "suspended"];
+/** 상단 사각 탭 — 신청 / 승인 / 반려. */
+const STATUS_ORDER: AgencyApprovalStatus[] = ["pending", "approved", "rejected"];
 
 export default function AdminAgenciesScreen() {
   const theme = colors.light;
@@ -43,6 +44,10 @@ export default function AdminAgenciesScreen() {
   const [agencies, setAgencies] = useState<AdminAgency[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<AgencyApprovalStatus>("pending");
+  // [2026-09-11 사용자 지시 — 4차] 목록은 업체명·지역·중개업 여부만 보여 주고,
+  // 줄을 누르면 신청 내역 전체와 승인/반려 버튼이 나온다 — 목록에 모든 항목을
+  // 펼쳐 두면 신청이 몇 건만 쌓여도 훑기 어렵다.
+  const [detail, setDetail] = useState<AdminAgency | null>(null);
   const [rejectTarget, setRejectTarget] = useState<AdminAgency | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -83,7 +88,10 @@ export default function AdminAgenciesScreen() {
     const ok = await reviewAgency(agency.id, true);
     setBusyId(null);
     showToast(ok ? t("adminAgencies.approved") : t("adminAgencies.actionFailed"));
-    if (ok) await refresh();
+    if (ok) {
+      setDetail(null);
+      await refresh();
+    }
   }
 
   async function handleReject() {
@@ -95,7 +103,10 @@ export default function AdminAgenciesScreen() {
     setRejectTarget(null);
     setRejectReason("");
     showToast(ok ? t("adminAgencies.rejected") : t("adminAgencies.actionFailed"));
-    if (ok) await refresh();
+    if (ok) {
+      setDetail(null);
+      await refresh();
+    }
   }
 
   async function handleOpenDocument(agency: AdminAgency) {
@@ -172,69 +183,101 @@ export default function AdminAgenciesScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {visible.map((agency) => (
-            <View
+            <Pressable
               key={agency.id}
-              style={[styles.card, { borderColor: theme.border, backgroundColor: theme.card }]}
+              onPress={() => setDetail(agency)}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.row,
+                { borderColor: theme.border, backgroundColor: theme.card, opacity: pressed ? opacity.pressed : 1 },
+              ]}
             >
-              <Text style={[textStyles.cardTitle, { color: theme.text }]}>{agency.name}</Text>
-
-              <Field label={t("agencyApply.region")} value={agency.region} />
-              <Field label={t("agencyApply.contactName")} value={agency.contactName} />
-              <Field label={t("agencyApply.phone")} value={agency.phone} />
-              <Field label={t("agencyApply.address")} value={agency.address} />
-              <Field
-                label={t("agencyApply.registrationNo")}
-                value={agency.registrationNo || t("agencyApply.noLicense")}
-              />
-
-              {agency.licenseFilePath.length > 0 ? (
-                <Pressable
-                  onPress={() => handleOpenDocument(agency)}
-                  accessibilityRole="button"
-                  style={({ pressed }) => [styles.docRow, { opacity: pressed ? opacity.pressed : 1 }]}
-                >
-                  <Ionicons name="document-attach-outline" size={16} color={theme.accent} />
-                  <Text style={[textStyles.bodySmall, { color: theme.accent }]}>
-                    {t("adminAgencies.viewDocument")}
+              <View style={styles.rowTexts}>
+                <View style={styles.titleRow}>
+                  <Text style={[textStyles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+                    {agency.name}
                   </Text>
-                </Pressable>
-              ) : null}
-
-              {agency.approvalStatus === "rejected" && agency.rejectionReason.length > 0 ? (
-                <Text style={[textStyles.caption, { color: theme.danger }]}>
-                  {agency.rejectionReason}
+                  {/* 중개번호가 있으면 "중개업"이라고만 알린다(번호 자체는 상세에서). */}
+                  {agency.registrationNo.length > 0 ? (
+                    <View style={[styles.badge, { backgroundColor: theme.accent }]}>
+                      <Text style={[textStyles.caption, { color: theme.onAccent }]}>
+                        {t("adminAgencies.licensedBadge")}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+                <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+                  {agency.region || "-"}
                 </Text>
-              ) : null}
-
-              {/* 승인된 신청도 반려로 되돌릴 수 있어야 한다(잘못 승인했을 때) —
-                  반려는 권한까지 함께 내리므로 실질적인 정지 수단이다. */}
-              <View style={styles.actions}>
-                {agency.approvalStatus !== "approved" ? (
-                  <Button
-                    title={t("adminAgencies.approve")}
-                    size="small"
-                    onPress={() => handleApprove(agency)}
-                    loading={busyId === agency.id}
-                    style={styles.actionButton}
-                  />
-                ) : null}
-                {agency.approvalStatus !== "rejected" ? (
-                  <Button
-                    title={t("adminAgencies.reject")}
-                    size="small"
-                    variant="secondary"
-                    onPress={() => {
-                      setRejectTarget(agency);
-                      setRejectReason("");
-                    }}
-                    style={styles.actionButton}
-                  />
-                ) : null}
               </View>
-            </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.secondaryText} />
+            </Pressable>
           ))}
         </ScrollView>
       )}
+
+      {/* 신청 내역 — 줄을 눌렀을 때만 뜬다. 승인/반려도 여기서 한다. */}
+      <Modal visible={!!detail} onClose={() => setDetail(null)} accessibilityLabel={t("common.cancel")}>
+        {detail ? (
+          <>
+            <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
+              {detail.name}
+            </Text>
+
+            <Field label={t("agencyApply.region")} value={detail.region} />
+            <Field label={t("agencyApply.contactName")} value={detail.contactName} />
+            <Field label={t("agencyApply.phone")} value={detail.phone} />
+            <Field label={t("agencyApply.address")} value={detail.address} />
+            <Field
+              label={t("agencyApply.registrationNo")}
+              value={detail.registrationNo || t("agencyApply.noLicense")}
+            />
+
+            {detail.licenseFilePath.length > 0 ? (
+              <Pressable
+                onPress={() => handleOpenDocument(detail)}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.docRow, { opacity: pressed ? opacity.pressed : 1 }]}
+              >
+                <Ionicons name="document-attach-outline" size={16} color={theme.accent} />
+                <Text style={[textStyles.bodySmall, { color: theme.accent }]}>
+                  {t("adminAgencies.viewDocument")}
+                </Text>
+              </Pressable>
+            ) : null}
+
+            {detail.approvalStatus === "rejected" && detail.rejectionReason.length > 0 ? (
+              <Text style={[textStyles.caption, { color: theme.danger }]}>{detail.rejectionReason}</Text>
+            ) : null}
+
+            {/* 승인된 신청도 반려로 되돌릴 수 있어야 한다(잘못 승인했을 때) —
+                반려는 권한까지 함께 내리므로 실질적인 정지 수단이다. */}
+            <View style={styles.actions}>
+              {detail.approvalStatus !== "approved" ? (
+                <Button
+                  title={t("adminAgencies.approve")}
+                  size="small"
+                  onPress={() => handleApprove(detail)}
+                  loading={busyId === detail.id}
+                  style={styles.actionButton}
+                />
+              ) : null}
+              {detail.approvalStatus !== "rejected" ? (
+                <Button
+                  title={t("adminAgencies.reject")}
+                  size="small"
+                  variant="secondary"
+                  onPress={() => {
+                    setRejectTarget(detail);
+                    setRejectReason("");
+                  }}
+                  style={styles.actionButton}
+                />
+              ) : null}
+            </View>
+          </>
+        ) : null}
+      </Modal>
 
       <Modal
         visible={!!rejectTarget}
@@ -310,11 +353,28 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     gap: spacing.sm,
   },
-  card: {
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
     borderWidth: 1,
     borderRadius: radius.sm,
     padding: spacing.md,
+  },
+  rowTexts: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
+  },
+  badge: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+    borderRadius: radius.full,
   },
   field: {
     flexDirection: "row",

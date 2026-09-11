@@ -16,11 +16,11 @@ import { colors, opacity, radius, spacing, textStyles, typography } from "@/cons
 import { formatMoneyAmount } from "@/utils/format";
 import { getMyAgency, type MyAgency } from "@/services/agencies";
 import {
-  getAgencyBalance,
   getPaymentSettings,
+  listBalanceEntries,
   listPaymentRequests,
   submitPaymentRequest,
-  type AgencyBalance,
+  type BalanceEntry,
   type PaymentRequest,
   type PaymentSettings,
 } from "@/services/payments";
@@ -44,11 +44,17 @@ export default function PaymentInfoScreen() {
 
   const [agency, setAgency] = useState<MyAgency | null>(null);
   const [settings, setSettings] = useState<PaymentSettings | null>(null);
-  const [balance, setBalance] = useState<AgencyBalance | null>(null);
   const [pending, setPending] = useState<PaymentRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [note, setNote] = useState("");
+  // [2026-09-11 사용자 지시 — 3차] 입금액은 신청자가 직접 적는다(충전식) — 관리자가
+  // 정해 둔 금액은 "등록비"이지 입금액이 아니다.
+  const [amountText, setAmountText] = useState("");
+  // [2026-09-11 사용자 지시 — 5차] 광고비 정산은 접어 둔다 — 이 화면에 들어오는
+  // 이유는 대개 "얼마가 어디에 쓰였나"를 보기 위해서다.
+  const [settlementOpen, setSettlementOpen] = useState(false);
+  const [entries, setEntries] = useState<BalanceEntry[]>([]);
   const [toast, setToast] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -57,12 +63,12 @@ export default function PaymentInfoScreen() {
     setSettings(nextSettings);
 
     if (nextAgency && nextAgency.approvalStatus === "approved") {
-      const [nextBalance, requests] = await Promise.all([
-        getAgencyBalance(nextAgency.id),
+      const [requests, nextEntries] = await Promise.all([
         listPaymentRequests(),
+        listBalanceEntries(nextAgency.id),
       ]);
-      setBalance(nextBalance);
       setPending(requests.find((request) => request.status === "pending") ?? null);
+      setEntries(nextEntries);
     }
     setLoading(false);
   }, []);
@@ -85,18 +91,16 @@ export default function PaymentInfoScreen() {
   }
 
   const currency = settings?.currency ?? "VND";
-  // 중개번호를 적어 낸 업체인지로 금액이 갈린다(사용자 결정).
-  const hasLicense = (agency?.registrationNo.length ?? 0) > 0;
-  const depositAmount = settings
-    ? hasLicense
-      ? settings.depositWithLicense
-      : settings.depositWithoutLicense
-    : 0;
+  const amount = Number(amountText.replace(/[^\d]/g, "")) || 0;
 
   async function handleSubmit() {
-    if (submitting || depositAmount <= 0) return;
+    if (submitting) return;
+    if (amount <= 0) {
+      showToast(t("payment.amountRequired"));
+      return;
+    }
     setSubmitting(true);
-    const result = await submitPaymentRequest(depositAmount, note);
+    const result = await submitPaymentRequest(amount, note);
     setSubmitting(false);
 
     if (!result.ok) {
@@ -110,6 +114,7 @@ export default function PaymentInfoScreen() {
       return;
     }
     setNote("");
+    setAmountText("");
     showToast(t("payment.submitted"));
     await load();
   }
@@ -139,106 +144,127 @@ export default function PaymentInfoScreen() {
       <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {/* 업체명은 신청 때 적은 값을 그대로 쓴다 — 입금자명을 업체명으로 맞춰 달라고
-            안내해야 관리자가 은행 내역과 짝지을 수 있다. */}
-        <View style={[styles.card, { borderColor: theme.border, backgroundColor: theme.card }]}>
-          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-            {t("payment.agencyLabel")}
+        {/* 광고비 정산 — 아코디언. 펼치면 입금자명(업체명)·입금액·QR·계좌가 나온다. */}
+        <Pressable
+          onPress={() => setSettlementOpen((prev) => !prev)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: settlementOpen }}
+          style={({ pressed }) => [
+            styles.accordionHead,
+            { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+          ]}
+        >
+          <Text style={[textStyles.cardTitle, { color: theme.accent }]}>
+            {t("payment.settlementTitle")}
           </Text>
-          <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{agency.name}</Text>
+          <Ionicons
+            name={settlementOpen ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={theme.secondaryText}
+          />
+        </Pressable>
 
-          <View style={styles.divider} />
+        {settlementOpen ? (
+          <View style={styles.accordionBody}>
+            {/* 입금자명은 신청 때 적은 업체명을 그대로 쓴다 — 은행 내역과 이름이
+                같아야 관리자가 어느 업체의 입금인지 짝지을 수 있다. */}
+            <View>
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                {t("payment.depositorLabel")}
+              </Text>
+              <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{agency.name}</Text>
+            </View>
 
-          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-            {t("payment.amountLabel")}
-          </Text>
-          <Text style={[styles.amount, { color: theme.warning }]}>
-            {depositAmount > 0 ? formatMoneyAmount(depositAmount, currency) : t("payment.amountNotSet")}
-          </Text>
-          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-            {hasLicense ? t("payment.withLicense") : t("payment.withoutLicense")}
-          </Text>
-        </View>
+            {pending ? (
+              <View style={[styles.pendingBox, { borderColor: theme.warning }]}>
+                <Ionicons name="time-outline" size={18} color={theme.warning} />
+                <Text style={[textStyles.bodySmall, { color: theme.text, flex: 1 }]}>
+                  {t("payment.pendingNotice", {
+                    amount: formatMoneyAmount(pending.amount, currency),
+                  })}
+                </Text>
+              </View>
+            ) : (
+              <>
+                <Input
+                  label={t("payment.amountInputLabel")}
+                  placeholder={t("payment.amountInputPlaceholder")}
+                  value={amountText}
+                  onChangeText={setAmountText}
+                  keyboardType="numeric"
+                />
+                <Input
+                  label={t("payment.noteLabel")}
+                  placeholder={t("payment.notePlaceholder")}
+                  value={note}
+                  onChangeText={setNote}
+                />
+                <Button title={t("payment.declare")} onPress={handleSubmit} loading={submitting} />
+                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                  {t("payment.declareHint")}
+                </Text>
+              </>
+            )}
 
-        <SectionHeader title={t("payment.qrTitle")} />
-        {settings?.qrImageUrl ? (
-          <View style={styles.qrBox}>
-            <Image source={{ uri: settings.qrImageUrl }} style={styles.qrImage} resizeMode="contain" />
+            {settings?.qrImageUrl ? (
+              <View style={styles.qrBox}>
+                <Image source={{ uri: settings.qrImageUrl }} style={styles.qrImage} resizeMode="contain" />
+              </View>
+            ) : (
+              <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
+                {t("payment.qrNotSet")}
+              </Text>
+            )}
+
+            {/* QR 아래 — 은행명·예금주 한 줄, 계좌번호 한 줄(사용자 지시). */}
+            {settings && (settings.bankName.length > 0 || settings.accountNumber.length > 0) ? (
+              <View style={styles.bankBox}>
+                <Text style={[textStyles.bodySmall, { color: theme.text }]}>
+                  {[settings.bankName, settings.accountHolder].filter(Boolean).join(" / ")}
+                </Text>
+                <Text style={[textStyles.body, { color: theme.text, fontWeight: typography.weight.medium }]}>
+                  {settings.accountNumber}
+                </Text>
+              </View>
+            ) : null}
           </View>
-        ) : (
-          <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
-            {t("payment.qrNotSet")}
-          </Text>
-        )}
-
-        {settings && settings.bankInfo.length > 0 ? (
-          <Text style={[textStyles.bodySmall, { color: theme.text }]}>{settings.bankInfo}</Text>
         ) : null}
 
-        <SectionHeader title={t("payment.balanceTitle")} />
-        <View style={[styles.card, { borderColor: theme.border, backgroundColor: theme.card }]}>
-          <Row
-            label={t("payment.available")}
-            value={formatMoneyAmount(balance?.available ?? 0, currency)}
-            emphasis
-          />
-          <Row label={t("payment.totalDeposited")} value={formatMoneyAmount(balance?.totalDeposited ?? 0, currency)} />
-          <Row label={t("payment.totalSpent")} value={formatMoneyAmount(balance?.totalSpent ?? 0, currency)} />
-        </View>
-
-        {/* 심사 중인 신고가 있으면 또 내지 못한다 — 관리자가 어느 입금인지 가릴 수 없다. */}
-        {pending ? (
-          <View style={[styles.pendingBox, { borderColor: theme.warning }]}>
-            <Ionicons name="time-outline" size={18} color={theme.warning} />
-            <Text style={[textStyles.bodySmall, { color: theme.text, flex: 1 }]}>
-              {t("payment.pendingNotice", { amount: formatMoneyAmount(pending.amount, currency) })}
-            </Text>
-          </View>
+        {/* 광고내역 — 매물명(좌) / 차감액(우). 입금(+)은 정산 쪽 이야기라 여기서는
+            사용 내역만 보여 준다. */}
+        <SectionHeader title={t("payment.historyTitle")} />
+        {entries.filter((entry) => entry.amount < 0).length === 0 ? (
+          // [2026-09-11 사용자 지시] 내용이 없을 때의 문구는 앱 전체에서 11px·굵기
+          // 없음으로 통일한다(components/EmptyState.tsx와 같은 규칙). 여기만
+          // bodySmall(13px)이라 다른 화면의 빈 상태보다 커 보였다.
+          <Text style={[textStyles.bodySmall, { color: theme.secondaryText, fontSize: typography.size.xs }]}>
+            {t("payment.historyEmpty")}
+          </Text>
         ) : (
-          <>
-            <SectionHeader title={t("payment.declareTitle")} />
-            <Input
-              label={t("payment.noteLabel")}
-              placeholder={t("payment.notePlaceholder")}
-              value={note}
-              onChangeText={setNote}
-            />
-            <Button
-              title={t("payment.declare")}
-              onPress={handleSubmit}
-              loading={submitting}
-              disabled={depositAmount <= 0}
-              style={styles.submit}
-            />
-            <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-              {t("payment.declareHint")}
-            </Text>
-          </>
+          entries
+            .filter((entry) => entry.amount < 0)
+            .map((entry) => (
+              <View key={entry.id} style={[styles.historyRow, { borderBottomColor: theme.border }]}>
+                <View style={styles.historyTexts}>
+                  <Text style={[textStyles.body, { color: theme.text }]} numberOfLines={1}>
+                    {entry.propertyTitle || t(`payment.entryKind.${entry.kind}`)}
+                  </Text>
+                  <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                    {entry.createdAt.slice(0, 10)} · {t(`payment.entryKind.${entry.kind}`)}
+                  </Text>
+                </View>
+                <Text
+                  style={[textStyles.body, { color: theme.danger, fontWeight: typography.weight.medium }]}
+                >
+                  -{formatMoneyAmount(Math.abs(entry.amount), currency)}
+                </Text>
+              </View>
+            ))
         )}
       </ScrollView>
 
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </SafeAreaView>
-  );
-}
-
-function Row({ label, value, emphasis }: { label: string; value: string; emphasis?: boolean }) {
-  const theme = colors.light;
-  return (
-    <View style={styles.row}>
-      <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>{label}</Text>
-      <Text
-        style={[
-          textStyles.body,
-          {
-            color: emphasis ? theme.warning : theme.text,
-            fontWeight: emphasis ? typography.weight.medium : typography.weight.regular,
-          },
-        ]}
-      >
-        {value}
-      </Text>
-    </View>
   );
 }
 
@@ -264,22 +290,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     gap: spacing.sm,
   },
-  card: {
-    borderWidth: 1,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "#E5E5E5",
-    marginVertical: spacing.sm,
-  },
-  amount: {
-    fontSize: 24,
-    fontWeight: typography.weight.bold,
-  },
   qrBox: {
     alignItems: "center",
   },
@@ -287,11 +297,35 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
   },
-  row: {
+  accordionHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+  },
+  accordionBody: {
+    gap: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  historyRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  historyTexts: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  bankBox: {
+    gap: 2,
   },
   pendingBox: {
     flexDirection: "row",
@@ -301,8 +335,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     padding: spacing.md,
     marginTop: spacing.sm,
-  },
-  submit: {
-    marginTop: spacing.xs,
   },
 });

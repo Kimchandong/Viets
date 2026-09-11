@@ -16,7 +16,8 @@
     "favoriteAdded": "เพิ่มในรายการโปรดแล้ว",
     "favoriteRemoved": "ลบออกจากรายการโปรดแล้ว",
     "noSimilarResultsTitle": "ไม่มีรายการที่คล้ายกัน",
-    "noSimilarResultsDescription": "ไม่พบรายการที่ตรงตามเงื่อนไข"
+    "noSimilarResultsDescription": "ไม่พบรายการที่ตรงตามเงื่อนไข",
+    "save": "บันทึก"
   },
   "tabs": {
     "home": "หน้าแรก",
@@ -37,7 +38,11 @@
     "categoryTabs": {
       "property": "ประกาศ",
       "invest": "ลงทุน"
-    }
+    },
+    "noticeTitle": "ประกาศ",
+    "faqTitle": "คำถามที่พบบ่อย",
+    "noticeEmpty": "ยังไม่มีประกาศ",
+    "faqEmpty": "ยังไม่มีคำถาม"
   },
   "property": {
     "title": "อสังหาริมทรัพย์",
@@ -86,7 +91,8 @@
     "expectedYieldLabel1": "AI ผลตอบแทนคาดการณ์",
     "expectedYieldLabel2": "อัตราผลตอบแทนคาดการณ์จาก AI ใช้ได้เฉพาะอสังหาริมทรัพย์ประเภทขายเท่านั้น\n(ใช้เพื่ออ้างอิงการลงทุนเท่านั้น)",
     "locationTitle": "ทำเลที่ตั้ง",
-    "editButton": "แก้ไขประกาศ"
+    "editButton": "แก้ไขประกาศ",
+    "linkedInvestmentsTitle": "สินค้าการลงทุนของประกาศนี้"
   },
   "invest": {
     "title": "ลงทุน",
@@ -249,7 +255,10 @@
     "stats": {
       "reservations": "การจอง",
       "investments": "การลงทุน",
-      "propertyActivity": "กิจกรรมอสังหาริมทรัพย์"
+      "propertyActivity": "กิจกรรมอสังหาริมทรัพย์",
+      "myProperties": "ประกาศ",
+      "myInvestments": "การลงทุน",
+      "favorites": "ที่บันทึก"
     },
     "favoritesTitle": "รายการโปรด",
     "favoritePropertiesTitle": "อสังหาริมทรัพย์ที่ชื่นชอบ",
@@ -261,7 +270,8 @@
       "notifications": "การแจ้งเตือน",
       "language": "ภาษา",
       "currency": "สกุลเงิน",
-      "support": "ฝ่ายบริการลูกค้า"
+      "support": "ฝ่ายบริการลูกค้า",
+      "notices": "ประกาศ"
     },
     "languageModalTitle": "เลือกภาษา",
     "currencyModalTitle": "เลือกสกุลเงิน",
@@ -272,7 +282,6 @@
     "adminTitle": "ผู้ดูแลระบบ",
     "registerProperty": "ลงประกาศอสังหาริมทรัพย์",
     "registerInvestment": "ลงทะเบียนผลิตภัณฑ์ลงทุน",
-    "managePermissions": "จัดการสิทธิ์บัญชี",
     "translationUsage": "การใช้งานการแปล",
     "signOut": "ออกจากระบบ",
     "signingOut": "กำลังออกจากระบบ...",
@@ -286,18 +295,20 @@
     },
     "chatInbox": "รายการสอบถาม",
     "myProperties": "ข้อมูลประกาศ",
-    "payment": "ชำระเงิน",
-    "managePayments": "จัดการการฝากเงิน",
+    "managePayments": "จัดการการชำระบัญชี",
     "agencyTitle": "ผู้ประกอบการอสังหาฯ",
     "agencyApply": "ยื่นคำขอเป็นนายหน้า",
     "agencyStatusRow": "สถานะคำขอ",
-    "reviewAgencies": "ตรวจคำขอนายหน้า",
     "agencyStatus": {
       "pending": "กำลังตรวจสอบ",
       "approved": "นายหน้าที่อนุมัติแล้ว",
       "rejected": "คำขอถูกปฏิเสธ",
       "suspended": "ระงับการใช้งาน"
-    }
+    },
+    "refundNotice": "ค่าโฆษณา {{amount}} ที่คุณยื่นไว้จะได้รับคืน",
+    "manageRegisterPermission": "จัดการสิทธิ์ลงประกาศ",
+    "adSettlement": "ชำระค่าโฆษณา",
+    "manageBoards": "จัดการกระดาน"
   },
   "auth": {
     "tagline": "แพลตฟอร์มอสังหาริมทรัพย์และการลงทุนเวียดนาม",
@@ -452,7 +463,7 @@
     "title": "ลงทะเบียนผลิตภัณฑ์",
     "editTitle": "แก้ไขผลิตภัณฑ์",
     "basicSection": "ข้อมูลพื้นฐาน",
-    "titleLabel": "ชื่อผลิตภัณฑ์",
+    "titleLabel": "ชื่อการลงทุน",
     "descriptionLabel": "รายละเอียดผลิตภัณฑ์",
     "descriptionPlaceholder": "อธิบายโครงสร้างและวิธีแบ่งผลตอบแทน",
     "categorySection": "การจัดประเภท",
@@ -506,7 +517,16 @@
     "propertyPickerTitle": "เลือกอสังหาริมทรัพย์",
     "propertySearchPlaceholder": "ค้นหาด้วยชื่อหรือที่อยู่",
     "propertyEmpty": "ไม่พบอสังหาริมทรัพย์ที่ตรงกัน",
-    "propertyUnlink": "ยกเลิกการเชื่อมโยง"
+    "propertyUnlink": "ยกเลิกการเชื่อมโยง",
+    "regionLabel": "พื้นที่",
+    "permissionSection": "จัดการสิทธิ์ลงสินค้าการลงทุน",
+    "permissionSearchPlaceholder": "ค้นหาบัญชีด้วยอีเมล (2 ตัวอักษรขึ้นไป)",
+    "permissionSearch": "ค้นหา",
+    "permissionHelper": "ค้นหาบัญชีด้วยอีเมลที่ใช้เข้าสู่ระบบ แล้วเปิด/ปิดสิทธิ์ลงสินค้าการลงทุน",
+    "permissionNoResults": "ไม่พบบัญชีที่ตรงกัน",
+    "permissionAdminBadge": "ผู้ดูแล",
+    "permissionOn": "มีสิทธิ์",
+    "permissionOff": "ไม่มีสิทธิ์"
   },
   "adminPermissions": {
     "title": "จัดการสิทธิ์บัญชี",
@@ -534,8 +554,6 @@
   },
   "translationUsage": {
     "title": "การใช้งานการแปล",
-    "periodToday": "วันนี้",
-    "periodMonth": "เดือนนี้",
     "cacheHitRate": "อัตราการใช้แคช",
     "cacheHitRateHelper": "{{saved}} จาก {{total}} คำขอแปลถูกประมวลผลโดยไม่เรียก API",
     "apiCalls": "การเรียก API",
@@ -550,7 +568,15 @@
     "loadFailedTitle": "โหลดข้อมูลไม่สำเร็จ",
     "loadFailedDescription": "กรุณาลองใหม่อีกครั้ง",
     "noPermissionTitle": "ไม่มีสิทธิ์เข้าถึง",
-    "noPermissionDescription": "เฉพาะผู้ดูแลระบบเท่านั้นที่ดูการใช้งานการแปลได้"
+    "noPermissionDescription": "เฉพาะผู้ดูแลระบบเท่านั้นที่ดูการใช้งานการแปลได้",
+    "period": {
+      "today": "วันนี้",
+      "week": "สัปดาห์นี้",
+      "month": "เดือนนี้",
+      "all": "ทั้งหมด"
+    },
+    "chartTitle": "จำนวนอักขระที่คิดค่าบริการ 12 เดือนล่าสุด",
+    "chartHelper": "เดือนสูงสุด {{max}} อักขระ"
   },
   "propertyOptions": {
     "sale": {
@@ -798,19 +824,9 @@
     "noPermissionDescription": "เฉพาะบัญชีที่มีสิทธิ์จัดการประกาศเท่านั้นที่ดูรายการนี้ได้"
   },
   "payment": {
-    "title": "ข้อมูลการชำระเงิน",
-    "agencyLabel": "ชื่อผู้ลงทะเบียน (บริษัท)",
-    "amountLabel": "จำนวนเงินที่ต้องโอน",
-    "amountNotSet": "ยังไม่ได้ตั้งค่า",
-    "withLicense": "อัตราสำหรับบริษัทที่มีเลขใบอนุญาต",
-    "withoutLicense": "อัตราสำหรับบริษัทที่ไม่มีเลขใบอนุญาต",
+    "title": "ชำระค่าโฆษณา",
     "qrTitle": "QR สำหรับโอนเงิน",
     "qrNotSet": "ยังไม่มี QR ที่ลงทะเบียนไว้ กรุณาติดต่อผู้ดูแล",
-    "balanceTitle": "ยอดเงิน",
-    "available": "ยอดที่ใช้ได้",
-    "totalDeposited": "ยอดฝากสะสม",
-    "totalSpent": "ยอดใช้ไปทั้งหมด",
-    "declareTitle": "แจ้งการโอนเงิน",
     "noteLabel": "ชื่อผู้โอน / หมายเหตุ",
     "notePlaceholder": "ชื่อที่ปรากฏในรายการธนาคาร",
     "declare": "ฉันโอนเงินแล้ว",
@@ -820,19 +836,27 @@
     "alreadyPending": "คุณมีรายการแจ้งที่รอยืนยันอยู่แล้ว",
     "pendingNotice": "การโอน {{amount}} กำลังรอการยืนยัน",
     "notApprovedTitle": "ต้องได้รับอนุมัติก่อน",
-    "notApproved": "เฉพาะบัญชีนายหน้าที่อนุมัติแล้วจึงชำระเงินได้"
+    "notApproved": "เฉพาะบัญชีนายหน้าที่อนุมัติแล้วจึงชำระเงินได้",
+    "amountInputLabel": "จำนวนเงินที่โอน",
+    "amountInputPlaceholder": "กรอกจำนวนเงินที่คุณโอน",
+    "amountRequired": "กรุณากรอกจำนวนเงิน",
+    "settlementTitle": "ชำระค่าโฆษณา",
+    "depositorLabel": "ชื่อผู้โอน",
+    "historyTitle": "ประวัติค่าโฆษณา",
+    "historyEmpty": "ยังไม่มีรายการหัก",
+    "entryKind": {
+      "deposit": "เติมเงิน",
+      "property_register": "ลงประกาศ",
+      "featured": "แนะนำ",
+      "adjustment": "ปรับปรุง"
+    }
   },
   "adminPayments": {
-    "title": "จัดการการฝากเงิน",
-    "settingsTitle": "ค่าบริการและ QR",
-    "depositWithLicense": "จำนวนเงินโอน — มีใบอนุญาต",
-    "depositWithoutLicense": "จำนวนเงินโอน — ไม่มีใบอนุญาต",
-    "registerFee": "ค่าลงประกาศ",
-    "registerFeeHint": "หักจากยอดเงินทุกครั้งที่ลงประกาศ",
-    "featuredFee": "ค่าแนะนำต่อวัน",
+    "title": "จัดการการชำระบัญชี",
+    "settingsTitle": "ตั้งค่าค่าโฆษณา",
+    "registerFeeHint": "หักต่อประกาศหนึ่งรายการ อัตราขึ้นกับว่ามีเลขใบอนุญาตหรือไม่",
+    "featuredFee": "แนะนำ (1 วัน)",
     "featuredFeeHint": "คูณด้วยจำนวนวันที่ซื้อ",
-    "bankInfo": "ข้อมูลบัญชี",
-    "bankInfoPlaceholder": "ธนาคาร / เลขบัญชี / ชื่อบัญชี",
     "qrHint": "จะแสดงตามนี้ในหน้าชำระเงิน",
     "pickQr": "เลือกรูป QR",
     "qrUploadFailed": "อัปโหลด QR ไม่สำเร็จ",
@@ -840,13 +864,13 @@
     "saved": "บันทึกแล้ว",
     "saveFailed": "บันทึกไม่สำเร็จ",
     "permissionDenied": "ต้องได้รับสิทธิ์เข้าถึงรูปภาพ",
-    "requestsTitle": "รายการแจ้งโอน",
+    "requestsTitle": "ประวัติการชำระบัญชี",
     "status": {
-      "pending": "รอยืนยัน",
-      "approved": "อนุมัติ",
+      "pending": "ยื่นแล้ว",
+      "approved": "ยืนยันแล้ว",
       "rejected": "ปฏิเสธ"
     },
-    "emptyRequests": "ไม่มีรายการแจ้งในสถานะนี้",
+    "emptyRequests": "ไม่มีประวัติการชำระบัญชี",
     "noteLabel": "หมายเหตุ",
     "approve": "ยืนยันการโอน",
     "reject": "ปฏิเสธ",
@@ -856,7 +880,12 @@
     "rejectTitle": "เหตุผลที่ปฏิเสธ",
     "rejectReasonPlaceholder": "ระบุเหตุผลที่ยืนยันการโอนไม่ได้",
     "noPermissionTitle": "ไม่มีสิทธิ์",
-    "noPermissionDescription": "เฉพาะผู้ดูแลเท่านั้นที่จัดการการฝากเงินได้"
+    "noPermissionDescription": "เฉพาะผู้ดูแลเท่านั้นที่จัดการการฝากเงินได้",
+    "registerFeeAgency": "ค่าลงประกาศ (นายหน้า)",
+    "registerFeeGeneral": "ค่าลงประกาศ (ทั่วไป)",
+    "bankName": "ธนาคาร",
+    "accountHolder": "ชื่อบัญชี",
+    "accountNumber": "เลขบัญชี"
   },
   "agencyApply": {
     "title": "ยื่นคำขอเป็นนายหน้า",
@@ -893,9 +922,9 @@
     "rejectedTitle": "คำขอถูกปฏิเสธ"
   },
   "adminAgencies": {
-    "title": "ตรวจคำขอนายหน้า",
+    "title": "จัดการสิทธิ์ลงประกาศ",
     "status": {
-      "pending": "รอตรวจสอบ",
+      "pending": "ยื่นแล้ว",
       "approved": "อนุมัติ",
       "rejected": "ปฏิเสธ",
       "suspended": "ระงับ"
@@ -912,6 +941,62 @@
     "viewDocument": "ดูไฟล์แนบ",
     "documentFailed": "เปิดไฟล์ไม่ได้",
     "noPermissionTitle": "ไม่มีสิทธิ์",
-    "noPermissionDescription": "เฉพาะผู้ดูแลเท่านั้นที่ตรวจคำขอได้"
+    "noPermissionDescription": "เฉพาะผู้ดูแลเท่านั้นที่ตรวจคำขอได้",
+    "licensedBadge": "มีใบอนุญาต"
+  },
+  "board": {
+    "title": "กระดาน",
+    "kind": {
+      "notice": "ประกาศ",
+      "qa": "ถาม-ตอบ",
+      "faq": "FAQ"
+    },
+    "empty": "ยังไม่มีโพสต์",
+    "ask": "ตั้งคำถาม",
+    "asked": "ส่งคำถามแล้ว",
+    "askFailed": "ส่งคำถามไม่สำเร็จ",
+    "questionRequired": "กรุณากรอกหัวข้อ",
+    "questionLabel": "หัวข้อ",
+    "questionBodyLabel": "รายละเอียด",
+    "signInToAsk": "เข้าสู่ระบบเพื่อตั้งคำถาม",
+    "qaAnonymousHint": "ไม่แสดงชื่อผู้ถาม",
+    "answered": "ตอบแล้ว",
+    "waiting": "รอคำตอบ",
+    "adminAnswer": "คำตอบ",
+    "prevPost": "ก่อนหน้า",
+    "nextPost": "ถัดไป",
+    "noPrevPost": "ไม่มีโพสต์ก่อนหน้า",
+    "noNextPost": "ไม่มีโพสต์ถัดไป",
+    "goToList": "รายการ"
+  },
+  "adminBoards": {
+    "title": "จัดการกระดาน",
+    "adminOnly": "สำหรับผู้ดูแลระบบเท่านั้น",
+    "empty": "ยังไม่มีโพสต์",
+    "write": "เขียนโพสต์",
+    "edit": "แก้ไข",
+    "delete": "ลบ",
+    "deleted": "ลบแล้ว",
+    "deleteFailed": "ลบไม่สำเร็จ",
+    "saved": "บันทึกแล้ว",
+    "saveFailed": "บันทึกไม่สำเร็จ",
+    "titleLabel": "หัวข้อ",
+    "bodyLabel": "เนื้อหา",
+    "questionLabel": "คำถาม",
+    "answerLabel": "คำตอบ",
+    "answer": "ตอบ",
+    "editAnswer": "แก้ไขคำตอบ",
+    "answered": "บันทึกคำตอบแล้ว",
+    "answeredBadge": "ตอบแล้ว",
+    "waitingBadge": "รอคำตอบ",
+    "hidden": "ซ่อน",
+    "titleRequired": "กรุณากรอกหัวข้อ",
+    "imagesLabel": "รูปภาพ {{count}}/{{max}}",
+    "removeImage": "ลบรูปภาพ",
+    "imageFailed": "อัปโหลดรูปภาพไม่สำเร็จ",
+    "imagePermission": "ต้องการสิทธิ์เข้าถึงรูปภาพ",
+    "translateHint": "เมื่อบันทึกจะแปลเป็น 6 ภาษาโดยอัตโนมัติ",
+    "notFound": "ไม่พบโพสต์",
+    "deleteConfirm": "ลบโพสต์นี้หรือไม่"
   }
 }

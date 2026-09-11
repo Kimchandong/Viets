@@ -133,6 +133,18 @@ export default function TabsLayout() {
           tabBarIcon: renderIcon("my"),
         }}
       />
+
+      {/* [2026-09-11 사용자 지시] 게시판 화면에서도 하단 메뉴가 보여야 한다.
+          그래서 app/boards.tsx와 app/board-detail/[id].tsx를 이 (tabs) 그룹 안으로
+          옮겼다 — 탭 바는 이 레이아웃 안의 화면에만 그려진다. (tabs)는 경로에
+          포함되지 않는 그룹이라 주소는 /boards, /board-detail/<id> 그대로다.
+
+          href: null이 핵심이다. expo-router는 그룹 안의 파일을 전부 탭으로 만들기
+          때문에, 이 두 줄이 없으면 하단에 여섯 번째·일곱 번째 탭이 생긴다. null을
+          주면 탭 바에는 나타나지 않으면서 화면은 이 레이아웃 안에 남아 탭 바를
+          그대로 달고 있는다. */}
+      <Tabs.Screen name="boards" options={{ href: null }} />
+      <Tabs.Screen name="board-detail/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

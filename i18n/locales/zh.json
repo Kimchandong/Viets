@@ -16,7 +16,8 @@
     "favoriteAdded": "已添加到收藏",
     "favoriteRemoved": "已从收藏中移除",
     "noSimilarResultsTitle": "暂无相似结果",
-    "noSimilarResultsDescription": "未找到符合条件的房源/产品"
+    "noSimilarResultsDescription": "未找到符合条件的房源/产品",
+    "save": "保存"
   },
   "tabs": {
     "home": "首页",
@@ -37,7 +38,11 @@
     "categoryTabs": {
       "property": "房源",
       "invest": "投资"
-    }
+    },
+    "noticeTitle": "公告",
+    "faqTitle": "常见问题",
+    "noticeEmpty": "暂无公告。",
+    "faqEmpty": "暂无问题。"
   },
   "property": {
     "title": "房产",
@@ -86,7 +91,8 @@
     "expectedYieldLabel1": "AI预期收益",
     "expectedYieldLabel2": "AI预期收益率仅适用于出售类房源。\n（仅供投资参考）",
     "locationTitle": "位置",
-    "editButton": "编辑房源"
+    "editButton": "编辑房源",
+    "linkedInvestmentsTitle": "本房源的投资产品"
   },
   "invest": {
     "title": "投资",
@@ -249,7 +255,10 @@
     "stats": {
       "reservations": "预约",
       "investments": "投资",
-      "propertyActivity": "房产动态"
+      "propertyActivity": "房产动态",
+      "myProperties": "房源",
+      "myInvestments": "投资",
+      "favorites": "收藏"
     },
     "favoritesTitle": "收藏",
     "favoritePropertiesTitle": "收藏的房产",
@@ -261,7 +270,8 @@
       "notifications": "通知",
       "language": "语言",
       "currency": "货币",
-      "support": "客户支持"
+      "support": "客户支持",
+      "notices": "公告"
     },
     "languageModalTitle": "选择语言",
     "currencyModalTitle": "选择货币",
@@ -272,7 +282,6 @@
     "adminTitle": "运营",
     "registerProperty": "发布房源",
     "registerInvestment": "发布投资产品",
-    "managePermissions": "账户权限管理",
     "translationUsage": "翻译用量",
     "signOut": "退出登录",
     "signingOut": "退出中...",
@@ -286,18 +295,20 @@
     },
     "chatInbox": "咨询列表",
     "myProperties": "房源信息",
-    "payment": "支付",
-    "managePayments": "充值管理",
+    "managePayments": "结算管理",
     "agencyTitle": "房产经纪",
     "agencyApply": "申请成为经纪",
     "agencyStatusRow": "申请状态",
-    "reviewAgencies": "经纪申请审核",
     "agencyStatus": {
       "pending": "审核中",
       "approved": "已通过的经纪",
       "rejected": "申请被驳回",
       "suspended": "已暂停"
-    }
+    },
+    "refundNotice": "您申请的广告费 {{amount}} 将予退款",
+    "manageRegisterPermission": "登记权限账户管理",
+    "adSettlement": "广告费结算",
+    "manageBoards": "版块管理"
   },
   "auth": {
     "tagline": "越南房地产与投资平台",
@@ -452,7 +463,7 @@
     "title": "发布投资产品",
     "editTitle": "编辑投资产品",
     "basicSection": "基本信息",
-    "titleLabel": "产品名称",
+    "titleLabel": "投资名称",
     "descriptionLabel": "产品说明",
     "descriptionPlaceholder": "请输入产品结构与收益分配方式",
     "categorySection": "分类",
@@ -506,7 +517,16 @@
     "propertyPickerTitle": "选择房源",
     "propertySearchPlaceholder": "按名称或地址搜索",
     "propertyEmpty": "没有匹配的房源",
-    "propertyUnlink": "取消关联"
+    "propertyUnlink": "取消关联",
+    "regionLabel": "地区",
+    "permissionSection": "投资登记权限管理",
+    "permissionSearchPlaceholder": "用邮箱搜索账户(2个字符以上)",
+    "permissionSearch": "搜索",
+    "permissionHelper": "用社交登录邮箱查找账户，开启或关闭投资产品登记权限。",
+    "permissionNoResults": "没有匹配的账户。",
+    "permissionAdminBadge": "管理员",
+    "permissionOn": "有权限",
+    "permissionOff": "无权限"
   },
   "adminPermissions": {
     "title": "账户权限管理",
@@ -534,8 +554,6 @@
   },
   "translationUsage": {
     "title": "翻译用量",
-    "periodToday": "今天",
-    "periodMonth": "本月",
     "cacheHitRate": "缓存命中率",
     "cacheHitRateHelper": "{{total}} 次翻译请求中有 {{saved}} 次无需调用 API",
     "apiCalls": "API 调用",
@@ -550,7 +568,15 @@
     "loadFailedTitle": "无法加载用量",
     "loadFailedDescription": "请稍后重试。",
     "noPermissionTitle": "无访问权限",
-    "noPermissionDescription": "仅管理员可查看翻译用量。"
+    "noPermissionDescription": "仅管理员可查看翻译用量。",
+    "period": {
+      "today": "今天",
+      "week": "本周",
+      "month": "本月",
+      "all": "全部"
+    },
+    "chartTitle": "最近12个月计费字符数",
+    "chartHelper": "最高月份 {{max}} 字符"
   },
   "propertyOptions": {
     "sale": {
@@ -798,19 +824,9 @@
     "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。"
   },
   "payment": {
-    "title": "支付信息",
-    "agencyLabel": "登记方(公司)名称",
-    "amountLabel": "应付金额",
-    "amountNotSet": "未设置",
-    "withLicense": "有中介编号公司的标准",
-    "withoutLicense": "无中介编号公司的标准",
+    "title": "广告费结算",
     "qrTitle": "付款二维码",
     "qrNotSet": "尚未登记二维码，请联系管理员。",
-    "balanceTitle": "余额",
-    "available": "可用余额",
-    "totalDeposited": "累计充值",
-    "totalSpent": "累计消费",
-    "declareTitle": "付款申报",
     "noteLabel": "付款人/备注",
     "notePlaceholder": "请填写银行流水上显示的名称",
     "declare": "我已付款",
@@ -820,19 +836,27 @@
     "alreadyPending": "您已有待确认的申报",
     "pendingNotice": "{{amount}} 的付款申报正在等待确认。",
     "notApprovedTitle": "需要先通过审核",
-    "notApproved": "仅通过审核的经纪账户可以支付。"
+    "notApproved": "仅通过审核的经纪账户可以支付。",
+    "amountInputLabel": "充值金额",
+    "amountInputPlaceholder": "请填写您充值的金额",
+    "amountRequired": "请填写充值金额",
+    "settlementTitle": "广告费结算",
+    "depositorLabel": "付款人姓名",
+    "historyTitle": "广告明细",
+    "historyEmpty": "暂无扣款记录。",
+    "entryKind": {
+      "deposit": "充值",
+      "property_register": "房源登记",
+      "featured": "推荐",
+      "adjustment": "调整"
+    }
   },
   "adminPayments": {
-    "title": "充值管理",
-    "settingsTitle": "费用与二维码设置",
-    "depositWithLicense": "应付金额 — 有中介编号",
-    "depositWithoutLicense": "应付金额 — 无中介编号",
-    "registerFee": "房源登记费",
-    "registerFeeHint": "每登记一套房源从余额中扣除。",
-    "featuredFee": "推荐每日费用",
+    "title": "结算管理",
+    "settingsTitle": "广告费设置",
+    "registerFeeHint": "每套房源登记时扣除。费率依是否登记中介编号而不同。",
+    "featuredFee": "推荐(每日)",
     "featuredFeeHint": "按购买天数相乘扣除。",
-    "bankInfo": "账户信息",
-    "bankInfoPlaceholder": "银行 / 账号 / 户名",
     "qrHint": "将原样显示在支付页面。",
     "pickQr": "选择二维码图片",
     "qrUploadFailed": "二维码上传失败",
@@ -840,13 +864,13 @@
     "saved": "已保存",
     "saveFailed": "保存失败",
     "permissionDenied": "需要相册访问权限",
-    "requestsTitle": "付款申报",
+    "requestsTitle": "结算记录",
     "status": {
-      "pending": "待确认",
-      "approved": "已通过",
-      "rejected": "已驳回"
+      "pending": "申请",
+      "approved": "确认",
+      "rejected": "驳回"
     },
-    "emptyRequests": "该状态下没有申报。",
+    "emptyRequests": "暂无结算记录。",
     "noteLabel": "备注",
     "approve": "确认到账",
     "reject": "驳回",
@@ -856,7 +880,12 @@
     "rejectTitle": "驳回原因",
     "rejectReasonPlaceholder": "请说明未能确认到账的原因",
     "noPermissionTitle": "没有权限",
-    "noPermissionDescription": "只有管理员可以管理充值。"
+    "noPermissionDescription": "只有管理员可以管理充值。",
+    "registerFeeAgency": "登记费(经纪)",
+    "registerFeeGeneral": "登记费(普通)",
+    "bankName": "银行",
+    "accountHolder": "户名",
+    "accountNumber": "账号"
   },
   "agencyApply": {
     "title": "经纪入驻申请",
@@ -893,12 +922,12 @@
     "rejectedTitle": "申请被驳回"
   },
   "adminAgencies": {
-    "title": "经纪申请审核",
+    "title": "登记权限账户管理",
     "status": {
-      "pending": "待审核",
-      "approved": "已通过",
-      "rejected": "已驳回",
-      "suspended": "已暂停"
+      "pending": "申请",
+      "approved": "通过",
+      "rejected": "驳回",
+      "suspended": "暂停"
     },
     "emptyTitle": "暂无申请",
     "emptyDescription": "该状态下暂无申请。",
@@ -912,6 +941,62 @@
     "viewDocument": "查看附件",
     "documentFailed": "无法打开文件",
     "noPermissionTitle": "没有权限",
-    "noPermissionDescription": "只有管理员可以审核申请。"
+    "noPermissionDescription": "只有管理员可以审核申请。",
+    "licensedBadge": "中介"
+  },
+  "board": {
+    "title": "版块",
+    "kind": {
+      "notice": "公告",
+      "qa": "问答",
+      "faq": "常见问题"
+    },
+    "empty": "暂无内容。",
+    "ask": "我要提问",
+    "asked": "提问已提交。",
+    "askFailed": "提问提交失败。",
+    "questionRequired": "请输入标题。",
+    "questionLabel": "标题",
+    "questionBodyLabel": "内容",
+    "signInToAsk": "登录后可以提问。",
+    "qaAnonymousHint": "不显示提问者姓名。",
+    "answered": "已回复",
+    "waiting": "待回复",
+    "adminAnswer": "回复",
+    "prevPost": "上一篇",
+    "nextPost": "下一篇",
+    "noPrevPost": "没有上一篇。",
+    "noNextPost": "没有下一篇。",
+    "goToList": "列表"
+  },
+  "adminBoards": {
+    "title": "版块管理",
+    "adminOnly": "仅管理员可用。",
+    "empty": "暂无内容。",
+    "write": "写内容",
+    "edit": "编辑",
+    "delete": "删除",
+    "deleted": "已删除。",
+    "deleteFailed": "删除失败。",
+    "saved": "已保存。",
+    "saveFailed": "保存失败。",
+    "titleLabel": "标题",
+    "bodyLabel": "内容",
+    "questionLabel": "问题",
+    "answerLabel": "回复",
+    "answer": "回复",
+    "editAnswer": "修改回复",
+    "answered": "回复已提交。",
+    "answeredBadge": "已回复",
+    "waitingBadge": "待回复",
+    "hidden": "未公开",
+    "titleRequired": "请输入标题。",
+    "imagesLabel": "附件图片 {{count}}/{{max}}",
+    "removeImage": "删除图片",
+    "imageFailed": "图片上传失败。",
+    "imagePermission": "需要相册访问权限。",
+    "translateHint": "保存后将自动翻译为 6 种语言。",
+    "notFound": "找不到该内容。",
+    "deleteConfirm": "要删除这条内容吗？"
   }
 }

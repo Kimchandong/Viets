@@ -16,7 +16,8 @@
     "favoriteAdded": "관심 목록에 추가했습니다",
     "favoriteRemoved": "관심 목록에서 제거했습니다",
     "noSimilarResultsTitle": "유사한 항목이 없습니다",
-    "noSimilarResultsDescription": "조건에 맞는 매물/상품을 찾지 못했습니다"
+    "noSimilarResultsDescription": "조건에 맞는 매물/상품을 찾지 못했습니다",
+    "save": "저장"
   },
   "tabs": {
     "home": "홈",
@@ -37,7 +38,11 @@
     "categoryTabs": {
       "property": "매물",
       "invest": "투자"
-    }
+    },
+    "noticeTitle": "공지사항",
+    "faqTitle": "자주 묻는 질문",
+    "noticeEmpty": "등록된 공지사항이 없습니다.",
+    "faqEmpty": "등록된 질문이 없습니다."
   },
   "property": {
     "title": "부동산",
@@ -86,7 +91,8 @@
     "expectedYieldLabel1": "Ai 예상수익",
     "expectedYieldLabel2": "부동산 매매 매물에만 Ai 예상 수익률 입니다.\n(투자 참고용)",
     "locationTitle": "위치",
-    "editButton": "매물 수정"
+    "editButton": "매물 수정",
+    "linkedInvestmentsTitle": "이 매물의 투자상품"
   },
   "invest": {
     "title": "투자",
@@ -106,7 +112,7 @@
     "emptyTitle": "상품이 없습니다",
     "emptyDescription": "다른 위험도를 선택해 보세요.",
     "status": {
-      "fundraising": "모집 중",
+      "fundraising": "모집중",
       "closed": "마감",
       "completed": "완료"
     },
@@ -249,7 +255,10 @@
     "stats": {
       "reservations": "예약",
       "investments": "투자",
-      "propertyActivity": "매물 활동"
+      "propertyActivity": "매물 활동",
+      "myProperties": "매물",
+      "myInvestments": "투자",
+      "favorites": "관심"
     },
     "favoritesTitle": "관심 목록",
     "favoritePropertiesTitle": "관심 매물",
@@ -261,7 +270,8 @@
       "notifications": "알림",
       "language": "언어",
       "currency": "통화",
-      "support": "고객센터"
+      "support": "고객센터",
+      "notices": "공지사항"
     },
     "languageModalTitle": "언어 선택",
     "currencyModalTitle": "통화 선택",
@@ -272,7 +282,6 @@
     "adminTitle": "운영",
     "registerProperty": "매물 등록",
     "registerInvestment": "투자상품 등록",
-    "managePermissions": "계정 권한 관리",
     "translationUsage": "번역 사용량",
     "signOut": "로그아웃",
     "signingOut": "로그아웃 중...",
@@ -286,18 +295,20 @@
     },
     "chatInbox": "상담 목록",
     "myProperties": "매물 정보",
-    "payment": "결제",
-    "managePayments": "입금 관리",
+    "managePayments": "정산 관리",
     "agencyTitle": "부동산 사업자",
     "agencyApply": "부동산 등록신청",
     "agencyStatusRow": "등록신청 현황",
-    "reviewAgencies": "등록신청 관리",
     "agencyStatus": {
       "pending": "심사 중",
       "approved": "승인된 중개업소",
       "rejected": "신청 반려",
       "suspended": "이용 정지"
-    }
+    },
+    "refundNotice": "신청하신 광고비 {{amount}} 환불예정 입니다",
+    "manageRegisterPermission": "등록권한 계정관리",
+    "adSettlement": "광고비 정산",
+    "manageBoards": "게시판 관리"
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",
@@ -452,7 +463,7 @@
     "title": "투자상품 등록",
     "editTitle": "투자상품 수정",
     "basicSection": "기본 정보",
-    "titleLabel": "상품명",
+    "titleLabel": "투자명",
     "descriptionLabel": "상품 설명",
     "descriptionPlaceholder": "상품 구조와 수익 배분 방식을 입력하세요",
     "categorySection": "분류",
@@ -506,7 +517,16 @@
     "propertyPickerTitle": "매물 선택",
     "propertySearchPlaceholder": "매물명 또는 주소 검색",
     "propertyEmpty": "일치하는 매물이 없습니다",
-    "propertyUnlink": "연결 해제"
+    "propertyUnlink": "연결 해제",
+    "regionLabel": "지역",
+    "permissionSection": "투자등록 권한관리",
+    "permissionSearchPlaceholder": "이메일로 계정 검색 (2자 이상)",
+    "permissionSearch": "검색",
+    "permissionHelper": "소셜 로그인 이메일로 계정을 찾아 투자상품 등록 권한을 켜고 끕니다.",
+    "permissionNoResults": "해당하는 계정이 없습니다.",
+    "permissionAdminBadge": "관리자",
+    "permissionOn": "권한 있음",
+    "permissionOff": "권한 없음"
   },
   "adminPermissions": {
     "title": "계정 권한 관리",
@@ -534,8 +554,6 @@
   },
   "translationUsage": {
     "title": "번역 사용량",
-    "periodToday": "오늘",
-    "periodMonth": "이번 달",
     "cacheHitRate": "캐시 적중률",
     "cacheHitRateHelper": "번역 요청 {{total}}건 중 {{saved}}건을 API 호출 없이 처리했습니다",
     "apiCalls": "API 호출",
@@ -550,7 +568,15 @@
     "loadFailedTitle": "사용량을 불러오지 못했습니다",
     "loadFailedDescription": "잠시 후 다시 시도해 주세요.",
     "noPermissionTitle": "접근 권한이 없습니다",
-    "noPermissionDescription": "번역 사용량은 관리자만 확인할 수 있습니다."
+    "noPermissionDescription": "번역 사용량은 관리자만 확인할 수 있습니다.",
+    "period": {
+      "today": "오늘",
+      "week": "이번주",
+      "month": "이번달",
+      "all": "전체"
+    },
+    "chartTitle": "최근 12개월 과금 문자 수",
+    "chartHelper": "가장 많은 달 {{max}}자 기준"
   },
   "propertyOptions": {
     "sale": {
@@ -798,19 +824,9 @@
     "noPermissionDescription": "매물 관리 권한이 있는 계정만 등록 매물을 볼 수 있습니다."
   },
   "payment": {
-    "title": "결제 정보",
-    "agencyLabel": "등록자(업체)명",
-    "amountLabel": "입금 금액",
-    "amountNotSet": "금액 미설정",
-    "withLicense": "중개번호 등록 업체 기준",
-    "withoutLicense": "중개번호 미등록 업체 기준",
+    "title": "광고비 정산",
     "qrTitle": "입금 QR",
     "qrNotSet": "등록된 QR이 없습니다. 관리자에게 문의해 주세요.",
-    "balanceTitle": "잔액",
-    "available": "사용잔액",
-    "totalDeposited": "현잔액",
-    "totalSpent": "사용 합계",
-    "declareTitle": "입금 신고",
     "noteLabel": "입금자명/메모",
     "notePlaceholder": "은행 내역에 찍히는 이름을 적어 주세요",
     "declare": "입금했습니다",
@@ -820,19 +836,27 @@
     "alreadyPending": "확인 대기 중인 신고가 이미 있습니다",
     "pendingNotice": "{{amount}} 입금 신고가 확인 대기 중입니다.",
     "notApprovedTitle": "승인이 필요합니다",
-    "notApproved": "부동산 등록신청이 승인된 계정만 결제할 수 있습니다."
+    "notApproved": "부동산 등록신청이 승인된 계정만 결제할 수 있습니다.",
+    "amountInputLabel": "입금 금액",
+    "amountInputPlaceholder": "입금할 금액을 적어 주세요",
+    "amountRequired": "입금 금액을 적어 주세요",
+    "settlementTitle": "광고비 정산",
+    "depositorLabel": "입금자명",
+    "historyTitle": "광고내역",
+    "historyEmpty": "차감 내역이 없습니다.",
+    "entryKind": {
+      "deposit": "입금",
+      "property_register": "매물 등록",
+      "featured": "추천 매물",
+      "adjustment": "조정"
+    }
   },
   "adminPayments": {
-    "title": "입금 관리",
-    "settingsTitle": "요금·QR 설정",
-    "depositWithLicense": "입금액 — 중개번호 있음",
-    "depositWithoutLicense": "입금액 — 중개번호 없음",
-    "registerFee": "매물 등록 요금",
-    "registerFeeHint": "매물 1건 등록 시 잔액에서 차감됩니다.",
-    "featuredFee": "추천 매물 1일 요금",
+    "title": "정산 관리",
+    "settingsTitle": "광고비 설정",
+    "registerFeeHint": "매물 1건 등록 시 차감됩니다. 중개번호 유무로 금액이 갈립니다.",
+    "featuredFee": "추천매물(1일)",
     "featuredFeeHint": "구매한 일수를 곱해 차감됩니다.",
-    "bankInfo": "계좌 안내",
-    "bankInfoPlaceholder": "은행/계좌번호/예금주",
     "qrHint": "입금 화면에 그대로 보여집니다.",
     "pickQr": "QR 이미지 선택",
     "qrUploadFailed": "QR 업로드에 실패했습니다",
@@ -840,13 +864,13 @@
     "saved": "저장했습니다",
     "saveFailed": "저장하지 못했습니다",
     "permissionDenied": "사진 접근 권한이 필요합니다",
-    "requestsTitle": "입금 신고",
+    "requestsTitle": "정산내역",
     "status": {
-      "pending": "확인 대기",
-      "approved": "승인",
+      "pending": "신청",
+      "approved": "확인",
       "rejected": "반려"
     },
-    "emptyRequests": "해당 상태의 신고가 없습니다.",
+    "emptyRequests": "정산내역이 없습니다.",
     "noteLabel": "메모",
     "approve": "입금 확인",
     "reject": "반려",
@@ -856,7 +880,12 @@
     "rejectTitle": "반려 사유",
     "rejectReasonPlaceholder": "확인되지 않은 이유를 적어 주세요",
     "noPermissionTitle": "권한이 없습니다",
-    "noPermissionDescription": "관리자만 입금을 관리할 수 있습니다."
+    "noPermissionDescription": "관리자만 입금을 관리할 수 있습니다.",
+    "registerFeeAgency": "등록비(중개업소)",
+    "registerFeeGeneral": "등록비(일반)",
+    "bankName": "은행명",
+    "accountHolder": "예금주",
+    "accountNumber": "계좌번호"
   },
   "agencyApply": {
     "title": "부동산 등록신청",
@@ -893,9 +922,9 @@
     "rejectedTitle": "신청이 반려되었습니다"
   },
   "adminAgencies": {
-    "title": "등록신청 관리",
+    "title": "등록권한 계정관리",
     "status": {
-      "pending": "심사 중",
+      "pending": "신청",
       "approved": "승인",
       "rejected": "반려",
       "suspended": "정지"
@@ -912,6 +941,62 @@
     "viewDocument": "첨부 파일 보기",
     "documentFailed": "파일을 열지 못했습니다",
     "noPermissionTitle": "권한이 없습니다",
-    "noPermissionDescription": "관리자만 등록신청을 심사할 수 있습니다."
+    "noPermissionDescription": "관리자만 등록신청을 심사할 수 있습니다.",
+    "licensedBadge": "중개업"
+  },
+  "board": {
+    "title": "게시판",
+    "kind": {
+      "notice": "공지사항",
+      "qa": "QA",
+      "faq": "FAQ"
+    },
+    "empty": "등록된 글이 없습니다.",
+    "ask": "질문하기",
+    "asked": "질문이 등록되었습니다.",
+    "askFailed": "질문 등록에 실패했습니다.",
+    "questionRequired": "제목을 입력해 주세요.",
+    "questionLabel": "제목",
+    "questionBodyLabel": "내용",
+    "signInToAsk": "로그인 후 질문할 수 있습니다.",
+    "qaAnonymousHint": "작성자는 공개되지 않습니다.",
+    "answered": "답변완료",
+    "waiting": "답변대기",
+    "adminAnswer": "답변",
+    "prevPost": "이전글",
+    "nextPost": "다음글",
+    "noPrevPost": "이전글이 없습니다.",
+    "noNextPost": "다음글이 없습니다.",
+    "goToList": "목록"
+  },
+  "adminBoards": {
+    "title": "게시판 관리",
+    "adminOnly": "관리자만 이용할 수 있습니다.",
+    "empty": "등록된 글이 없습니다.",
+    "write": "글쓰기",
+    "edit": "수정",
+    "delete": "삭제",
+    "deleted": "삭제되었습니다.",
+    "deleteFailed": "삭제에 실패했습니다.",
+    "saved": "저장되었습니다.",
+    "saveFailed": "저장에 실패했습니다.",
+    "titleLabel": "제목",
+    "bodyLabel": "내용",
+    "questionLabel": "질문",
+    "answerLabel": "답변",
+    "answer": "답변하기",
+    "editAnswer": "답변수정",
+    "answered": "답변이 등록되었습니다.",
+    "answeredBadge": "답변완료",
+    "waitingBadge": "답변대기",
+    "hidden": "비공개",
+    "titleRequired": "제목을 입력해 주세요.",
+    "imagesLabel": "첨부 이미지 {{count}}/{{max}}",
+    "removeImage": "이미지 삭제",
+    "imageFailed": "이미지 업로드에 실패했습니다.",
+    "imagePermission": "사진 접근 권한이 필요합니다.",
+    "translateHint": "저장하면 6개 언어로 자동 번역됩니다.",
+    "notFound": "글을 찾을 수 없습니다.",
+    "deleteConfirm": "이 글을 삭제할까요?"
   }
 }

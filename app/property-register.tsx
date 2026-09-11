@@ -35,7 +35,7 @@ import {
 } from "@/services/properties";
 import { chargePropertyRegister } from "@/services/payments";
 import { canRegisterProperty, isAdmin } from "@/services/roles";
-import { translateOption } from "@/constants/mockData";
+import { translateOption, MOCK_REGIONS } from "@/constants/mockData";
 import {
   belongsToListingType,
   optionGroupsFor,
@@ -104,6 +104,8 @@ export default function PropertyRegisterScreen() {
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
   const [address, setAddress] = useState("");
+  // [2026-09-11 사용자 지시 — 4차] 지역 — 투자상품 등록과 같은 목록·같은 모양(맨 위 가로 슬라이드).
+  const [region, setRegion] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   // [2026-09-11] 편의시설: 자유 입력 → 목록에서 선택. 값은 기존 데이터와 같은
@@ -284,6 +286,7 @@ export default function PropertyRegisterScreen() {
       setBedrooms(existing.bedrooms !== null ? String(existing.bedrooms) : "");
       setBathrooms(existing.bathrooms !== null ? String(existing.bathrooms) : "");
       setAddress(existing.address ?? "");
+      setRegion(existing.region ?? "");
       setLatitude(existing.latitude !== null ? String(existing.latitude) : "");
       setLongitude(existing.longitude !== null ? String(existing.longitude) : "");
       setAmenities(existing.amenities ?? []);
@@ -340,6 +343,7 @@ export default function PropertyRegisterScreen() {
       bedrooms: parseNumber(bedrooms),
       bathrooms: parseNumber(bathrooms),
       address: address.trim(),
+      region,
       latitude: parseNumber(latitude),
       longitude: parseNumber(longitude),
       amenities,
@@ -467,6 +471,29 @@ export default function PropertyRegisterScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* [2026-09-11 사용자 지시 — 4차] 지역 — 컨텐츠 맨 위 가로 슬라이드.
+            투자상품 등록 화면과 같은 목록·같은 모양으로 둔다(두 곳의 지역 값이
+            같아야 지역으로 묶어 볼 수 있다). */}
+        <Text style={[styles.regionLabel, { color: theme.secondaryText }]}>
+          {t("propertyRegister.regionLabel")}
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.regionRow}
+        >
+          {MOCK_REGIONS.map((item) => (
+            <Chip
+              key={item}
+              label={item}
+              active={region === item}
+              onPress={() => setRegion(region === item ? "" : item)}
+              theme={theme}
+              tone="accent"
+            />
+          ))}
+        </ScrollView>
+
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.basicSection")} />
           <Input
@@ -943,6 +970,15 @@ function ToggleRow({
 }
 
 const styles = StyleSheet.create({
+  // 지역 슬라이드 — 칩 사이 간격만 두고 좌우 여백은 content가 이미 갖고 있다.
+  regionLabel: {
+    fontSize: 11,
+    marginTop: spacing.sm,
+  },
+  regionRow: {
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
   container: {
     flex: 1,
   },

@@ -15,26 +15,31 @@ import { supabase } from "./supabase";
  */
 
 export type PaymentSettings = {
-  depositWithLicense: number;
-  depositWithoutLicense: number;
-  propertyRegisterFee: number;
+  /** 등록비(중개업소) — 중개번호를 등록한 업체의 매물 1건당 차감액. */
+  registerFeeAgency: number;
+  /** 등록비(일반) — 중개번호가 없는 업체의 매물 1건당 차감액. */
+  registerFeeGeneral: number;
+  /** 추천매물(1일) 요금. */
   featuredDailyFee: number;
   /** 공개 버킷이라 바로 <Image>에 넣을 수 있는 URL. 등록 전이면 null. */
   qrImageUrl: string | null;
   qrImagePath: string;
-  bankInfo: string;
+  bankName: string;
+  accountHolder: string;
+  accountNumber: string;
   currency: string;
 };
 
 const PAYMENT_ASSETS_BUCKET = "payment-assets";
 
 type SettingsRow = {
-  deposit_with_license: number;
-  deposit_without_license: number;
-  property_register_fee: number;
+  register_fee_agency: number;
+  register_fee_general: number;
   featured_daily_fee: number;
   qr_image_path: string | null;
-  bank_info: string | null;
+  bank_name: string | null;
+  account_holder: string | null;
+  account_number: string | null;
   currency: string;
 };
 
@@ -45,7 +50,7 @@ export async function getPaymentSettings(): Promise<PaymentSettings | null> {
 
   const { data, error } = await supabase
     .from("payment_settings")
-    .select("deposit_with_license,deposit_without_license,property_register_fee,featured_daily_fee,qr_image_path,bank_info,currency")
+    .select("register_fee_agency,register_fee_general,featured_daily_fee,qr_image_path,bank_name,account_holder,account_number,currency")
     .eq("id", "default")
     .maybeSingle();
 
@@ -57,27 +62,29 @@ export async function getPaymentSettings(): Promise<PaymentSettings | null> {
   const row = data as unknown as SettingsRow;
   const path = row.qr_image_path ?? "";
   return {
-    depositWithLicense: Number(row.deposit_with_license),
-    depositWithoutLicense: Number(row.deposit_without_license),
-    propertyRegisterFee: Number(row.property_register_fee),
+    registerFeeAgency: Number(row.register_fee_agency),
+    registerFeeGeneral: Number(row.register_fee_general),
     featuredDailyFee: Number(row.featured_daily_fee),
     qrImagePath: path,
     qrImageUrl:
       path.length > 0
         ? supabase.storage.from(PAYMENT_ASSETS_BUCKET).getPublicUrl(path).data?.publicUrl ?? null
         : null,
-    bankInfo: row.bank_info ?? "",
+    bankName: row.bank_name ?? "",
+    accountHolder: row.account_holder ?? "",
+    accountNumber: row.account_number ?? "",
     currency: row.currency,
   };
 }
 
 /** 관리자 전용 — 금액/계좌 안내 저장. 실제 차단은 payment_settings UPDATE 정책이 한다. */
 export async function updatePaymentSettings(input: {
-  depositWithLicense: number;
-  depositWithoutLicense: number;
-  propertyRegisterFee: number;
+  registerFeeAgency: number;
+  registerFeeGeneral: number;
   featuredDailyFee: number;
-  bankInfo: string;
+  bankName: string;
+  accountHolder: string;
+  accountNumber: string;
   qrImagePath?: string;
 }): Promise<boolean> {
   if (!supabase) {
@@ -87,11 +94,12 @@ export async function updatePaymentSettings(input: {
   const { error } = await supabase
     .from("payment_settings")
     .update({
-      deposit_with_license: input.depositWithLicense,
-      deposit_without_license: input.depositWithoutLicense,
-      property_register_fee: input.propertyRegisterFee,
+      register_fee_agency: input.registerFeeAgency,
+      register_fee_general: input.registerFeeGeneral,
       featured_daily_fee: input.featuredDailyFee,
-      bank_info: input.bankInfo,
+      bank_name: input.bankName,
+      account_holder: input.accountHolder,
+      account_number: input.accountNumber,
       ...(input.qrImagePath !== undefined ? { qr_image_path: input.qrImagePath } : {}),
       updated_at: new Date().toISOString(),
     })
@@ -327,6 +335,15 @@ export async function purchaseFeatured(propertyId: string, days: number): Promis
   return data as boolean;
 }
 
+/**
+ * 아직 안내하지 않은 반려 건 — MY에 "환불예정" 문구를 띄우기 위해 쓴다.
+ * 가장 최근 반려 1건만 본다(그 앞의 것은 이미 처리가 끝난 이야기다).
+ */
+export async function getLatestRejectedPayment(): Promise<PaymentRequest | null> {
+  const requests = await listPaymentRequests();
+  return requests.find((request) => request.status === "rejected") ?? null;
+}
+
 /** 내 업체의 잔액 — MY 상단 표시용. 승인된 Agency가 없으면 null. */
 export async function getMyBalance(): Promise<AgencyBalance | null> {
   const agency = await getMyAgency();
@@ -334,4 +351,83 @@ export async function getMyBalance(): Promise<AgencyBalance | null> {
     return null;
   }
   return getAgencyBalance(agency.id);
+}
+
+/* ==========================================================================
+ * 광고내역 — 무엇에 얼마가 쓰였는가
+ * ======================================================================== */
+
+export type BalanceEntryKind = "deposit" | "property_register" | "featured" | "adjustment";
+
+export type BalanceEntry = {
+  id: string;
+  kind: BalanceEntryKind;
+  /** 입금은 +, 사용은 −. */
+  amount: number;
+  /** 매물 때문에 생긴 줄이면 그 매물 이름. 아니면 빈 문자열. */
+  propertyTitle: string;
+  memo: string;
+  createdAt: string;
+};
+
+/**
+ * [2026-09-11 사용자 지시 — 5차] 광고내역 — 매물명과 차감액.
+ *
+ * balance_entries.ref_id는 매물 id를 담지만 properties를 향한 FK가 아니다(입금
+ * 신고 id도 같은 칸에 들어간다). FK가 없으면 PostgREST로 한 번에 조인할 수 없어,
+ * 매물 이름은 id를 모아 한 번 더 조회해 붙인다 — 줄마다 부르지 않는다.
+ */
+export async function listBalanceEntries(agencyId: string): Promise<BalanceEntry[]> {
+  if (!supabase || agencyId.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("balance_entries")
+    .select("id,kind,amount,ref_id,memo,created_at")
+    .eq("agency_id", agencyId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("[services/payments] listBalanceEntries failed:", error.message);
+    return [];
+  }
+
+  const rows = (data ?? []) as {
+    id: string;
+    kind: BalanceEntryKind;
+    amount: number;
+    ref_id: string | null;
+    memo: string | null;
+    created_at: string;
+  }[];
+
+  const propertyIds = Array.from(
+    new Set(
+      rows
+        .filter((row) => row.kind === "property_register" || row.kind === "featured")
+        .map((row) => row.ref_id)
+        .filter((id): id is string => !!id),
+    ),
+  );
+
+  const titles = new Map<string, string>();
+  if (propertyIds.length > 0) {
+    const { data: properties } = await supabase
+      .from("properties")
+      .select("id,title")
+      .in("id", propertyIds);
+    for (const property of (properties ?? []) as { id: string; title: string }[]) {
+      titles.set(property.id, property.title);
+    }
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    kind: row.kind,
+    amount: Number(row.amount),
+    propertyTitle: row.ref_id ? (titles.get(row.ref_id) ?? "") : "",
+    memo: row.memo ?? "",
+    createdAt: row.created_at,
+  }));
 }

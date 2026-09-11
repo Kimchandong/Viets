@@ -37,6 +37,7 @@ import {
   sendCustomerMessage,
   subscribeToMessages,
 } from "@/services/chat";
+import { markRead } from "@/services/notifications";
 import { useLocaleStore } from "@/store/useLocaleStore";
 
 /**
@@ -155,6 +156,16 @@ export default function PropertyChatScreen() {
       mounted = false;
     };
   }, [session, property, conversationIdParam]);
+
+  // [2026-09-11 사용자 지시] 이 대화를 지금까지 읽은 것으로 표시한다 — 홈 상단의
+  // 부동산 알림 숫자가 여기서 줄어든다. messages를 의존성에 넣어, 방을 열어 둔 채
+  // 새 메시지를 받는 경우에도 다시 표시한다(읽고 있는 중이므로).
+  useEffect(() => {
+    if (!conversationId) {
+      return;
+    }
+    markRead("property_chat", conversationId);
+  }, [conversationId, messages.length]);
 
   useEffect(() => {
     if (!conversationId) {

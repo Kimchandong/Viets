@@ -39,6 +39,7 @@ import { isAdmin } from "@/services/roles";
  * 잔액이 두 배가 되는 사고를 막기 위한 설계다.
  */
 
+/** 처리상태 버튼 — 신청(접수) / 확인(입금 확인) / 반려(확인 불가). */
 const STATUS_ORDER: PaymentRequestStatus[] = ["pending", "approved", "rejected"];
 
 export default function AdminPaymentsScreen() {
@@ -49,7 +50,9 @@ export default function AdminPaymentsScreen() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [settings, setSettings] = useState<PaymentSettings | null>(null);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
-  const [statusFilter, setStatusFilter] = useState<PaymentRequestStatus>("pending");
+  // [2026-09-11 사용자 지시 — 3차] 광고비 설정은 평소에 접어 둔다 — 관리자가 이 화면에
+  // 들어오는 이유는 대개 정산내역을 보기 위해서고, 설정은 가끔 손댄다.
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -59,11 +62,12 @@ export default function AdminPaymentsScreen() {
 
   // 설정 입력값은 문자열로 들고 있다가 저장할 때 숫자로 바꾼다 — 입력 도중의 빈 칸이나
   // 중간 상태를 숫자로 강제하면 커서가 튄다.
-  const [withLicense, setWithLicense] = useState("");
-  const [withoutLicense, setWithoutLicense] = useState("");
-  const [registerFee, setRegisterFee] = useState("");
+  const [feeAgency, setFeeAgency] = useState("");
+  const [feeGeneral, setFeeGeneral] = useState("");
   const [featuredFee, setFeaturedFee] = useState("");
-  const [bankInfo, setBankInfo] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountHolder, setAccountHolder] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
   const [qrPreview, setQrPreview] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -74,11 +78,12 @@ export default function AdminPaymentsScreen() {
     setSettings(nextSettings);
     setRequests(nextRequests);
     if (nextSettings) {
-      setWithLicense(String(nextSettings.depositWithLicense));
-      setWithoutLicense(String(nextSettings.depositWithoutLicense));
-      setRegisterFee(String(nextSettings.propertyRegisterFee));
+      setFeeAgency(String(nextSettings.registerFeeAgency));
+      setFeeGeneral(String(nextSettings.registerFeeGeneral));
       setFeaturedFee(String(nextSettings.featuredDailyFee));
-      setBankInfo(nextSettings.bankInfo);
+      setBankName(nextSettings.bankName);
+      setAccountHolder(nextSettings.accountHolder);
+      setAccountNumber(nextSettings.accountNumber);
     }
     setLoading(false);
   }, []);
@@ -137,11 +142,12 @@ export default function AdminPaymentsScreen() {
     }
 
     const ok = await updatePaymentSettings({
-      depositWithLicense: toNumber(withLicense),
-      depositWithoutLicense: toNumber(withoutLicense),
-      propertyRegisterFee: toNumber(registerFee),
+      registerFeeAgency: toNumber(feeAgency),
+      registerFeeGeneral: toNumber(feeGeneral),
       featuredDailyFee: toNumber(featuredFee),
-      bankInfo,
+      bankName,
+      accountHolder,
+      accountNumber,
       qrImagePath,
     });
 
@@ -174,7 +180,6 @@ export default function AdminPaymentsScreen() {
 
   const screenTitle = t("adminPayments.title");
   const currency = settings?.currency ?? "VND";
-  const visible = requests.filter((request) => request.status === statusFilter);
 
   if (allowed === null || loading) {
     return (
@@ -202,114 +207,116 @@ export default function AdminPaymentsScreen() {
       <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <SectionHeader title={t("adminPayments.settingsTitle")} />
-
-        <Input
-          label={t("adminPayments.depositWithLicense")}
-          value={withLicense}
-          onChangeText={setWithLicense}
-          keyboardType="numeric"
-        />
-        <Input
-          label={t("adminPayments.depositWithoutLicense")}
-          value={withoutLicense}
-          onChangeText={setWithoutLicense}
-          keyboardType="numeric"
-        />
-        <Input
-          label={t("adminPayments.registerFee")}
-          value={registerFee}
-          onChangeText={setRegisterFee}
-          keyboardType="numeric"
-          helperText={t("adminPayments.registerFeeHint")}
-        />
-        <Input
-          label={t("adminPayments.featuredFee")}
-          value={featuredFee}
-          onChangeText={setFeaturedFee}
-          keyboardType="numeric"
-          helperText={t("adminPayments.featuredFeeHint")}
-        />
-        <Input
-          label={t("adminPayments.bankInfo")}
-          value={bankInfo}
-          onChangeText={setBankInfo}
-          placeholder={t("adminPayments.bankInfoPlaceholder")}
-          multiline
-        />
-
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-          {t("adminPayments.qrHint")}
-        </Text>
-
+        {/* [2026-09-11 사용자 지시 — 3차] 광고비 설정 — 눌러서 펼치는 아코디언. */}
         <Pressable
-          onPress={handlePickQr}
+          onPress={() => setSettingsOpen((prev) => !prev)}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.qrBox, { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 }]}
+          accessibilityState={{ expanded: settingsOpen }}
+          style={({ pressed }) => [
+            styles.accordionHead,
+            { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+          ]}
         >
-          {qrPreview || settings?.qrImageUrl ? (
-            <Image
-              source={{ uri: qrPreview ?? settings?.qrImageUrl ?? "" }}
-              style={styles.qrImage}
-              resizeMode="contain"
-            />
-          ) : (
-            <>
-              <Ionicons name="qr-code-outline" size={28} color={theme.secondaryText} />
-              <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
-                {t("adminPayments.pickQr")}
-              </Text>
-            </>
-          )}
+          <Text style={[textStyles.cardTitle, { color: theme.accent }]}>
+            {t("adminPayments.settingsTitle")}
+          </Text>
+          <Ionicons
+            name={settingsOpen ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={theme.secondaryText}
+          />
         </Pressable>
 
-        <Button
-          title={t("adminPayments.save")}
-          onPress={handleSaveSettings}
-          loading={savingSettings}
-          style={styles.save}
-        />
+        {settingsOpen ? (
+          <View style={styles.accordionBody}>
+            <Input
+              label={t("adminPayments.registerFeeAgency")}
+              value={feeAgency}
+              onChangeText={setFeeAgency}
+              keyboardType="numeric"
+              helperText={t("adminPayments.registerFeeHint")}
+            />
+            <Input
+              label={t("adminPayments.registerFeeGeneral")}
+              value={feeGeneral}
+              onChangeText={setFeeGeneral}
+              keyboardType="numeric"
+            />
+            <Input
+              label={t("adminPayments.featuredFee")}
+              value={featuredFee}
+              onChangeText={setFeaturedFee}
+              keyboardType="numeric"
+              helperText={t("adminPayments.featuredFeeHint")}
+            />
+
+            {/* 계좌는 은행명·예금주를 한 줄에, 계좌번호를 그 아래 한 줄에 둔다. */}
+            <View style={styles.bankRow}>
+              <Input
+                label={t("adminPayments.bankName")}
+                value={bankName}
+                onChangeText={setBankName}
+                containerStyle={styles.bankField}
+              />
+              <Input
+                label={t("adminPayments.accountHolder")}
+                value={accountHolder}
+                onChangeText={setAccountHolder}
+                containerStyle={styles.bankField}
+              />
+            </View>
+            <Input
+              label={t("adminPayments.accountNumber")}
+              value={accountNumber}
+              onChangeText={setAccountNumber}
+              keyboardType="numeric"
+            />
+
+            <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+              {t("adminPayments.qrHint")}
+            </Text>
+
+            <Pressable
+              onPress={handlePickQr}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.qrBox,
+                { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+              ]}
+            >
+              {qrPreview || settings?.qrImageUrl ? (
+                <Image
+                  source={{ uri: qrPreview ?? settings?.qrImageUrl ?? "" }}
+                  style={styles.qrImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <>
+                  <Ionicons name="qr-code-outline" size={28} color={theme.secondaryText} />
+                  <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
+                    {t("adminPayments.pickQr")}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+
+            <Button
+              title={t("adminPayments.save")}
+              onPress={handleSaveSettings}
+              loading={savingSettings}
+              style={styles.save}
+            />
+          </View>
+        ) : null}
 
         <SectionHeader title={t("adminPayments.requestsTitle")} />
 
-        <View style={[styles.tabRow, { borderBottomColor: theme.border }]}>
-          {STATUS_ORDER.map((status) => {
-            const active = status === statusFilter;
-            const count = requests.filter((request) => request.status === status).length;
-            return (
-              <Pressable
-                key={status}
-                onPress={() => setStatusFilter(status)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                style={({ pressed }) => [
-                  styles.tab,
-                  { borderTopColor: active ? theme.accent : "transparent", opacity: pressed ? opacity.pressed : 1 },
-                ]}
-              >
-                <Text
-                  style={[
-                    textStyles.bodySmall,
-                    {
-                      color: active ? theme.accent : theme.secondaryText,
-                      fontWeight: active ? typography.weight.medium : typography.weight.regular,
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {`${t(`adminPayments.status.${status}`)} ${count}`}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {visible.length === 0 ? (
+        {requests.length === 0 ? (
           <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
             {t("adminPayments.emptyRequests")}
           </Text>
         ) : (
-          visible.map((request) => (
+          requests.map((request) => (
             <View
               key={request.id}
               style={[styles.card, { borderColor: theme.border, backgroundColor: theme.card }]}
@@ -335,27 +342,52 @@ export default function AdminPaymentsScreen() {
                 <Text style={[textStyles.caption, { color: theme.danger }]}>{request.rejectReason}</Text>
               ) : null}
 
-              {request.status === "pending" ? (
-                <View style={styles.actions}>
-                  <Button
-                    title={t("adminPayments.approve")}
-                    size="small"
-                    onPress={() => handleApprove(request)}
-                    loading={busyId === request.id}
-                    style={styles.actionButton}
-                  />
-                  <Button
-                    title={t("adminPayments.reject")}
-                    size="small"
-                    variant="secondary"
-                    onPress={() => {
-                      setRejectTarget(request);
-                      setRejectReason("");
-                    }}
-                    style={styles.actionButton}
-                  />
-                </View>
-              ) : null}
+              {/* 처리상태 — 지금 상태가 채워진 버튼으로 보이고, 누르면 그 상태로 바꾼다.
+                  확인을 누르는 순간 서버가 신청자 업체 잔액에 그 금액을 더한다(원장에
+                  + 한 줄이 들어가므로 기존 금액과 자연히 합산된다). 이미 처리한 건은
+                  서버가 다시 받지 않으므로 신청 상태일 때만 누를 수 있게 둔다. */}
+              <View style={styles.statusRow}>
+                {STATUS_ORDER.map((status) => {
+                  const active = request.status === status;
+                  const disabled = request.status !== "pending" || status === "pending";
+                  return (
+                    <Pressable
+                      key={status}
+                      disabled={disabled}
+                      onPress={() => {
+                        if (status === "approved") {
+                          handleApprove(request);
+                        } else if (status === "rejected") {
+                          setRejectTarget(request);
+                          setRejectReason("");
+                        }
+                      }}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active, disabled }}
+                      style={({ pressed }) => [
+                        styles.statusPill,
+                        {
+                          borderColor: active ? statusColor(status, theme) : theme.border,
+                          backgroundColor: active ? statusColor(status, theme) : "transparent",
+                          opacity: pressed ? opacity.pressed : disabled && !active ? 0.4 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          textStyles.caption,
+                          {
+                            color: active ? theme.onAccent : theme.secondaryText,
+                            fontWeight: typography.weight.medium,
+                          },
+                        ]}
+                      >
+                        {t(`adminPayments.status.${status}`)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           ))
         )}
@@ -381,6 +413,13 @@ export default function AdminPaymentsScreen() {
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </SafeAreaView>
   );
+}
+
+/** 처리상태 색 — 신청은 주황(처리해야 할 것), 확인은 파랑, 반려는 빨강. */
+function statusColor(status: PaymentRequestStatus, theme: typeof colors.light): string {
+  if (status === "approved") return theme.accent;
+  if (status === "rejected") return theme.danger;
+  return theme.warning;
 }
 
 function BackButton({ onPress }: { onPress: () => void }) {
@@ -421,17 +460,37 @@ const styles = StyleSheet.create({
   save: {
     marginTop: spacing.xs,
   },
-  tabRow: {
+  accordionHead: {
     flexDirection: "row",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  tab: {
-    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    borderTopWidth: 2,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.sm,
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+  },
+  accordionBody: {
+    gap: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  bankRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  bankField: {
+    flex: 1,
+  },
+  statusRow: {
+    flexDirection: "row",
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  statusPill: {
+    borderWidth: 1,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   card: {
     borderWidth: 1,
@@ -444,13 +503,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.sm,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  actionButton: {
-    flex: 1,
   },
 });

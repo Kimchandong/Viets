@@ -320,7 +320,9 @@ export default function MyPropertiesScreen() {
                       { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
                     ]}
                   >
-                    <Ionicons name="notifications-outline" size={12} color={theme.danger} />
+                    {/* 아이콘은 "무엇에 대한 수인지"만 알려 주면 되므로 회색으로 두고,
+                        눈에 걸려야 하는 숫자에만 빨강을 쓴다. */}
+                    <Ionicons name="notifications-outline" size={12} color={theme.secondaryText} />
                     <Text
                       style={[
                         textStyles.caption,

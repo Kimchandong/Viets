@@ -16,6 +16,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import type { InvestImageCategory } from "@/constants/mockImages";
+import { MOCK_REGIONS } from "@/constants/mockData";
 import {
   closeInvestmentProduct,
   createInvestmentProduct,
@@ -30,6 +31,7 @@ import {
   type PropertyOption,
 } from "@/services/properties";
 import { canManageInvestment, isAdmin } from "@/services/roles";
+import { InvestPermissionPanel } from "@/components/InvestPermissionPanel";
 
 /**
  * [STEP 06] 투자상품 등록/수정 화면.
@@ -81,6 +83,9 @@ export default function InvestRegisterScreen() {
   const [category, setCategory] = useState<InvestImageCategory>("residential");
   const [productType, setProductType] = useState<ProductType>("reit_share");
   const [riskLevel, setRiskLevel] = useState<RiskLevel>("medium");
+  // [2026-09-11 사용자 지시 — 4차] 지역 — 매물/등록신청과 같은 목록을 쓴다.
+  const [region, setRegion] = useState("");
+  const [riskPickerVisible, setRiskPickerVisible] = useState(false);
   const [dividendFrequency, setDividendFrequency] = useState<DividendFrequency>("quarterly");
   const [targetAmount, setTargetAmount] = useState("");
   const [minimumInvestment, setMinimumInvestment] = useState("");
@@ -139,6 +144,7 @@ export default function InvestRegisterScreen() {
       setCategory(existing.category ?? "residential");
       setProductType(existing.product_type);
       setRiskLevel(existing.risk_level);
+      setRegion(existing.region ?? "");
       setDividendFrequency(existing.dividend_frequency ?? "quarterly");
       setTargetAmount(String(existing.target_amount));
       setMinimumInvestment(String(existing.minimum_investment));
@@ -222,6 +228,7 @@ export default function InvestRegisterScreen() {
       investment_period_months: parseNumber(periodMonths),
       dividend_frequency: dividendFrequency,
       risk_level: riskLevel,
+      region,
       property_id: linkedProperty?.id ?? null,
       raised_amount: parseNumber(raisedAmount) ?? 0,
       status: publishNow ? "open" : "draft",
@@ -304,6 +311,102 @@ export default function InvestRegisterScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* [2026-09-11 사용자 지시 — 4차] 지역 — 컨텐츠 맨 위, 가로 슬라이드. */}
+        <Text style={[styles.smallLabel, { color: theme.secondaryText, marginTop: spacing.sm }]}>
+          {t("investRegister.regionLabel")}
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.slideRow}
+        >
+          {MOCK_REGIONS.map((item) => (
+            <Chip
+              key={item}
+              label={item}
+              active={region === item}
+              onPress={() => setRegion(region === item ? "" : item)}
+              theme={theme}
+              tone="accent"
+            />
+          ))}
+        </ScrollView>
+
+        <View style={styles.section}>
+          <SectionHeader title={t("investRegister.categorySection")} />
+
+          {/* 분류 — 가로 슬라이드. */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.slideRow}
+          >
+            {CATEGORIES.map((item) => (
+              <Chip
+                key={item}
+                label={t(`categories.invest.${item}`)}
+                active={category === item}
+                onPress={() => setCategory(item)}
+                theme={theme}
+                tone="accent"
+              />
+            ))}
+          </ScrollView>
+
+          {/* 상품구조(좌, 가로 슬라이드) + 위험도(우, 테두리 없는 셀렉트).
+              위험도는 값이 셋뿐이고 색으로 읽히는 값이라 칩을 늘어놓기보다
+              한 칸짜리 셀렉트가 자리를 덜 먹는다. */}
+          <View style={styles.structureRow}>
+            <View style={styles.structureCol}>
+              <Text style={[styles.smallLabel, { color: theme.secondaryText }]}>
+                {t("investRegister.productTypeLabel")}
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.slideRowTight}
+              >
+                {PRODUCT_TYPES.map((item) => (
+                  <Chip
+                    key={item}
+                    label={t(`investRegister.productType.${item}`)}
+                    active={productType === item}
+                    onPress={() => setProductType(item)}
+                    theme={theme}
+                    tone="accent"
+                  />
+                ))}
+              </ScrollView>
+            </View>
+
+            <View style={styles.riskCol}>
+              <Text style={[styles.smallLabel, { color: theme.secondaryText }]}>
+                {t("investRegister.riskLabel")}
+              </Text>
+              <Pressable
+                onPress={() => setRiskPickerVisible(true)}
+                accessibilityRole="button"
+                accessibilityValue={{ text: t(`invest.risk.${riskLevel}`) }}
+                style={({ pressed }) => [
+                  styles.riskField,
+                  { opacity: pressed ? opacity.pressed : 1 },
+                ]}
+              >
+                <Text
+                  style={[
+                    textStyles.bodySmall,
+                    { color: riskColor(riskLevel, theme), fontWeight: typography.weight.medium },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(`invest.risk.${riskLevel}`)}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={theme.secondaryText} />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+
         <View style={styles.section}>
           <SectionHeader title={t("investRegister.basicSection")} />
           <Input
@@ -323,96 +426,6 @@ export default function InvestRegisterScreen() {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title={t("investRegister.categorySection")} />
-          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-            {t("investRegister.assetCategoryLabel")}
-          </Text>
-          <View style={styles.chipWrap}>
-            {CATEGORIES.map((item) => (
-              <Chip
-                key={item}
-                label={t(`categories.invest.${item}`)}
-                active={category === item}
-                onPress={() => setCategory(item)}
-                theme={theme}
-                tone="accent"
-              />
-            ))}
-          </View>
-          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-            {t("investRegister.productTypeLabel")}
-          </Text>
-          <View style={styles.chipWrap}>
-            {PRODUCT_TYPES.map((item) => (
-              <Chip
-                key={item}
-                label={t(`investRegister.productType.${item}`)}
-                active={productType === item}
-                onPress={() => setProductType(item)}
-                theme={theme}
-                tone="accent"
-              />
-            ))}
-          </View>
-          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-            {t("investRegister.riskLabel")}
-          </Text>
-          <View style={styles.chipWrap}>
-            {RISK_LEVELS.map((item) => (
-              <Chip
-                key={item}
-                label={t(`invest.risk.${item}`)}
-                active={riskLevel === item}
-                onPress={() => setRiskLevel(item)}
-                theme={theme}
-                tone="accent"
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* [STEP 06-매물연결] 연계 매물 — 선택 사항. 연결하면 상품 목록/상세에 해당
-            매물의 주소가 함께 표시되고, 상세 화면에서 매물로 이동할 수 있다. */}
-        <View style={styles.section}>
-          <SectionHeader title={t("investRegister.propertySection")} />
-          <Pressable
-            onPress={() => {
-              setPropertyQuery("");
-              setPropertyPickerVisible(true);
-            }}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.toggleRow,
-              { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
-            ]}
-          >
-            <View style={styles.toggleTexts}>
-              <Text
-                style={[
-                  textStyles.body,
-                  {
-                    color: linkedProperty ? theme.text : theme.secondaryText,
-                    fontWeight: typography.weight.medium,
-                  },
-                ]}
-              >
-                {linkedProperty ? linkedProperty.title : t("investRegister.propertyNone")}
-              </Text>
-              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-                {linkedProperty && linkedProperty.address.length > 0
-                  ? linkedProperty.address
-                  : t("investRegister.propertySelectHint")}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.secondaryText} />
-          </Pressable>
-          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-            {t("investRegister.propertyHelper")}
-          </Text>
-        </View>
-
-        <View style={styles.section}>
-          <SectionHeader title={t("investRegister.amountSection")} />
           <Input
             label={t("investRegister.targetAmountLabel")}
             value={targetAmount}
@@ -458,17 +471,40 @@ export default function InvestRegisterScreen() {
           <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
             {t("investRegister.dividendLabel")}
           </Text>
-          <View style={styles.chipWrap}>
-            {DIVIDEND_FREQUENCIES.map((item) => (
-              <Chip
-                key={item}
-                label={t(`investDetail.dividendFrequency.${item}`)}
-                active={dividendFrequency === item}
-                onPress={() => setDividendFrequency(item)}
-                theme={theme}
-                tone="accent"
-              />
-            ))}
+          {/* 배당주기는 셋뿐이라 가로를 3등분해 한 줄에 채운다. */}
+          <View style={styles.thirdsRow}>
+            {DIVIDEND_FREQUENCIES.map((item) => {
+              const active = dividendFrequency === item;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => setDividendFrequency(item)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  style={({ pressed }) => [
+                    styles.thirdsButton,
+                    {
+                      borderColor: active ? theme.accent : theme.border,
+                      backgroundColor: active ? theme.accent : "transparent",
+                      opacity: pressed ? opacity.pressed : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      textStyles.bodySmall,
+                      {
+                        color: active ? theme.onAccent : theme.text,
+                        fontWeight: typography.weight.medium,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t(`investDetail.dividendFrequency.${item}`)}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
@@ -498,6 +534,46 @@ export default function InvestRegisterScreen() {
           </Pressable>
         </View>
 
+        {/* [STEP 06-매물연결] 연계 매물 — 선택 사항. 연결하면 상품 목록/상세에 해당
+            매물의 주소가 함께 표시되고, 상세 화면에서 매물로 이동할 수 있다. */}
+        <View style={styles.section}>
+          <SectionHeader title={t("investRegister.propertySection")} />
+          <Pressable
+            onPress={() => {
+              setPropertyQuery("");
+              setPropertyPickerVisible(true);
+            }}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.toggleRow,
+              { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+            ]}
+          >
+            <View style={styles.toggleTexts}>
+              <Text
+                style={[
+                  textStyles.body,
+                  {
+                    color: linkedProperty ? theme.text : theme.secondaryText,
+                    fontWeight: typography.weight.medium,
+                  },
+                ]}
+              >
+                {linkedProperty ? linkedProperty.title : t("investRegister.propertyNone")}
+              </Text>
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                {linkedProperty && linkedProperty.address.length > 0
+                  ? linkedProperty.address
+                  : t("investRegister.propertySelectHint")}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.secondaryText} />
+          </Pressable>
+          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+            {t("investRegister.propertyHelper")}
+          </Text>
+        </View>
+
         <Button
           title={
             submitting
@@ -520,7 +596,49 @@ export default function InvestRegisterScreen() {
             style={styles.submitButton}
           />
         ) : null}
+
+        {/* [2026-09-11 사용자 지시 — 4차] 투자등록 권한관리 — 관리자만 보인다.
+            MY의 "계정 권한 관리"에 묻혀 있던 기능을, 실제로 그 권한을 쓰는 화면
+            아래로 옮겼다(소셜 로그인 이메일로 계정을 찾아 켜고 끈다). */}
+        {canHardDelete ? <InvestPermissionPanel /> : null}
       </ScrollView>
+
+      <Modal
+        visible={riskPickerVisible}
+        onClose={() => setRiskPickerVisible(false)}
+        accessibilityLabel={t("common.cancel")}
+      >
+        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
+          {t("investRegister.riskLabel")}
+        </Text>
+        {RISK_LEVELS.map((item) => (
+          <Pressable
+            key={item}
+            onPress={() => {
+              setRiskLevel(item);
+              setRiskPickerVisible(false);
+            }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: riskLevel === item }}
+            style={({ pressed }) => [
+              styles.riskOption,
+              { borderBottomColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+            ]}
+          >
+            <Text
+              style={[
+                textStyles.body,
+                { color: riskColor(item, theme), fontWeight: typography.weight.medium },
+              ]}
+            >
+              {t(`invest.risk.${item}`)}
+            </Text>
+            {riskLevel === item ? (
+              <Ionicons name="checkmark" size={18} color={riskColor(item, theme)} />
+            ) : null}
+          </Pressable>
+        ))}
+      </Modal>
 
       <Modal
         visible={deleteModalVisible}
@@ -637,6 +755,13 @@ export default function InvestRegisterScreen() {
   );
 }
 
+/** 위험도 색 — 낮음 초록 / 중간 파랑 / 높음 빨강(사용자 지정). */
+function riskColor(level: RiskLevel, theme: typeof colors.light): string {
+  if (level === "low") return theme.success;
+  if (level === "high") return theme.danger;
+  return theme.accent;
+}
+
 function BackButton({ onPress }: { onPress: () => void }) {
   const theme = colors.light;
   return (
@@ -661,6 +786,59 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: spacing.sm,
+  },
+  slideRow: {
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
+  slideRowTight: {
+    gap: spacing.xs,
+  },
+  structureRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  structureCol: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.xs,
+  },
+  // [2026-09-11 사용자 지시] 고정 폭(110)을 없애고 글자 길이에 맞춘다 — 언어마다
+  // "중간위험"의 길이가 달라 고정 폭이면 어떤 언어에서는 남고 어떤 언어에서는 잘렸다.
+  riskCol: {
+    alignItems: "flex-start",
+    gap: spacing.xs,
+  },
+  smallLabel: {
+    fontSize: 11,
+  },
+  // 테두리 없음(사용자 지정) — 값 자체가 색으로 읽히므로 상자를 두르지 않는다.
+  riskField: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
+  riskOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  thirdsRow: {
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  thirdsButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
   },
   chipWrap: {
     flexDirection: "row",

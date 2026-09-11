@@ -10,7 +10,13 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
-import { fetchTranslationUsage, type TranslationUsage } from "@/services/chat";
+import {
+  fetchTranslationUsage,
+  fetchTranslationUsageMonthly,
+  type TranslationUsage,
+  type TranslationUsageMonth,
+  type TranslationUsagePeriod,
+} from "@/services/chat";
 import { isAdmin } from "@/services/roles";
 
 /**
@@ -31,7 +37,9 @@ export default function AdminTranslationUsageScreen() {
 
   const [checkingPermission, setCheckingPermission] = useState(true);
   const [allowed, setAllowed] = useState(false);
-  const [period, setPeriod] = useState<"today" | "month">("month");
+  // [2026-09-11 사용자 지시 — 4차] 오늘/이번주/이번달/전체.
+  const [period, setPeriod] = useState<TranslationUsagePeriod>("month");
+  const [monthly, setMonthly] = useState<TranslationUsageMonth[]>([]);
   const [usage, setUsage] = useState<TranslationUsage | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,6 +60,10 @@ export default function AdminTranslationUsageScreen() {
     let mounted = true;
     if (!allowed) return;
     setLoading(true);
+    // "전체"에서만 1년 추이를 함께 불러온다 — 다른 기간에는 그래프를 그리지 않는다.
+    if (period === "all") {
+      fetchTranslationUsageMonthly().then(setMonthly);
+    }
     fetchTranslationUsage(period).then((result) => {
       if (mounted) {
         setUsage(result);
@@ -95,20 +107,16 @@ export default function AdminTranslationUsageScreen() {
       <Header title={t("translationUsage.title")} leftAction={<BackButton onPress={() => router.back()} />} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.chipRow}>
-          <Chip
-            label={t("translationUsage.periodToday")}
-            active={period === "today"}
-            onPress={() => setPeriod("today")}
-            theme={theme}
-            tone="accent"
-          />
-          <Chip
-            label={t("translationUsage.periodMonth")}
-            active={period === "month"}
-            onPress={() => setPeriod("month")}
-            theme={theme}
-            tone="accent"
-          />
+          {(["today", "week", "month", "all"] as TranslationUsagePeriod[]).map((item) => (
+            <Chip
+              key={item}
+              label={t(`translationUsage.period.${item}`)}
+              active={period === item}
+              onPress={() => setPeriod(item)}
+              theme={theme}
+              tone="accent"
+            />
+          ))}
         </View>
 
         {loading ? (
@@ -169,6 +177,47 @@ export default function AdminTranslationUsageScreen() {
                 emphasis
               />
             </View>
+
+            {/* [2026-09-11 사용자 지시 — 4차] 전체 탭에서는 최근 1년을 막대로 본다.
+                차트 라이브러리를 새로 들이지 않고, 가장 큰 달을 100%로 잡아 높이만
+                비율로 그린다 — 값 자체는 막대 위 숫자로 읽는다. */}
+            {period === "all" && monthly.length > 0 ? (
+              <View style={styles.chartCard}>
+                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                  {t("translationUsage.chartTitle")}
+                </Text>
+                <View style={styles.chartRow}>
+                  {monthly.map((point) => {
+                    const max = Math.max(...monthly.map((item) => item.billable_chars), 1);
+                    const ratio = point.billable_chars / max;
+                    return (
+                      <View key={point.month} style={styles.chartCol}>
+                        <View style={styles.chartBarArea}>
+                          <View
+                            style={[
+                              styles.chartBar,
+                              {
+                                backgroundColor: point.billable_chars > 0 ? theme.accent : theme.border,
+                                // 값이 0이어도 바닥선이 보이도록 최소 높이를 둔다.
+                                height: Math.max(2, Math.round(ratio * 80)),
+                              },
+                            ]}
+                          />
+                        </View>
+                        <Text style={[styles.chartLabel, { color: theme.secondaryText }]} numberOfLines={1}>
+                          {point.month.slice(5, 7)}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                  {t("translationUsage.chartHelper", {
+                    max: Math.max(...monthly.map((item) => item.billable_chars), 0).toLocaleString("en-US"),
+                  })}
+                </Text>
+              </View>
+            ) : null}
 
             <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
               {t("translationUsage.priceNotice", { price: USD_PER_MILLION_CHARS })}
@@ -236,6 +285,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenPaddingX,
     paddingVertical: spacing.lg,
     gap: spacing.md,
+  },
+  chartCard: {
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  chartRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 2,
+  },
+  chartCol: {
+    flex: 1,
+    alignItems: "center",
+    gap: 2,
+  },
+  chartBarArea: {
+    height: 80,
+    justifyContent: "flex-end",
+    width: "100%",
+    alignItems: "center",
+  },
+  chartBar: {
+    width: "70%",
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+  chartLabel: {
+    fontSize: 10,
   },
   chipRow: {
     flexDirection: "row",

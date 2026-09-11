@@ -610,7 +610,37 @@ export type TranslationUsage = {
   cache_hit_rate: number;
 };
 
-export async function fetchTranslationUsage(period: "today" | "month"): Promise<TranslationUsage | null> {
+export type TranslationUsagePeriod = "today" | "week" | "month" | "all";
+
+/** [2026-09-11] 월별 추이 한 점 — "전체" 탭 그래프용. */
+export type TranslationUsageMonth = {
+  month: string;
+  api_calls: number;
+  billable_chars: number;
+};
+
+/** 최근 12개월 사용량. 기록이 없는 달도 0으로 채워져 돌아온다(서버가 채운다). */
+export async function fetchTranslationUsageMonthly(): Promise<TranslationUsageMonth[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase.rpc("admin_translation_usage_monthly");
+
+  if (error) {
+    console.warn("[services/chat] fetchTranslationUsageMonthly failed:", error.message);
+    return [];
+  }
+  return ((data ?? []) as TranslationUsageMonth[]).map((row) => ({
+    month: row.month,
+    api_calls: Number(row.api_calls),
+    billable_chars: Number(row.billable_chars),
+  }));
+}
+
+export async function fetchTranslationUsage(
+  period: TranslationUsagePeriod,
+): Promise<TranslationUsage | null> {
   if (!supabase) {
     return null;
   }

@@ -42,16 +42,16 @@ export function SectionHeader({ title, actionLabel, onAction, style }: SectionHe
   );
 }
 
-/** 섹션 제목 위 여백(2026-09-11 사용자 지정 15px). 화면 상단 제목(Header)은 0이다. */
-const TITLE_TOP_SPACE = 15;
+/** 섹션 제목 위 여백(2026-09-11 사용자 지정 10px). 화면 상단 제목(Header)은 0이다. */
+const TITLE_TOP_SPACE = 10;
 
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    // [2026-09-11 사용자 지시] 섹션 제목 위 여백 15px. 이전에는 0이라 앞 섹션의
-    // 카드와 붙어, 제목이 자기 섹션보다 앞 섹션에 딸린 것처럼 읽혔다.
+    // [2026-09-11 사용자 지시] 섹션 제목 위 여백 — 처음 0이었다가 15px, 지금 10px.
+    // 0이면 앞 섹션의 카드와 붙어 제목이 앞 섹션에 딸린 것처럼 읽힌다.
     marginTop: TITLE_TOP_SPACE,
     marginBottom: spacing.sm,
   },

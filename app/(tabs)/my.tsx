@@ -19,11 +19,16 @@ import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles, ThemeColors, typography } from "@/constants/theme";
 import { GOOGLE_ICON_URI } from "@/constants/icons";
 import { type MockInvestmentProduct, type MockProperty } from "@/constants/mockData";
-import { getPropertiesByIds } from "@/services/properties";
-import { getInvestmentProductsByIds } from "@/services/investments";
+import { getPropertiesByIds, listManagedProperties } from "@/services/properties";
+import { getInvestmentProductsByIds, listMyInvestmentOrders } from "@/services/investments";
 import { canManageInvestment, canRegisterProperty, isAdmin } from "@/services/roles";
 import { getMyAgency, type MyAgency } from "@/services/agencies";
-import { getAgencyBalance, type AgencyBalance } from "@/services/payments";
+import {
+  getAgencyBalance,
+  getLatestRejectedPayment,
+  type AgencyBalance,
+  type PaymentRequest,
+} from "@/services/payments";
 import { formatMoneyAmount } from "@/utils/format";
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/i18n";
 import {
@@ -153,6 +158,12 @@ export default function MyScreen() {
   // [2026-09-11 사용자 지시] 승인된 업체만 잔액이 있다 — 사용잔액(쓸 수 있는 돈)을
   // 크게, 현잔액(누적 입금)을 작게 보여 준다.
   const [balance, setBalance] = useState<AgencyBalance | null>(null);
+  // [2026-09-11 사용자 지시 — 3차] 반려된 광고비 신청이 있으면 환불 예정임을 알린다 —
+  // 반려만 하고 아무 말이 없으면 돈이 어디로 갔는지 알 수 없다.
+  const [rejectedPayment, setRejectedPayment] = useState<PaymentRequest | null>(null);
+  // 나의 활동 숫자 — 내가 등록한 매물 수와 내가 낸 투자신청 수.
+  const [myPropertyCount, setMyPropertyCount] = useState(0);
+  const [myOrderCount, setMyOrderCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -162,6 +173,9 @@ export default function MyScreen() {
       setIsAdminUser(false);
       setAgency(null);
       setBalance(null);
+      setRejectedPayment(null);
+      setMyPropertyCount(0);
+      setMyOrderCount(0);
       setPermissionChecked(false);
       return;
     }
@@ -174,6 +188,12 @@ export default function MyScreen() {
     canManageInvestment().then((ok) => {
       if (mounted) setCanManageInvest(ok);
     });
+    listManagedProperties().then((list) => {
+      if (mounted) setMyPropertyCount(list.length);
+    });
+    listMyInvestmentOrders().then((list) => {
+      if (mounted) setMyOrderCount(list.length);
+    });
     isAdmin().then((ok) => {
       if (mounted) setIsAdminUser(ok);
     });
@@ -181,10 +201,17 @@ export default function MyScreen() {
       if (!mounted) return;
       setAgency(result);
       if (result && result.approvalStatus === "approved") {
-        const nextBalance = await getAgencyBalance(result.id);
-        if (mounted) setBalance(nextBalance);
+        const [nextBalance, rejected] = await Promise.all([
+          getAgencyBalance(result.id),
+          getLatestRejectedPayment(),
+        ]);
+        if (mounted) {
+          setBalance(nextBalance);
+          setRejectedPayment(rejected);
+        }
       } else {
         setBalance(null);
+        setRejectedPayment(null);
       }
     });
     return () => {
@@ -295,39 +322,40 @@ export default function MyScreen() {
               <View style={[styles.avatar, { backgroundColor: theme.background, borderColor: theme.border }]}>
                 <Ionicons name="person-outline" size={28} color={theme.secondaryText} />
               </View>
+              {/* 업체명은 등록신청을 마친 계정에만 있다 — 없는 계정(고객/관리자)은
+                  가운데를 비우고 우측 블록만 읽는다. */}
               <View style={styles.profileText}>
-                {/* [2026-09-11 사용자 지시] 등록신청을 마쳤으면 이메일 대신 **업체명**을
-                    앞세운다 — 중개업소 계정에게 자기 계정을 알아보는 이름은 이메일이
-                    아니라 업체명이다. 아직 심사 중이면 그 사실을 함께 알려 준다. */}
-                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-                  {agency ? t(`my.agencyStatus.${agency.approvalStatus}`) : t("my.signedInLabel")}
-                </Text>
-                <Text style={[textStyles.cardTitle, { color: theme.text }]} numberOfLines={1}>
-                  {agency?.name ?? session?.user.email ?? "—"}
-                </Text>
-                {agency && !balance ? (
-                  <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
-                    {session?.user.email ?? ""}
-                  </Text>
+                {agency ? (
+                  <>
+                    <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                      {t(`my.agencyStatus.${agency.approvalStatus}`)}
+                    </Text>
+                    <Text style={[textStyles.cardTitle, { color: theme.text }]} numberOfLines={2}>
+                      {agency.name}
+                    </Text>
+                  </>
                 ) : null}
               </View>
 
-              {/* [2026-09-11 사용자 지시] 로그인 아이콘 우측에 잔액 — 사용잔액 24px
-                  주황, 그 아래 현잔액 12px 회색, 그 아래 이메일. 승인된 업체에만 뜬다
-                  (잔액이라는 개념 자체가 그때 생긴다). */}
-              {balance ? (
-                <View style={styles.balanceBox}>
-                  <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
-                    {formatMoneyAmount(balance.available, "VND")}
-                  </Text>
-                  <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>
-                    {formatMoneyAmount(balance.totalDeposited, "VND")}
-                  </Text>
-                  <Text style={[styles.balanceEmail, { color: theme.secondaryText }]} numberOfLines={1}>
-                    {session?.user.email ?? ""}
-                  </Text>
-                </View>
-              ) : null}
+              {/* [2026-09-11 사용자 지시] 로그인 아이콘 우측 — 사용잔액 24px 주황,
+                  그 아래 현잔액 12px 회색, 그 아래 이메일. 잔액이 없는 계정(업체가
+                  아니거나 아직 입금 전)은 0으로 보여 준다 — 자리를 비워 두면 이메일이
+                  어디에 붙는지가 계정마다 달라진다. */}
+              <View style={styles.balanceBox}>
+                {/* [2026-09-11 사용자 지시] 단위(VND)만 60% 크기·굵기 없이.
+                    금액과 단위를 한 문자열로 두면 굵기·크기를 따로 줄 수 없어
+                    숫자와 단위를 나눠 그린다. */}
+                <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
+                  {Math.round(balance?.available ?? 0).toLocaleString("en-US")}
+                  <Text style={styles.balanceUnit}> VND</Text>
+                </Text>
+                <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>
+                  {formatMoneyAmount(balance?.totalDeposited ?? 0, "VND")}
+                </Text>
+                <Text style={[styles.balanceEmail, { color: theme.secondaryText }]} numberOfLines={1}>
+                  {session?.user.email ?? ""}
+                </Text>
+              </View>
             </>
           ) : (
             <View style={styles.profileText}>
@@ -354,7 +382,11 @@ export default function MyScreen() {
                   disabled={!!loadingProvider}
                   style={[styles.authButton, styles.socialButton, { borderColor: theme.border }]}
                 >
-                  <Image source={{ uri: GOOGLE_ICON_URI }} style={styles.googleIcon} />
+                  <Image
+                    source={{ uri: GOOGLE_ICON_URI }}
+                    style={styles.googleIcon}
+                    resizeMode="contain"
+                  />
                   <Text style={[textStyles.buttonLabel, styles.socialButtonLabel, { color: theme.text }]}>
                     {t("auth.login.submit")}
                   </Text>
@@ -413,15 +445,31 @@ export default function MyScreen() {
 
         {/* [2026-09-11] 로그아웃 — 기존에는 아예 없어서 다른 계정으로 바꿔 로그인할
             방법이 없었다(테스트에 특히 필요). 세션만 지우고 화면 이동은 하지 않는다. */}
+        {rejectedPayment ? (
+          <View style={[styles.refundBox, { borderColor: theme.danger }]}>
+            <Ionicons name="alert-circle-outline" size={18} color={theme.danger} />
+            <Text style={[textStyles.bodySmall, { color: theme.text, flex: 1 }]}>
+              {t("my.refundNotice", {
+                amount: formatMoneyAmount(rejectedPayment.amount, "VND"),
+              })}
+            </Text>
+          </View>
+        ) : null}
+
         {isLoggedIn ? (
           <View style={styles.accountActions}>
-            {/* [2026-09-11 사용자 지시] 로그아웃 버튼 좌측 결제 버튼 — 승인된 업체에만
-                의미가 있으므로 그때만 그린다. */}
+            {/* [2026-09-11 사용자 지시 — 5차] 로그아웃 버튼 좌측 "광고비 정산".
+                [2026-09-11 사용자 지시 — 수정] 승인된 업체에만 보인다.
+                앞서 canRegister(매물 등록 권한)로 넓혀 두었는데, 그러면 권한만 직접
+                받은 계정에도 버튼이 뜨고 눌러 봐야 "승인이 필요합니다"만 나온다 —
+                누를 수 없는 버튼을 보여 주는 셈이었다. 정산은 소속 업체의 잔액을
+                다루는 일이라 승인 전에는 할 수 있는 것이 아예 없으므로 감춘다.
+                payment-info.tsx의 게이트는 그대로 둔다(주소로 직접 들어오는 경우). */}
             {agency?.approvalStatus === "approved" ? (
               <Button
                 size="small"
                 variant="outline"
-                title={t("my.payment")}
+                title={t("my.adSettlement")}
                 onPress={() => router.push("/payment-info")}
               />
             ) : null}
@@ -435,32 +483,41 @@ export default function MyScreen() {
           </View>
         ) : null}
 
+        {/* [2026-09-11 사용자 지시] "나의 활동"은 로그인 후에만. 로그아웃 상태에서는
+            매물 0 / 투자 0 / 관심 0 세 칸이 늘 0으로 남아 아무것도 알려 주지 못하고,
+            눌러도 로그인 화면으로 튕긴다. */}
+        {isLoggedIn ? (
         <View style={styles.section}>
           <SectionHeader title={t("my.activityTitle")} />
           {/* [STEP: 2026-09-09] 사용자 요청 — "나의 활동" 숫자만 20px로. StatTile은
               invest.tsx 투자개요와 공유하는 컴포넌트라 valueStyle로 이 화면에서만
               오버라이드한다(라벨 크기는 그대로 유지 — 숫자만 지정됨). */}
           <Card style={styles.statsCard}>
+            {/* [2026-09-11 사용자 지시 — 4차] 매물 / 투자 / 관심.
+                매물 = 내가 등록한 매물, 투자 = 내가 낸 투자신청, 관심 = 찜한 것 전부.
+                앞의 둘은 "내가 한 일"이고 관심만 "내가 담아 둔 것"이라, 관심만 합쳐서
+                한 칸으로 둔다. */}
             <StatTile
-              label={t("my.stats.reservations")}
-              value="0"
-              onPress={showComingSoon}
+              label={t("my.stats.myProperties")}
+              value={String(myPropertyCount)}
+              onPress={() => router.push("/my-properties")}
               valueStyle={styles.activityValue}
             />
             <StatTile
-              label={t("my.stats.investments")}
-              value={String(favoriteInvestments.length)}
+              label={t("my.stats.myInvestments")}
+              value={String(myOrderCount)}
               onPress={() => router.push("/invest")}
               valueStyle={styles.activityValue}
             />
             <StatTile
-              label={t("my.stats.propertyActivity")}
-              value={String(favoriteProperties.length)}
+              label={t("my.stats.favorites")}
+              value={String(favoriteProperties.length + favoriteInvestments.length)}
               onPress={() => router.push("/property")}
               valueStyle={styles.activityValue}
             />
           </Card>
         </View>
+        ) : null}
 
         {/* [2026-09-11 사용자 지시] 부동산 등록신청 — **아직 매물 등록 권한이 없는**
             계정에게만 보인다. 승인을 이미 받았거나(승인된 Agency) 관리자가 직접
@@ -524,20 +581,14 @@ export default function MyScreen() {
                   last={!isAdminUser}
                 />
               ) : null}
-              {/* 계정 권한 관리는 admin 전용 — 다른 계정에 기능 권한을 켜고 끈다. */}
+              {/* [2026-09-11 사용자 지시 — 4차] "계정 권한 관리"와 "등록신청 관리"는
+                  둘 다 매물 등록 권한을 주는 경로라 관리자 입장에서 겹쳤다. 등록신청
+                  심사 화면 하나로 합치고 이름을 "등록권한 계정관리"로 바꾼다.
+                  투자 등록 권한은 투자상품 등록 화면 하단에서 다룬다. */}
               {isAdminUser ? (
                 <SettingsRow
                   icon="key-outline"
-                  label={t("my.managePermissions")}
-                  onPress={() => router.push("/admin-permissions")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-11] 부동산 등록신청 심사 — admin 전용. */}
-              {isAdminUser ? (
-                <SettingsRow
-                  icon="shield-checkmark-outline"
-                  label={t("my.reviewAgencies")}
+                  label={t("my.manageRegisterPermission")}
                   onPress={() => router.push("/admin-agencies")}
                   theme={theme}
                 />
@@ -548,6 +599,15 @@ export default function MyScreen() {
                   icon="card-outline"
                   label={t("my.managePayments")}
                   onPress={() => router.push("/admin-payments")}
+                  theme={theme}
+                />
+              ) : null}
+              {/* [2026-09-11 사용자 지시] 게시판 관리 — 공지사항/QA/FAQ. admin 전용. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="chatbubbles-outline"
+                  label={t("my.manageBoards")}
+                  onPress={() => router.push("/admin-boards")}
                   theme={theme}
                 />
               ) : null}
@@ -640,10 +700,19 @@ export default function MyScreen() {
               onPress={() => setCurrencyModalVisible(true)}
               theme={theme}
             />
+            {/* [2026-09-11 사용자 지시] 게시판 — 공지사항 / FAQ / QA.
+                고객센터는 "준비 중" 토스트였는데, 이제 실제로 갈 곳이 생겼다.
+                질문을 하러 오는 자리이므로 QA 탭으로 바로 보낸다. */}
+            <SettingsRow
+              icon="megaphone-outline"
+              label={t("my.rows.notices")}
+              onPress={() => router.push({ pathname: "/boards", params: { kind: "notice" } })}
+              theme={theme}
+            />
             <SettingsRow
               icon="help-buoy-outline"
               label={t("my.rows.support")}
-              onPress={showComingSoon}
+              onPress={() => router.push({ pathname: "/boards", params: { kind: "qa" } })}
               theme={theme}
               last
             />
@@ -754,13 +823,26 @@ const styles = StyleSheet.create({
   content: {
     // 사용자 요청: 화면 좌우 여백을 10px로 변경(세로 여백/gap은 기존 유지)
     paddingHorizontal: spacing.screenPaddingX,
-    paddingVertical: spacing.lg,
+    // [2026-09-11 사용자 지시] MY 화면만 위쪽 여백 0 — 회색 띠가 "MY" 줄 바로 아래에
+    // 붙어야 한다. 아래쪽은 그대로 둔다(padding-top: 0 / padding-bottom: 24px).
+    paddingTop: 0,
+    paddingBottom: spacing.lg,
     gap: spacing.md,
   },
+  // [2026-09-11 사용자 지시] 상단 MY 영역 바로 아래에 붙는 가로 100% 띠.
+  // 테두리는 아래 한 줄만 남기고 모서리 둥글리기와 그림자를 없앤다 — content의
+  // 좌우 여백만큼 음수 마진으로 빼내 화면 끝까지 채우고, 안쪽에서 다시 준다.
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    marginHorizontal: -spacing.screenPaddingX,
+    paddingHorizontal: spacing.screenPaddingX,
+    borderRadius: 0,
+    borderWidth: 0,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   avatar: {
     width: 56,
@@ -781,11 +863,23 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     gap: spacing.sm,
   },
+  refundBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    marginTop: spacing.sm,
+  },
+  // [2026-09-11 사용자 지시 — 5차] 회색 띠와 버튼 줄 사이 위아래 10px.
+  // content가 자식 사이에 spacing.md(16)를 두므로 그만큼 빼서 10만 남긴다.
   accountActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: spacing.sm,
-    marginTop: spacing.sm,
+    marginTop: 10 - spacing.md,
+    marginBottom: 10 - spacing.md,
   },
   balanceBox: {
     alignItems: "flex-end",
@@ -794,6 +888,11 @@ const styles = StyleSheet.create({
   balanceAvailable: {
     fontSize: 24,
     fontWeight: typography.weight.bold,
+  },
+  // 24px의 60% — 굵기는 상속되지 않도록 명시적으로 되돌린다.
+  balanceUnit: {
+    fontSize: 14,
+    fontWeight: typography.weight.regular,
   },
   balanceTotal: {
     fontSize: 12,
@@ -817,9 +916,15 @@ const styles = StyleSheet.create({
   },
   // 사용자 요청: 아이콘 크기 50% 확대(16 → 24) — Image는 Ionicons와 달리 명시적
   // width/height가 필요하다.
+  //
+  // [2026-09-11 사용자 지시] "구글 아이콘이 애플 로고보다 크다" — 둘 다 24로 두면
+  // 실제로 크기가 다르게 보인다. Ionicons의 logo-apple은 24px 글리프 박스 안에
+  // 여백을 두고 그려져 그림 자체는 19px 남짓인데, Google 이미지는 여백 없이 G가
+  // 가장자리까지 차 있다. 그래서 이미지 쪽만 그 여백만큼 줄여 눈에 보이는 크기를
+  // 맞춘다. resizeMode="contain"은 원본 비율이 정사각이 아니어도 잘리지 않게 한다.
   googleIcon: {
-    width: 24,
-    height: 24,
+    width: 19,
+    height: 19,
     marginRight: spacing.xs,
   },
   // [STEP: 2026-09-09] 사용자 요청 — 구글/애플 로그인 버튼 배경을 흰색 + 옅은
@@ -843,8 +948,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   // [STEP: 2026-09-09] 사용자 요청 — "나의 활동" 숫자 20px
+  // [2026-09-11 사용자 지시] 나의 활동 숫자 30px(이전 xl).
   activityValue: {
-    fontSize: typography.size.xl,
+    fontSize: 30,
   },
   favoritesStack: {
     gap: spacing.md,

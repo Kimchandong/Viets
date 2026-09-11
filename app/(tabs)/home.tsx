@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { setStatusBarBackgroundColor, setStatusBarStyle, setStatusBarTranslucent } from "expo-status-bar";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Ionicons } from "@expo/vector-icons";
 import {
+  Animated,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -26,13 +28,13 @@ import { colors, layout, opacity, radius, spacing, textStyles, typography, Theme
 import {
   HOME_CATEGORIES,
   HOME_INVEST_CATEGORIES,
-  MOCK_MARKET_INSIGHTS,
-  MOCK_UNREAD_NOTIFICATION_COUNT,
   type MockInvestmentProduct,
   type MockProperty,
 } from "@/constants/mockData";
 import { listProperties } from "@/services/properties";
 import { listInvestmentProducts } from "@/services/investments";
+import { listBoardPosts, type BoardPost } from "@/services/boards";
+import { getNewInvestmentCount, getUnreadChatCount } from "@/services/notifications";
 
 // STEP 4-9B — Home UI 레이아웃 기반. 실제 Property/Market 데이터 fetch는 하지 않는다
 // (constants/mockData.ts의 mock 값만 사용).
@@ -45,7 +47,7 @@ import { listInvestmentProducts } from "@/services/investments";
 export default function HomeScreen() {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지, 비로그인 공개 화면)
   const theme = colors.light;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [toast, setToast] = useState<string | null>(null);
@@ -100,6 +102,15 @@ export default function HomeScreen() {
   // 경우 앱을 새로고침해야 반영된다(property.tsx와 동일한 정책).
   const [properties, setProperties] = useState<MockProperty[]>([]);
   const [investmentProducts, setInvestmentProducts] = useState<MockInvestmentProduct[]>([]);
+  // [2026-09-11 사용자 지시] 홈의 "시장 소식"을 관리자가 올린 공지사항 최신 10건으로
+  // 바꾼다. 이전에는 constants/mockData.ts의 MOCK_MARKET_INSIGHTS 3건이 코드에 박혀
+  // 있어 내용이 고정이었고, 번역도 되지 않았다(베트남어 원문 그대로).
+  const [notices, setNotices] = useState<BoardPost[]>([]);
+  const [faqs, setFaqs] = useState<BoardPost[]>([]);
+  // [2026-09-11 사용자 지시] 상단 우측 알림 두 개 — 부동산(상담 미읽음) / 투자(신규 상품).
+  // 숫자는 DB 함수가 센다(services/notifications.ts 주석 참고).
+  const [unreadChats, setUnreadChats] = useState(0);
+  const [newInvestments, setNewInvestments] = useState(0);
 
   // [2026-09-11 사용자 지시] 화면에 들어올 때마다 다시 조회한다.
   // 이전에는 useEffect(..., [])로 **마운트 시 1회만** 불러왔다. Expo Router는 탭
@@ -115,10 +126,23 @@ export default function HomeScreen() {
       listInvestmentProducts().then((result) => {
         if (active) setInvestmentProducts(result);
       });
+      listBoardPosts("notice", i18n.language, { limit: 10 }).then((result) => {
+        if (active) setNotices(result);
+      });
+      listBoardPosts("faq", i18n.language, { limit: 5 }).then((result) => {
+        if (active) setFaqs(result);
+      });
+      // 화면에 들어올 때마다 다시 센다 — 상담을 읽고 돌아오면 숫자가 줄어야 한다.
+      getUnreadChatCount().then((count) => {
+        if (active) setUnreadChats(count);
+      });
+      getNewInvestmentCount().then((count) => {
+        if (active) setNewInvestments(count);
+      });
       return () => {
         active = false;
       };
-    }, []),
+    }, [i18n.language]),
   );
 
   function submitHomeSearch() {
@@ -183,36 +207,26 @@ export default function HomeScreen() {
                 <Ionicons name="chevron-down" size={12} color={theme.onAccent} />
               </Pressable>
             </View>
-            <Pressable
-              onPress={showComingSoon}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.iconButton,
-                // [STEP: 2026-09-09-12] 사용자 요청 — 배경 반투명(0.3), 테두리 반투명(0.4),
-                // 종 아이콘 흰색. 배너(영상) 위에 얹히는 버튼이라 흰색 배경 대신 반투명
-                // 흰색으로 바꿔 배너가 비쳐 보이도록 한다.
-                {
-                  backgroundColor: "rgba(255,255,255,0.3)",
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: "rgba(255,255,255,0.4)",
-                  opacity: pressed ? opacity.pressed : 1,
-                },
-              ]}
-            >
-              <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
-              {/* 사용자 요청(2026-09-09): 상단 우측 알림 아이콘에 읽지 않은 알림 수 표시 —
-                  아직 실제 알림 기능이 없어 MOCK_UNREAD_NOTIFICATION_COUNT(placeholder)를
-                  쓴다. 0이면 배지 자체를 숨긴다. */}
-              {/* [STEP: 2026-09-09-2] 사용자 요청 — 흰 테두리 제거, 숫자를 배지 가운데에
-                  작게 표시(테두리 두께만큼 뱃지 밖으로 삐져나와 보이던 문제 겸 해결). */}
-              {MOCK_UNREAD_NOTIFICATION_COUNT > 0 ? (
-                <View testID="home-notification-badge" style={[styles.notificationBadge, { backgroundColor: theme.danger }]}>
-                  <Text style={styles.notificationBadgeText} numberOfLines={1}>
-                    {MOCK_UNREAD_NOTIFICATION_COUNT > 9 ? "9+" : MOCK_UNREAD_NOTIFICATION_COUNT}
-                  </Text>
-                </View>
-              ) : null}
-            </Pressable>
+            {/* [2026-09-11 사용자 지시] 종 아이콘을 빼고 부동산 / 투자 두 개로 바꿨다.
+                종은 고정 목업 숫자에 눌러도 "준비 중"이라 알림 역할을 한 적이 없다.
+                부동산 = 내가 읽지 않은 매물 상담 메시지 수 → 상담 목록으로.
+                투자   = 마지막으로 본 뒤 올라온 투자상품 수 → 투자 탭으로. */}
+            <View style={styles.topIcons}>
+              <AlertIconButton
+                icon="business-outline"
+                count={unreadChats}
+                badgeColor={theme.danger}
+                accessibilityLabel={t("tabs.property")}
+                onPress={() => router.push("/chat-inbox")}
+              />
+              <AlertIconButton
+                icon="trending-up-outline"
+                count={newInvestments}
+                badgeColor={theme.danger}
+                accessibilityLabel={t("tabs.invest")}
+                onPress={() => router.navigate("/invest")}
+              />
+            </View>
           </View>
 
           {/* 사용자 요청(2026-09-08): 실제 입력 가능한 검색창으로 교체 — 검색 아이콘/
@@ -244,10 +258,37 @@ export default function HomeScreen() {
               // 적용돼 11px 근처로 흔들릴 수 있어, 이 입력창만 명시적으로 고정).
               style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: 12 }]}
             />
+            {/* [2026-09-11 사용자 지시] 음성검색 왼쪽에 AI 검색. 검색창에 적은 말이
+                있으면 그대로 들고 AI 탭으로 넘어간다 — 여기서 지우고 거기서 다시
+                치게 만들 이유가 없다. */}
+            <Pressable
+              onPress={() => {
+                const query = homeSearch.trim();
+                router.navigate({ pathname: "/ai", params: query ? { q: query } : {} });
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t("tabs.ai")}
+              hitSlop={8}
+            >
+              <Ionicons name="sparkles-outline" size={22} color={theme.secondaryText} />
+            </Pressable>
+            {/* [2026-09-11 사용자 지시] 음성검색 아이콘 크게(18 → 22). */}
             <Pressable onPress={showComingSoon} accessibilityRole="button" hitSlop={8}>
-              <Ionicons name="mic-outline" size={18} color={theme.secondaryText} />
+              <Ionicons name="mic-outline" size={22} color={theme.secondaryText} />
             </Pressable>
           </View>
+
+          {/* [2026-09-11 사용자 지시] 검색창과 흰 콘텐츠 영역 사이에 공지 5건을
+              아래에서 위로 올라가는 롤링으로 보여 준다. 이 자리는 원래 배너 색만
+              보이던 빈 여백(heroBanner.paddingBottom)이라 새로 자리를 만들지 않고
+              그 안에 넣었다 — 아래 레이아웃이 밀리지 않는다.
+              공지가 없으면 줄 자체를 그리지 않는다(빈 줄만 떠 있게 되므로). */}
+          {notices.length > 0 ? (
+            <NoticeTicker
+              items={notices.slice(0, 5)}
+              onPress={(notice) => router.push(`/board-detail/${notice.id}`)}
+            />
+          ) : null}
         </View>
 
         {/* [STEP: 2026-09-09 재작업] 기존에는 이 아래 전체를 content의 padding/gap
@@ -367,7 +408,7 @@ export default function HomeScreen() {
             "전체상품" 섹션과 동일한 목록을 그대로 노출한다 — 사용자 지시("전체상품
             (투자페이지 그대로)"). */}
         {categoryTab === "invest" ? (
-          <View testID="home-section-invest-all" style={[styles.section, styles.lastSection]}>
+          <View testID="home-section-invest-all" style={styles.section}>
             {/* 사용자 요청(2026-09-09): 홈화면 부동산투자 탭의 이 섹션 제목만
                 invest.tsx와 별도 문구("투자 전체")로 바꾼다 — invest.tsx 자체의
                 "전체 상품" 섹션(같은 t("invest.allProductsTitle") 키)은 그대로 둔다. */}
@@ -416,14 +457,75 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {categoryTab === "property" ? (
-          <View testID="home-section-market" style={[styles.section, styles.lastSection]}>
-            <SectionHeader title={t("home.marketTitle")} />
+        {/* [2026-09-11 사용자 지시] 공지사항 / FAQ — 홈 맨 아래에 항상 둔다.
+            처음에는 "매물 탭에서만, 글이 있을 때만"으로 만들었는데 두 조건 모두
+            사용자 지시로 없앴다. 공지와 FAQ는 매물에만 해당하는 내용이 아니라 두
+            탭 어디서나 같은 자리에 있어야 하고, 글이 없을 때 섹션째 사라지면
+            "기능이 없는 것"과 "아직 글이 없는 것"이 구분되지 않는다. */}
+        <View testID="home-section-notice" style={styles.section}>
+          <SectionHeader
+            title={t("home.noticeTitle")}
+            actionLabel={t("common.seeAll")}
+            onAction={() => router.push({ pathname: "/boards", params: { kind: "notice" } })}
+          />
+          {notices.length === 0 ? (
+            <EmptyState title={t("home.noticeEmpty")} />
+          ) : (
             <View style={styles.stack}>
-              {MOCK_MARKET_INSIGHTS.map((insight) => (
+              {/* [2026-09-11 사용자 지시] 썸네일 형식 — 좌측 이미지, 우측 제목(2줄까지),
+                  제목 아래 작성일. 첨부가 없는 공지도 같은 자리를 차지해야 줄들이
+                  들쭉날쭉해지지 않으므로, 이미지가 없으면 같은 크기의 자리표시를 둔다. */}
+              {notices.map((notice) => (
                 <Pressable
-                  key={insight.id}
-                  onPress={showComingSoon}
+                  key={notice.id}
+                  onPress={() => router.push(`/board-detail/${notice.id}`)}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.noticeCard,
+                    { backgroundColor: theme.card, borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                  ]}
+                >
+                  {notice.images.length > 0 ? (
+                    <Image
+                      source={{ uri: notice.images[0] }}
+                      style={styles.noticeThumb}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={[styles.noticeThumb, styles.noticeThumbEmpty, { backgroundColor: theme.background }]}>
+                      <Ionicons name="megaphone-outline" size={20} color={theme.secondaryText} />
+                    </View>
+                  )}
+                  <View style={styles.noticeTexts}>
+                    <Text style={[textStyles.bodySmall, { color: theme.text }]} numberOfLines={2}>
+                      {notice.title}
+                    </Text>
+                    <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                      {notice.createdAt.slice(0, 10)}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* FAQ — 공지보다 적게(5건) 보여 준다. 자주 묻는 질문은 훑어보는 목록이라
+            홈에서 열 줄을 차지하면 공지를 밀어낸다. 전체는 게시판에서 본다. */}
+        <View testID="home-section-faq" style={[styles.section, styles.lastSection]}>
+          <SectionHeader
+            title={t("home.faqTitle")}
+            actionLabel={t("common.seeAll")}
+            onAction={() => router.push({ pathname: "/boards", params: { kind: "faq" } })}
+          />
+          {faqs.length === 0 ? (
+            <EmptyState title={t("home.faqEmpty")} />
+          ) : (
+            <View style={styles.stack}>
+              {faqs.map((faq) => (
+                <Pressable
+                  key={faq.id}
+                  onPress={() => router.push({ pathname: "/boards", params: { kind: "faq" } })}
                   accessibilityRole="button"
                   style={({ pressed }) => [
                     styles.insightCard,
@@ -431,21 +533,190 @@ export default function HomeScreen() {
                   ]}
                 >
                   <View style={[styles.insightTag, { backgroundColor: theme.background }]}>
-                    <Text style={[textStyles.caption, { color: theme.accent }]}>{insight.sourceTag}</Text>
+                    <Text style={[textStyles.caption, { color: theme.accent }]}>Q</Text>
                   </View>
                   <Text style={[textStyles.bodySmall, { color: theme.text }]} numberOfLines={2}>
-                    {insight.title}
+                    {faq.title}
                   </Text>
                 </Pressable>
               ))}
             </View>
-          </View>
-        ) : null}
+          )}
+        </View>
         </View>
         </View>
       </ScrollView>
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </View>
+  );
+}
+
+/**
+ * [2026-09-11 사용자 지시] 공지 롤링 — 한 줄 높이만 차지하고, 한 건씩 아래에서
+ * 위로 올라오며 바뀐다.
+ *
+ * 목록 전체를 길게 이어 붙여 흘리는 대신 "한 건씩 교체"로 만든 이유: 높이를 글자
+ * 한 줄로 제한해야 해서(사용자 지시) 어차피 한 번에 한 건만 보이고, 교체 방식이면
+ * 공지 건수가 몇 건이든 애니메이션 거리가 항상 같아 속도가 들쭉날쭉하지 않는다.
+ *
+ * useNativeDriver를 웹에서 끄는 이유: react-native-web에는 네이티브 애니메이션
+ * 모듈이 없어 켜 두면 콘솔에 경고를 남기고 JS 구동으로 되돌아간다 — 동작은 같지만
+ * 경고가 쌓여 실제 문제를 가린다.
+ */
+const TICKER_LINE_HEIGHT = 18;
+const TICKER_HOLD_MS = 3000;
+const TICKER_SLIDE_MS = 400;
+
+/**
+ * [2026-09-11 사용자 지시] 알림 수가 붙는 상단 아이콘 버튼.
+ *
+ * 숫자가 0보다 크면 테두리가 배지 색으로 깜박인다 — "숫자가 떠 있다"는 것만으로는
+ * 배너 영상 위에서 잘 안 보인다는 지적이 있었다.
+ *
+ * useNativeDriver를 쓰지 않는 이유: 색을 오가는 애니메이션은 네이티브 드라이버가
+ * 다루지 못한다(레이아웃·투명도·변형만 가능). 테두리 하나짜리라 JS 구동으로 충분하다.
+ *
+ * 깜박임은 숫자가 0이 되면 즉시 멈추고 기본 테두리로 돌아간다 — 멈추지 않으면 볼
+ * 것이 없는데도 계속 시선을 끈다.
+ */
+const IDLE_BORDER = "rgba(255,255,255,0.4)";
+
+function AlertIconButton({
+  icon,
+  count,
+  badgeColor,
+  accessibilityLabel,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  count: number;
+  badgeColor: string;
+  accessibilityLabel: string;
+  onPress: () => void;
+}) {
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (count <= 0) {
+      pulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: 0, duration: 600, useNativeDriver: false }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [count, pulse]);
+
+  const borderColor = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [IDLE_BORDER, badgeColor],
+  });
+
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel}>
+      {({ pressed }) => (
+        <Animated.View
+          style={[
+            styles.iconButton,
+            {
+              backgroundColor: "rgba(255,255,255,0.3)",
+              borderWidth: count > 0 ? 1 : StyleSheet.hairlineWidth,
+              borderColor: count > 0 ? borderColor : IDLE_BORDER,
+              opacity: pressed ? opacity.pressed : 1,
+            },
+          ]}
+        >
+          <Ionicons name={icon} size={20} color="#FFFFFF" />
+          {count > 0 ? (
+            <View style={[styles.notificationBadge, { backgroundColor: badgeColor }]}>
+              <Text style={styles.notificationBadgeText} numberOfLines={1}>
+                {count > 9 ? "9+" : count}
+              </Text>
+            </View>
+          ) : null}
+        </Animated.View>
+      )}
+    </Pressable>
+  );
+}
+
+function NoticeTicker({
+  items,
+  onPress,
+}: {
+  items: BoardPost[];
+  onPress: (notice: BoardPost) => void;
+}) {
+  const [index, setIndex] = useState(0);
+  const translateY = useRef(new Animated.Value(TICKER_LINE_HEIGHT)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  const useNative = Platform.OS !== "web";
+
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    let cancelled = false;
+    translateY.setValue(TICKER_LINE_HEIGHT);
+    fade.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(translateY, { toValue: 0, duration: TICKER_SLIDE_MS, useNativeDriver: useNative }),
+      Animated.timing(fade, { toValue: 1, duration: TICKER_SLIDE_MS, useNativeDriver: useNative }),
+    ]).start();
+
+    // 공지가 한 건뿐이면 그대로 둔다 — 같은 문장이 계속 위아래로 움직이면 읽기만 힘들다.
+    if (items.length === 1) return;
+
+    const timer = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: -TICKER_LINE_HEIGHT,
+          duration: TICKER_SLIDE_MS,
+          useNativeDriver: useNative,
+        }),
+        Animated.timing(fade, { toValue: 0, duration: TICKER_SLIDE_MS, useNativeDriver: useNative }),
+      ]).start(() => {
+        if (!cancelled) setIndex((prev) => prev + 1);
+      });
+    }, TICKER_HOLD_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [index, items.length, fade, translateY, useNative]);
+
+  // index는 계속 커지므로 나머지 연산으로 되돌린다 — 공지 건수가 줄어도 범위를 벗어나지 않는다.
+  const current = items[index % items.length];
+  if (!current) return null;
+
+  return (
+    <Pressable
+      onPress={() => onPress(current)}
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.ticker, { opacity: pressed ? opacity.pressed : 1 }]}
+    >
+      <View style={styles.tickerViewport}>
+        <Animated.Text
+          numberOfLines={1}
+          style={[
+            textStyles.caption,
+            styles.tickerText,
+            // [2026-09-11 사용자 지시] 롤링 글자색 rgba(255,255,255,0.7).
+            // 투명도를 color에 직접 넣는다 — style.opacity는 이미 등장/퇴장
+            // 애니메이션(fade)이 쓰고 있어 거기에 0.7을 곱하면 슬라이드 중간값이
+            // 흐트러진다.
+            { color: "rgba(255, 255, 255, 0.7)", opacity: fade, transform: [{ translateY }] },
+          ]}
+        >
+          {current.title}
+        </Animated.Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -522,6 +793,61 @@ const styles = StyleSheet.create({
   // 상단 padding(lg)을 이 영역에서만 상쇄해 이미지가 화면 가로 100%/맨 위까지 채우게
   // 하고(bleedScroll과 동일 원칙), 내부에는 다시 동일한 좌우 padding을 줘 topBar/
   // searchBar가 기존과 같은 위치에 보이도록 한다.
+  // [2026-09-11 사용자 지시] 상단 우측 알림 아이콘 두 개를 나란히.
+  topIcons: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+
+  // [2026-09-11 사용자 지시] 하단 공지 목록 — 썸네일 카드.
+  noticeCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+  },
+  noticeThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.sm,
+  },
+  noticeThumbEmpty: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // minWidth:0이 없으면 긴 제목이 카드를 밀어내 썸네일이 찌그러진다.
+  noticeTexts: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+
+  // [2026-09-11 사용자 지시] 공지 롤링 — 높이는 글자 한 줄만, 좌우 여백 20px.
+  //
+  // heroBanner가 이미 좌우 10px(spacing.screenPaddingX)을 주고 있으므로 여기서는
+  // 모자란 10px만 더한다 — 20을 그대로 쓰면 화면 가장자리에서 30px이 된다.
+  ticker: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginHorizontal: 20 - spacing.screenPaddingX,
+  },
+  // 한 줄 높이로 잘라내는 창. overflow:hidden이 없으면 위/아래로 빠져나가는 글자가
+  // 검색창과 흰 카드 위에 그대로 겹쳐 보인다.
+  tickerViewport: {
+    flex: 1,
+    height: TICKER_LINE_HEIGHT,
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+  tickerText: {
+    // [2026-09-11 사용자 지시] 롤링 글자 12px. caption 토큰은 기기 폭에 따라
+    // 11px 근처로 흔들리므로 검색창 placeholder와 같은 방식으로 여기만 고정한다.
+    fontSize: 12,
+    lineHeight: TICKER_LINE_HEIGHT,
+  },
   heroBanner: {
     // STEP: PropertyCard.tsx/InvestmentCard.tsx와 동일한 이유로 명시적
     // position:"relative"를 준다 — react-native-web에서는 ImageBackground의
@@ -560,7 +886,11 @@ const styles = StyleSheet.create({
     // [STEP: 2026-09-09-12] 사용자 요청 — 검색창 아래 실제로 보이는(라운딩 겹침 이후)
     // 여백을 60px로. bodyMask가 marginTop:-16으로 겹쳐 올라가므로, 눈에 보이는 평평한
     // 여백은 (paddingBottom - 16)이 된다 — 60px를 보이게 하려면 76(=60+16)이 필요하다.
-    paddingBottom: 60 + 16,
+    //
+    // [2026-09-11 사용자 지시] 그 여백에 공지 롤링이 들어왔으므로 60px는 더 이상
+    // "검색창 아래 빈 여백"이 아니라 "공지 줄 아래 여백"이다. 10px로 줄인다.
+    // 계산 규칙은 그대로다 — 보이는 여백 10px = paddingBottom 26 - 겹침 16.
+    paddingBottom: 10 + 16,
     gap: spacing.lg,
     overflow: "hidden",
   },

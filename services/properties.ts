@@ -54,19 +54,24 @@ type PropertyRow = {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  region: string | null;
   created_by: string | null;
   property_images: PropertyImageRow[] | null;
 };
 
 const PROPERTY_SELECT =
-  "id,title,description,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,featured,amenities,address,latitude,longitude,created_by,property_images(url,sort_order)";
+  "id,title,description,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,featured,amenities,address,latitude,longitude,region,created_by,property_images(url,sort_order)";
 
-/** address 텍스트에 MOCK_REGIONS(지역 필터 칩) 중 하나가 포함되어 있으면 그 값을 쓴다.
- * locations 테이블이 아직 비어있어(seed 없음) province_id FK 대신 address 텍스트 매칭으로
- * 지역 필터(property.tsx의 regionBar)가 실제 데이터에서도 동작하게 한다. */
-function resolveProvince(address: string | null): string {
+/** 매물의 지역.
+ *
+ * [2026-09-11] 등록 화면에서 고른 region이 있으면 그 값을 그대로 쓴다. 그 컬럼이 생기기
+ * 전에 등록된 매물은 값이 비어 있으므로, 예전처럼 주소 문자열에 도시명이 들어 있는지로
+ * 찾는다(locations 테이블이 비어 있어 FK 대신 텍스트 매칭이었다). 추측은 옛 데이터에만
+ * 남기고 새 데이터는 고른 값을 쓴다. */
+function resolveProvince(region: string | null, address: string | null): string {
+  if (region && region.length > 0) return region;
   if (!address) return "";
-  return MOCK_REGIONS.find((region) => address.includes(region)) ?? "";
+  return MOCK_REGIONS.find((item) => address.includes(item)) ?? "";
 }
 
 /** 실제 매물 사진(property_images)이 아직 없으면(등록 초기 단계) 카테고리별 mock
@@ -103,7 +108,7 @@ function mapRowToMockProperty(row: PropertyRow): MockProperty {
     status,
     featured: row.featured,
     category: uiCategory,
-    province: resolveProvince(row.address),
+    province: resolveProvince(row.region, row.address),
     priceValueVnd: row.price,
     areaValueM2: row.area ?? 0,
     bedrooms: row.bedrooms ?? undefined,
@@ -305,6 +310,8 @@ export type NewPropertyInput = {
   bedrooms: number | null;
   bathrooms: number | null;
   address: string;
+  /** [2026-09-11] 등록 화면에서 고른 지역(MOCK_REGIONS). 고르지 않으면 빈 문자열. */
+  region: string;
   latitude: number | null;
   longitude: number | null;
   amenities: string[];
@@ -333,7 +340,12 @@ export async function createProperty(input: NewPropertyInput): Promise<string | 
 
   const { data, error } = await supabase
     .from("properties")
-    .insert({ ...input, currency: "VND", agency_id: (agencyId as string | null) ?? null })
+    .insert({
+      ...input,
+      region: input.region.length > 0 ? input.region : null,
+      currency: "VND",
+      agency_id: (agencyId as string | null) ?? null,
+    })
     .select("id")
     .single();
 
@@ -353,7 +365,10 @@ export async function updateProperty(id: string, input: NewPropertyInput): Promi
     return false;
   }
 
-  const { error } = await supabase.from("properties").update(input).eq("id", id);
+  const { error } = await supabase
+    .from("properties")
+    .update({ ...input, region: input.region.length > 0 ? input.region : null })
+    .eq("id", id);
 
   if (error) {
     console.warn("[services/properties] updateProperty failed:", error.message);
@@ -537,7 +552,7 @@ export async function getPropertyForEdit(id: string): Promise<NewPropertyInput |
   const { data, error } = await supabase
     .from("properties")
     .select(
-      "title,description,category,listing_type,price,area,bedrooms,bathrooms,address,latitude,longitude,amenities,featured,status",
+      "title,description,category,listing_type,price,area,bedrooms,bathrooms,address,region,latitude,longitude,amenities,featured,status",
     )
     .eq("id", id)
     .maybeSingle();
@@ -547,9 +562,10 @@ export async function getPropertyForEdit(id: string): Promise<NewPropertyInput |
     return null;
   }
 
-  const row = data as unknown as NewPropertyInput & { status: string };
+  const row = data as unknown as NewPropertyInput & { status: string; region: string | null };
   return {
     ...row,
+    region: row.region ?? "",
     // 폼은 active/draft 두 가지만 다룬다 — archived 매물을 수정하면 draft로 되살아난다
     // (사용자가 "즉시 공개"를 켜서 다시 active로 만들 수 있다).
     status: row.status === "active" ? "active" : "draft",

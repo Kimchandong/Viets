@@ -407,7 +407,14 @@
     "mapHintPicked": "拖动标记可微调位置",
     "mapUnavailable": "地图仅在手机应用中显示。在网页端请在下方直接输入经纬度。",
     "clearLocation": "清除已选位置",
-    "locationOptionalNotice": "未设置位置的房源不会显示在地图上"
+    "locationOptionalNotice": "未设置位置的房源不会显示在地图上",
+    "geocodeButton": "根据地址查找位置",
+    "geocoding": "查找中...",
+    "geocodeFound": "已移动到 {{address}}。请拖动地图上的标记到准确位置。",
+    "geocodeNotFound": "未找到该地址，请在地图上直接指定位置。",
+    "geocodeForbidden": "该账号没有地址查找权限",
+    "geocodeFailed": "地址查找失败，请在地图上直接指定位置。",
+    "geocodeAddressTooShort": "请先输入地址"
   },
   "investRegister": {
     "title": "发布投资产品",

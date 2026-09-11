@@ -407,7 +407,14 @@
     "mapHintPicked": "Kéo điểm đánh dấu để chỉnh vị trí chính xác hơn",
     "mapUnavailable": "Bản đồ chỉ hiển thị trong ứng dụng di động. Trên web, hãy nhập vĩ độ và kinh độ bên dưới.",
     "clearLocation": "Xoá vị trí đã chọn",
-    "locationOptionalNotice": "Không có vị trí thì bất động sản sẽ không hiển thị trên bản đồ"
+    "locationOptionalNotice": "Không có vị trí thì bất động sản sẽ không hiển thị trên bản đồ",
+    "geocodeButton": "Tìm vị trí từ địa chỉ",
+    "geocoding": "Đang tìm...",
+    "geocodeFound": "Đã chuyển tới {{address}}. Hãy kéo điểm đánh dấu tới đúng vị trí.",
+    "geocodeNotFound": "Không tìm thấy địa chỉ này. Vui lòng chọn vị trí trên bản đồ.",
+    "geocodeForbidden": "Tài khoản này không có quyền tra cứu địa chỉ",
+    "geocodeFailed": "Tra cứu địa chỉ thất bại. Vui lòng chọn vị trí trên bản đồ.",
+    "geocodeAddressTooShort": "Vui lòng nhập địa chỉ trước"
   },
   "investRegister": {
     "title": "Đăng sản phẩm",

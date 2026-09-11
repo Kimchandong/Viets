@@ -23,6 +23,7 @@ import {
   createProperty,
   deletePropertyImage,
   deletePropertyPermanently,
+  geocodeAddress,
   getPropertyForEdit,
   listPropertyImages,
   updateProperty,
@@ -103,6 +104,7 @@ export default function PropertyRegisterScreen() {
   const [existingPhotos, setExistingPhotos] = useState<ExistingPropertyImage[]>([]);
   const [photoPendingDelete, setPhotoPendingDelete] = useState<ExistingPropertyImage | null>(null);
   const [deletingPhoto, setDeletingPhoto] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -144,6 +146,40 @@ export default function PropertyRegisterScreen() {
       // 같은 사진을 두 번 고르는 경우가 있어 중복 제거 후 남은 칸수만큼만 받는다.
       return Array.from(new Set(merged)).slice(0, MAX_PHOTOS - existingPhotos.length);
     });
+  }
+
+  /**
+   * 입력한 주소로 좌표를 찾아 지도를 그 위치로 옮긴다.
+   *
+   * 결과는 **제안**이다 — Geocoding은 상세주소가 없으면 동/구 중심 같은 대략적인
+   * 위치를 돌려주므로, 찾은 좌표를 그대로 확정하지 않고 지도에 마커로 올려 두고
+   * 등록자가 끌어서 실제 위치로 맞추게 한다.
+   */
+  async function handleGeocodeAddress() {
+    const target = address.trim();
+    if (target.length < 4) {
+      showToast(t("propertyRegister.geocodeAddressTooShort"));
+      return;
+    }
+
+    setGeocoding(true);
+    const result = await geocodeAddress(target);
+    setGeocoding(false);
+
+    if (!result.ok) {
+      showToast(
+        result.reason === "not-found"
+          ? t("propertyRegister.geocodeNotFound")
+          : result.reason === "forbidden"
+            ? t("propertyRegister.geocodeForbidden")
+            : t("propertyRegister.geocodeFailed"),
+      );
+      return;
+    }
+
+    setLatitude(result.latitude.toFixed(6));
+    setLongitude(result.longitude.toFixed(6));
+    showToast(t("propertyRegister.geocodeFound", { address: result.formattedAddress }));
   }
 
   /** 이미 등록된 사진 1장 삭제 — 확인 모달에서 확정된 뒤에만 호출된다. */
@@ -479,6 +515,15 @@ export default function PropertyRegisterScreen() {
             onChangeText={setAddress}
             placeholder="TP. Thủ Đức, TP. Hồ Chí Minh"
             helperText={t("propertyRegister.addressHelper")}
+          />
+          {/* [STEP 04-지오코딩] 입력한 주소로 지도를 대략적인 위치까지 옮겨 준다.
+              찾은 좌표는 확정이 아니라 출발점이다 — 아래 지도에서 마커를 끌어 맞춘다. */}
+          <Button
+            title={geocoding ? t("propertyRegister.geocoding") : t("propertyRegister.geocodeButton")}
+            variant="outline"
+            onPress={handleGeocodeAddress}
+            disabled={geocoding || submitting}
+            style={styles.submitButton}
           />
           {/* [STEP 04-위치선택] 지도에서 마커로 위치 지정(2026-09-11 요구사항).
               베트남 매물은 상세주소를 끝까지 적지 않는 경우가 많아 주소 문자열만으로는

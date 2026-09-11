@@ -407,7 +407,14 @@
     "mapHintPicked": "Drag the marker to fine-tune the location",
     "mapUnavailable": "The map is only available in the mobile app. On web, enter latitude and longitude below.",
     "clearLocation": "Clear the selected location",
-    "locationOptionalNotice": "Without a location the listing will not appear on the map"
+    "locationOptionalNotice": "Without a location the listing will not appear on the map",
+    "geocodeButton": "Find location from address",
+    "geocoding": "Searching...",
+    "geocodeFound": "Moved to {{address}}. Drag the marker on the map to the exact spot.",
+    "geocodeNotFound": "That address could not be found. Please set the location on the map.",
+    "geocodeForbidden": "This account cannot use address lookup",
+    "geocodeFailed": "Address lookup failed. Please set the location on the map.",
+    "geocodeAddressTooShort": "Enter an address first"
   },
   "investRegister": {
     "title": "Register product",

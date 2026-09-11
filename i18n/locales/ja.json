@@ -407,7 +407,14 @@
     "mapHintPicked": "マーカーをドラッグして位置を微調整できます",
     "mapUnavailable": "地図はモバイルアプリでのみ表示されます。ウェブでは下の緯度・経度を直接入力してください。",
     "clearLocation": "指定した位置を消す",
-    "locationOptionalNotice": "位置を指定しないと地図に表示されません"
+    "locationOptionalNotice": "位置を指定しないと地図に表示されません",
+    "geocodeButton": "住所から位置を検索",
+    "geocoding": "検索中...",
+    "geocodeFound": "{{address}} に移動しました。マーカーをドラッグして正確な位置に合わせてください。",
+    "geocodeNotFound": "その住所が見つかりませんでした。地図で直接指定してください。",
+    "geocodeForbidden": "このアカウントには住所検索の権限がありません",
+    "geocodeFailed": "住所検索に失敗しました。地図で直接指定してください。",
+    "geocodeAddressTooShort": "先に住所を入力してください"
   },
   "investRegister": {
     "title": "投資商品登録",

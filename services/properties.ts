@@ -393,6 +393,57 @@ export async function deletePropertyPermanently(id: string): Promise<boolean> {
   return true;
 }
 
+/** 주소 → 좌표 변환 결과. 실패 사유는 화면에서 문구를 고르는 데 쓴다. */
+export type GeocodeResult =
+  | { ok: true; latitude: number; longitude: number; formattedAddress: string }
+  | { ok: false; reason: "not-found" | "forbidden" | "failed" };
+
+/**
+ * 주소 문자열을 좌표로 변환한다(Edge Function `geocode` 경유).
+ *
+ * Google Geocoding API 키는 서버(Supabase Secrets)에만 있다 — 앱에 있는 Maps 키는
+ * Android 앱 제한이 걸려 있어 이 용도로 쓸 수 없고, 제한을 풀면 번들에 평문으로
+ * 노출된 키로 누구나 과금시킬 수 있다(2026-09-10 번역 키 사고와 같은 부류).
+ * 서버가 매물 등록 권한까지 다시 확인하므로, 권한 없는 계정은 403으로 거부된다.
+ */
+export async function geocodeAddress(address: string): Promise<GeocodeResult> {
+  if (!supabase) {
+    return { ok: false, reason: "failed" };
+  }
+
+  try {
+    const { data, error } = await supabase.functions.invoke("geocode", {
+      body: { address },
+    });
+
+    if (error) {
+      // FunctionsHttpError는 상태코드를 응답 객체로만 알려준다 — 404(결과 없음)와
+      // 403(권한 없음)은 사용자에게 다른 문구를 보여줘야 해서 따로 읽는다.
+      const status = (error as { context?: { status?: number } }).context?.status;
+      if (status === 404) return { ok: false, reason: "not-found" };
+      if (status === 403) return { ok: false, reason: "forbidden" };
+      console.warn("[services/properties] geocodeAddress failed:", error.message);
+      return { ok: false, reason: "failed" };
+    }
+
+    const result = data as { latitude?: number; longitude?: number; formattedAddress?: string } | null;
+    if (typeof result?.latitude !== "number" || typeof result?.longitude !== "number") {
+      return { ok: false, reason: "failed" };
+    }
+
+    return {
+      ok: true,
+      latitude: result.latitude,
+      longitude: result.longitude,
+      formattedAddress: result.formattedAddress ?? address,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown-error";
+    console.warn("[services/properties] geocodeAddress threw:", message);
+    return { ok: false, reason: "failed" };
+  }
+}
+
 /** 투자상품 등록 화면의 "연계 매물" 선택 목록에 쓰는 최소 형태. */
 export type PropertyOption = {
   id: string;

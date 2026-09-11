@@ -407,7 +407,14 @@
     "mapHintPicked": "마커를 끌어서 위치를 조정할 수 있습니다",
     "mapUnavailable": "지도는 앱(Android/iOS)에서만 표시됩니다. 웹에서는 아래 위도/경도를 직접 입력하세요.",
     "clearLocation": "지정한 위치 지우기",
-    "locationOptionalNotice": "위치를 지정하지 않으면 지도에 표시되지 않습니다"
+    "locationOptionalNotice": "위치를 지정하지 않으면 지도에 표시되지 않습니다",
+    "geocodeButton": "주소로 위치 찾기",
+    "geocoding": "찾는 중...",
+    "geocodeFound": "{{address}} 위치로 이동했습니다. 지도에서 마커를 끌어 정확한 위치로 맞춰 주세요.",
+    "geocodeNotFound": "해당 주소를 찾지 못했습니다. 지도에서 직접 지정해 주세요.",
+    "geocodeForbidden": "이 계정은 주소 검색 권한이 없습니다",
+    "geocodeFailed": "주소 검색에 실패했습니다. 지도에서 직접 지정해 주세요.",
+    "geocodeAddressTooShort": "주소를 먼저 입력해 주세요"
   },
   "investRegister": {
     "title": "투자상품 등록",

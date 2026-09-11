@@ -1,6 +1,6 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { File } from "expo-file-system";
 
+import { readImageBytes } from "@/utils/imageBytes";
 import { supabase } from "./supabase";
 
 /**
@@ -345,16 +345,15 @@ export async function sendCustomerImage(
     // RN(Android)에서 fetch(localUri).then(r => r.blob())는 로컬 파일을 온전히
     // 읽지 못해 업로드가 조용히 실패하는 경우가 있어(B2 근본 원인, 2026-09-09
     // 진단), expo-file-system의 File.arrayBuffer()로 직접 바이트를 읽는다.
-    const file = new File(localUri);
-    const arrayBuffer = await file.arrayBuffer();
-    const extMatch = localUri.split("?")[0].match(/\.(\w+)$/);
-    const fileExt = extMatch?.[1] ?? "jpg";
-    const contentType = fileExt === "png" ? "image/png" : "image/jpeg";
+    // 웹/네이티브 분기는 utils/imageBytes.ts가 담당한다(매물 사진과 동일한 문제).
+    const { bytes, contentType, fileExt } = await readImageBytes(localUri);
+    // 경로 첫 칸이 업로더의 uid여야 한다(chat-images 버킷 정책) — 담당자가 보낼 때도
+    // 여기 들어가는 값은 "현재 로그인 사용자"라 그대로 통과한다.
     const path = `${customerId}/${conversationId}/${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from(CHAT_IMAGES_BUCKET)
-      .upload(path, arrayBuffer, { contentType });
+      .upload(path, bytes, { contentType });
 
     if (uploadError) {
       console.warn("[services/chat] image upload failed:", uploadError.message);

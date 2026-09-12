@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "394584291814",
+    "project_id": "viets-65039",
+    "storage_bucket": "viets-65039.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394584291814:android:e5021a4be4708f51573e27",
+        "android_client_info": {
+          "package_name": "com.viets.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARWsU_wDq0gcuBv64KevFDpCDZ0LOfBmA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

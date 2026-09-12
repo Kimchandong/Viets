@@ -83,7 +83,8 @@
     },
     "categoryLabel": "Danh mục",
     "mapNoCoords": "Không có vị trí bất động sản nào để hiển thị trên bản đồ.",
-    "mapMissingCoords": "{{count}} bất động sản không có dữ liệu vị trí nên không hiển thị trên bản đồ."
+    "mapMissingCoords": "{{count}} bất động sản không có dữ liệu vị trí nên không hiển thị trên bản đồ.",
+    "top10Title": "Tin TOP10"
   },
   "propertyDetail": {
     "descriptionTitle": "Mô tả chi tiết",
@@ -892,7 +893,9 @@
     "registrantsTitle": "Chi phí quảng cáo theo công ty",
     "registrantsEmpty": "Chưa có công ty nào để thống kê",
     "registrantDeposited": "Đã nạp",
-    "registrantAvailable": "Số dư"
+    "registrantAvailable": "Số dư",
+    "depositsTitle": "Lịch sử nạp tiền",
+    "depositsEmpty": "Chưa có khoản nạp nào được duyệt"
   },
   "adminPayments": {
     "title": "Quản lý quyết toán",
@@ -1161,6 +1164,10 @@
       "report_resolved": {
         "title": "Đã xử lý báo cáo",
         "body": "Tin bạn báo cáo đã được xem xét."
+      },
+      "payment_requested": {
+        "title": "Có yêu cầu nạp tiền",
+        "body": "{{agency}} đã báo nạp {{amount}} VND."
       }
     }
   }

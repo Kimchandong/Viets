@@ -27,6 +27,7 @@ import {
   type PaymentRequest,
   type PaymentSettings,
 } from "@/services/payments";
+import { sendNotificationPush } from "@/services/notifications";
 import { isAdmin } from "@/services/roles";
 
 /**
@@ -145,6 +146,10 @@ export default function PaymentInfoScreen() {
     setNote("");
     setAmountText("");
     showToast(t("payment.submitted"));
+    // [2026-09-12 사용자 지시] 관리자에게 푸시로 알린다. 수신함에는 트리거가 이미
+    // 넣었고, 밖으로 내보내는 일만 여기서 한다 — 관리자가 화면을 열어 보기 전까지
+    // 입금이 며칠씩 반영되지 않는 일을 막는다.
+    if (result.id) void sendNotificationPush("payment_requested", result.id);
     await load();
   }
 
@@ -310,8 +315,40 @@ export default function PaymentInfoScreen() {
           </>
         ) : null}
 
-        {/* 광고내역 — 매물명(좌) / 차감액(우). 입금(+)은 정산 쪽 이야기라 여기서는
-            사용 내역만 보여 준다. */}
+        {/* [2026-09-12 실기기 테스트에서 발견] 등록자가 **자기 입금 내역을 볼 곳이
+            없었다.** 아래 광고내역은 차감(−)만 보여 주고, 얼마를 넣었는지는 상단 숫자의
+            합계뿐이었다 — 언제 얼마가 반영됐는지 확인할 방법이 없었다.
+            승인된 입금만 원장에 들어오므로, 여기 보이는 것이 곧 "관리자가 확인한 금액"이다. */}
+        <SectionHeader title={t("payment.depositsTitle")} />
+        {entries.filter((entry) => entry.amount > 0).length === 0 ? (
+          <Text
+            style={[textStyles.bodySmall, { color: theme.secondaryText, fontSize: typography.size.xs }]}
+          >
+            {t("payment.depositsEmpty")}
+          </Text>
+        ) : (
+          entries
+            .filter((entry) => entry.amount > 0)
+            .map((entry) => (
+              <View key={entry.id} style={[styles.historyRow, { borderBottomColor: theme.border }]}>
+                <View style={styles.historyTexts}>
+                  <Text style={[textStyles.body, { color: theme.text }]} numberOfLines={1}>
+                    {t(`payment.entryKind.${entry.kind}`)}
+                  </Text>
+                  <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                    {entry.createdAt.slice(0, 10)}
+                  </Text>
+                </View>
+                <Text
+                  style={[textStyles.body, { color: theme.accent, fontWeight: typography.weight.medium }]}
+                >
+                  +{formatMoneyAmount(entry.amount, currency)}
+                </Text>
+              </View>
+            ))
+        )}
+
+        {/* 광고내역 — 매물명(좌) / 차감액(우). */}
         <SectionHeader title={t("payment.historyTitle")} />
         {entries.filter((entry) => entry.amount < 0).length === 0 ? (
           // [2026-09-11 사용자 지시] 내용이 없을 때의 문구는 앱 전체에서 11px·굵기

@@ -79,6 +79,7 @@ export const NOTIFICATION_KINDS = [
   "ad_slot_dropped",
   "agency_approved",
   "agency_rejected",
+  "payment_requested",
   "payment_approved",
   "payment_rejected",
   "qa_answered",

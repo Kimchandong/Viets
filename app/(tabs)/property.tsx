@@ -121,6 +121,13 @@ export default function PropertyScreen() {
    * 화면마다 다르면 광고주는 "어디서 눌렀느냐"에 따라 돈이 나가거나 안 나간다.
    */
   const [featuredIds, setFeaturedIds] = useState<string[]>([]);
+  /**
+   * [2026-09-12 사용자 결정] 부동산 탭에도 TOP10 자리를 노출한다.
+   *
+   * 예전에는 TOP10이 홈 전용이었다 — 그래서 TOP10 광고를 산 매물이 부동산 탭
+   * 어디에도 보이지 않았다. 돈을 낸 자리는 매물을 찾는 화면에 있어야 한다.
+   */
+  const [top10Ids, setTop10Ids] = useState<string[]>([]);
 
   /**
    * [2026-09-11 사용자 지시] 매물 행 우측 하단에 현위치로부터의 거리를 표시한다.
@@ -175,6 +182,9 @@ export default function PropertyScreen() {
       listActiveAdSlots("featured").then((ids) => {
         if (active) setFeaturedIds(ids);
       });
+      listActiveAdSlots("top10").then((ids) => {
+        if (active) setTop10Ids(ids);
+      });
       return () => {
         active = false;
       };
@@ -214,9 +224,19 @@ export default function PropertyScreen() {
       : filtered.filter((property) => property.featured);
 
   const featuredSet = new Set(featured.map((property) => property.id));
+
+  // TOP10 자리를 산 매물 — 순위 그대로. 검색 중에는 광고를 얹지 않는다(검색은 찾는
+  // 행위라 광고가 끼어들면 결과를 못 믿게 된다).
+  const top10 = isSearching
+    ? []
+    : top10Ids
+        .map((id) => filtered.find((property) => property.id === id))
+        .filter((property): property is MockProperty => !!property && !featuredSet.has(property.id));
+
+  const adSet = new Set([...featuredSet, ...top10.map((property) => property.id)]);
   const listings = isSearching
     ? filtered
-    : filtered.filter((property) => !featuredSet.has(property.id));
+    : filtered.filter((property) => !adSet.has(property.id));
 
   function goToDetail(property: MockProperty) {
     router.push(`/property-detail/${property.id}`);
@@ -226,6 +246,14 @@ export default function PropertyScreen() {
    * 추천 캐러셀에서 누른 경우 — 광고 클릭이므로 과금한다. 결과를 기다리지 않는다:
    * 과금은 광고주와 플랫폼 사이의 일이고, 그 때문에 고객의 화면 전환이 늦어지면 안 된다.
    */
+  /** TOP10 자리에서 누른 경우 — 추천과 같은 이유로 과금한다. */
+  function goToTop10Detail(property: MockProperty) {
+    if (top10Ids.includes(property.id)) {
+      void chargeAdClick(property.id, "top10");
+    }
+    goToDetail(property);
+  }
+
   function goToFeaturedDetail(property: MockProperty) {
     if (featuredIds.includes(property.id)) {
       void chargeAdClick(property.id, "featured");
@@ -494,9 +522,26 @@ export default function PropertyScreen() {
               </View>
             ) : null}
 
+            {top10.length > 0 ? (
+              <View style={styles.section}>
+                <SectionHeader title={t("property.top10Title")} />
+                <View style={styles.propertyList}>
+                  {top10.map((property, index) => (
+                    <PropertyListRow
+                      key={property.id}
+                      property={property}
+                      distance={distanceLabel(property)}
+                      showDivider={index > 0}
+                      onPress={() => goToTop10Detail(property)}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
             <View style={[styles.section, styles.lastSection]}>
               <SectionHeader title={t("property.listingsTitle")} />
-              {listings.length === 0 && featured.length === 0 ? (
+              {listings.length === 0 && featured.length === 0 && top10.length === 0 ? (
                 <EmptyState
                   title={t("property.emptyTitle")}
                   description={t("property.emptyDescription")}

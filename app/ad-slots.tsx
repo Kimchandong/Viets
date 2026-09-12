@@ -179,7 +179,14 @@ export default function AdSlotsScreen() {
     if (result === "ok") {
       setTarget(null);
       showToast(t("adSlots.saved"));
-      await load();
+      // [2026-09-12 실기기 테스트에서 발견] 저장 뒤에도 이 화면에 남아 있으면,
+      // 아래 "내 광고비 변경" 버튼이 그대로 보여서 **저장이 안 된 것처럼** 읽혔다.
+      // 저장했으면 하던 일이 끝난 것이므로 매물 목록으로 돌려보낸다 — 토스트를
+      // 읽을 시간만 잠깐 둔다.
+      setTimeout(() => {
+        if (router.canGoBack()) router.back();
+        else router.replace("/ad-manage");
+      }, 900);
       return;
     }
     if (result === "too-low") {

@@ -83,7 +83,8 @@
     },
     "categoryLabel": "カテゴリー",
     "mapNoCoords": "地図に表示できる物件の位置情報がありません。",
-    "mapMissingCoords": "位置情報のない物件{{count}}件は地図に表示されていません。"
+    "mapMissingCoords": "位置情報のない物件{{count}}件は地図に表示されていません。",
+    "top10Title": "TOP10 物件"
   },
   "propertyDetail": {
     "descriptionTitle": "詳細説明",
@@ -892,7 +893,9 @@
     "registrantsTitle": "登録者別の広告費",
     "registrantsEmpty": "集計する登録者がありません",
     "registrantDeposited": "入金",
-    "registrantAvailable": "残高"
+    "registrantAvailable": "残高",
+    "depositsTitle": "入金履歴",
+    "depositsEmpty": "承認された入金がありません"
   },
   "adminPayments": {
     "title": "精算管理",
@@ -1161,6 +1164,10 @@
       "report_resolved": {
         "title": "通報の処理完了",
         "body": "通報された物件の確認が完了しました。"
+      },
+      "payment_requested": {
+        "title": "入金申告が届きました",
+        "body": "{{agency}} が {{amount}} VND の入金を申告しました。"
       }
     }
   }

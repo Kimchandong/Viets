@@ -207,7 +207,8 @@ export type PaymentRequest = {
 };
 
 export type SubmitPaymentResult =
-  | { ok: true }
+  /** [2026-09-12] 신고 id를 함께 돌려준다 — 관리자에게 보낼 푸시가 이 id로 알림을 찾는다. */
+  | { ok: true; id: string | null }
   | {
       ok: false;
       reason: "already-pending" | "not-approved-agency" | "below-min-deposit" | "failed";
@@ -225,7 +226,7 @@ export async function submitPaymentRequest(
     return { ok: false, reason: "failed" };
   }
 
-  const { error } = await supabase.rpc("submit_payment_request", {
+  const { data, error } = await supabase.rpc("submit_payment_request", {
     p_amount: amount,
     p_note: note,
   });
@@ -241,7 +242,7 @@ export async function submitPaymentRequest(
     console.warn("[services/payments] submitPaymentRequest failed:", error.message);
     return { ok: false, reason: "failed" };
   }
-  return { ok: true };
+  return { ok: true, id: typeof data === "string" ? data : null };
 }
 
 type RequestRow = {
@@ -519,13 +520,22 @@ export async function listAdBillingSummary(): Promise<AdBillingRow[]> {
 /**
  * MY 상단에 쓸 합계 — 돌려받은 줄을 그대로 더한다.
  * 관리자면 전체 업체 합(= 플랫폼 광고 수익), 업체면 자기 업체 하나의 값이 된다.
+ *
+ * [2026-09-12] available(잔액)도 함께 더한다 — 등록자 화면은 "쓴 돈"이 아니라
+ * "남은 돈"을 크게 보여 줘야 하기 때문이다(사용자 지시). 같은 자리를 관리자는
+ * 수익으로, 등록자는 잔액으로 읽는다.
  */
-export function sumAdBilling(rows: AdBillingRow[]): { adSpent: number; totalDeposited: number } {
+export function sumAdBilling(rows: AdBillingRow[]): {
+  adSpent: number;
+  totalDeposited: number;
+  available: number;
+} {
   return rows.reduce(
     (acc, row) => ({
       adSpent: acc.adSpent + row.adSpent,
       totalDeposited: acc.totalDeposited + row.totalDeposited,
+      available: acc.available + row.available,
     }),
-    { adSpent: 0, totalDeposited: 0 },
+    { adSpent: 0, totalDeposited: 0, available: 0 },
   );
 }

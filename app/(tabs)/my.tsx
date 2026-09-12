@@ -176,7 +176,7 @@ export default function MyScreen() {
    * 관리자는 전체 업체 합(플랫폼 광고 수익), 업체는 자기 업체 것 — 어느 범위를
    * 돌려줄지는 서버(ad_billing_summary)가 정하고, 여기서는 받은 줄을 더하기만 한다.
    */
-  const [adBilling, setAdBilling] = useState({ adSpent: 0, totalDeposited: 0 });
+  const [adBilling, setAdBilling] = useState({ adSpent: 0, totalDeposited: 0, available: 0 });
   // [2026-09-11 사용자 지시 — 3차] 반려된 광고비 신청이 있으면 환불 예정임을 알린다 —
   // 반려만 하고 아무 말이 없으면 돈이 어디로 갔는지 알 수 없다.
   const [rejectedPayment, setRejectedPayment] = useState<PaymentRequest | null>(null);
@@ -200,7 +200,7 @@ export default function MyScreen() {
       setIsAdminUser(false);
       setAgency(null);
       setBalance(null);
-      setAdBilling({ adSpent: 0, totalDeposited: 0 });
+      setAdBilling({ adSpent: 0, totalDeposited: 0, available: 0 });
       setRejectedPayment(null);
       setMyPropertyCount(0);
       setMyOrderCount(0);
@@ -358,11 +358,18 @@ export default function MyScreen() {
       showToast(t("my.avatar.permission"));
       return;
     }
+    // [2026-09-12 실기기 테스트에서 발견] 자르기 화면을 쓰지 않는다.
+    //
+    // allowsEditing이 띄우는 크롭 화면은 **기기 제조사의 것**이라 화면이 제각각이다.
+    // 갤럭시 A5에서는 자르기 화면은 뜨는데 확인 버튼이 보이지 않아 업로드 자체가
+    // 불가능했다(갤럭시 폴드에서는 정상). 우리가 고칠 수 없는 남의 화면에 기능이
+    // 걸려 있는 셈이다.
+    //
+    // 자르기를 빼도 잃는 것은 거의 없다 — 아바타는 어차피 원형으로 잘라 보여 주므로
+    // 정사각형이 아닌 사진도 가운데를 기준으로 동그랗게 보인다.
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsEditing: true,
-      // 아바타는 원형으로 잘려 보이므로 정사각형으로 자르게 한다.
-      aspect: [1, 1],
+      allowsEditing: false,
       quality: 0.8,
     });
     if (result.canceled || result.assets.length === 0) return;
@@ -501,12 +508,15 @@ export default function MyScreen() {
                 {/* [2026-09-11 사용자 지시] 단위(VND)만 60% 크기·굵기 없이.
                     금액과 단위를 한 문자열로 두면 굵기·크기를 따로 줄 수 없어
                     숫자와 단위를 나눠 그린다. */}
-                {/* [2026-09-12 사용자 지시] 주황 큰 글씨 = 노출광고로 차감된 금액의
-                    합산(관리자는 전체 업체 합 = 플랫폼 광고 수익), 회색 = 입금 합산액.
-                    잔액은 '광고비 정산' 화면에서 등록자별로 본다 — 관리자에게 필요한
-                    것은 남은 돈이 아니라 들어온 돈과 쓰인 돈이다. */}
+                {/* [2026-09-12 사용자 지시] 같은 자리를 보는 사람에 따라 다르게 읽는다.
+                    · 관리자 — 주황은 **노출광고로 걷힌 금액**(전체 업체 합 = 플랫폼 광고 수익)
+                    · 등록자 — 주황은 **남은 잔액**(입금에서 광고비를 뺀 돈)
+                    회색은 양쪽 다 입금 합산액이다.
+
+                    등록자에게 "쓴 돈"을 크게 보여 주면 정작 알아야 할 "언제 소진되는가"가
+                    보이지 않는다. 반대로 관리자에게 남의 잔액은 의미가 없다. */}
                 <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
-                  {Math.round(adBilling.adSpent).toLocaleString("en-US")}
+                  {Math.round(isAdminUser ? adBilling.adSpent : adBilling.available).toLocaleString("en-US")}
                   <Text style={styles.balanceUnit}> VND</Text>
                 </Text>
                 <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>

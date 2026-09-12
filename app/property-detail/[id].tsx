@@ -58,7 +58,6 @@ import {
 } from "@/services/investments";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { type MockInvestmentProduct } from "@/constants/mockData";
-import { isAdmin } from "@/services/roles";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 
 // [FULL-DEV] Property 상세 화면 — app/(tabs)/property.tsx(리스트/카드)와 app/(tabs)/home.tsx
@@ -144,12 +143,6 @@ export default function PropertyDetailScreen() {
     aiTab === "area" ? similarByArea : aiTab === "rooms" ? similarByRooms : similarByPrice;
 
   const [session, setSession] = useState<Session | null>(null);
-  // [2026-09-11 사용자 지시] 매물 수정 진입점 노출 여부.
-  // 이전에는 canRegisterProperty()(= admin이거나 property_manage 보유)만 봤는데, 그러면
-  // **남의 매물**에도 수정 버튼이 뜬다(중개업소 A가 B의 매물에서 "매물 수정"을 보고,
-  // 눌러도 서버가 거부한다). properties.created_by가 생겼으니 이 매물이 내 것인지로
-  // 판단한다 — 관리자는 예외로 전부 수정할 수 있다.
-  const [isAdminUser, setIsAdminUser] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   // [2026-09-11 사용자 지시 — 4차] 이 매물에 연결된 투자상품. "투자 카테고리에 매물이
   // 있으면 노출하고 없으면 노출하지 마시오" — 비어 있으면 섹션 자체를 그리지 않는다.
@@ -165,10 +158,21 @@ export default function PropertyDetailScreen() {
   const isFavorite = useFavoritesStore((state) => (property ? state.isFavorite("property", property.id) : false));
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
 
-  // 등록자 기록이 없는 옛 매물(createdBy 없음)은 관리자에게만 수정 대상이다 —
-  // 누가 올렸는지 모르는 매물을 아무 중개업소나 고치게 두지 않는다.
-  const canEdit =
-    isAdminUser || (!!session && !!property?.createdBy && property.createdBy === session.user.id);
+  /**
+   * [2026-09-12 사용자 지시] 수정 버튼은 **등록자 본인에게만** 보인다.
+   *
+   * 예전에는 관리자도 남의 매물을 수정할 수 있었다. 그 결과 관리자 계정으로는
+   * 매물 상세에서 "문의하기"가 아니라 "매물 수정"이 떠서, 관리자가 등록자와
+   * 상담을 시작할 방법이 아예 없었다(실기기 테스트에서 막힌 지점).
+   *
+   * 관리자도 고객과 같은 자리에서 상담을 걸 수 있어야 한다 — 신고나 문의를 확인하려면
+   * 결국 등록자와 말을 해야 한다. 운영상 매물 내용을 고쳐야 하는 경우는 등록자에게
+   * 요청하거나, 관리자 화면(허위매물 신고·상태 변경)에서 다룬다.
+   *
+   * 서버 권한은 그대로다 — properties UPDATE 정책은 여전히 관리자를 허용한다.
+   * 이건 화면에서 길을 하나 닫는 것이지 권한을 빼앗는 것이 아니다.
+   */
+  const canEdit = !!session && !!property?.createdBy && property.createdBy === session.user.id;
 
   /**
    * [2026-09-12 사용자 지시] 이 매물이 가진 옵션을 구분(그룹)별로 묶는다.
@@ -207,10 +211,6 @@ export default function PropertyDetailScreen() {
 
     const { unsubscribe } = onAuthStateChange((_event, nextSession) => {
       if (mounted) setSession(nextSession);
-    });
-
-    isAdmin().then((ok) => {
-      if (mounted) setIsAdminUser(ok);
     });
 
     return () => {

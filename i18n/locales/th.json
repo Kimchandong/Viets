@@ -83,7 +83,8 @@
     },
     "categoryLabel": "หมวดหมู่",
     "mapNoCoords": "ไม่มีข้อมูลตำแหน่งอสังหาริมทรัพย์ที่จะแสดงบนแผนที่",
-    "mapMissingCoords": "อสังหาริมทรัพย์ {{count}} รายการที่ไม่มีข้อมูลตำแหน่งไม่ได้แสดงบนแผนที่"
+    "mapMissingCoords": "อสังหาริมทรัพย์ {{count}} รายการที่ไม่มีข้อมูลตำแหน่งไม่ได้แสดงบนแผนที่",
+    "top10Title": "ประกาศ TOP10"
   },
   "propertyDetail": {
     "descriptionTitle": "รายละเอียด",
@@ -892,7 +893,9 @@
     "registrantsTitle": "ค่าโฆษณาตามบริษัท",
     "registrantsEmpty": "ยังไม่มีบริษัทให้สรุป",
     "registrantDeposited": "เติมเงิน",
-    "registrantAvailable": "ยอดคงเหลือ"
+    "registrantAvailable": "ยอดคงเหลือ",
+    "depositsTitle": "ประวัติการเติมเงิน",
+    "depositsEmpty": "ยังไม่มีการเติมเงินที่อนุมัติ"
   },
   "adminPayments": {
     "title": "จัดการการชำระบัญชี",
@@ -1161,6 +1164,10 @@
       "report_resolved": {
         "title": "ตรวจสอบรายงานแล้ว",
         "body": "ประกาศที่คุณรายงานได้รับการตรวจสอบแล้ว"
+      },
+      "payment_requested": {
+        "title": "มีคำขอเติมเงินใหม่",
+        "body": "{{agency}} แจ้งโอน {{amount}} VND"
       }
     }
   }

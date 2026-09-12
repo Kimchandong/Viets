@@ -124,53 +124,85 @@ Deno.serve(async (req: Request) => {
   const userClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authHeader } },
   });
-  const { data: isAdmin, error: adminError } = await userClient.rpc("is_admin_or_above");
-  if (adminError || isAdmin !== true) {
-    return json({ error: "forbidden" }, 403);
-  }
+  const { data: isAdmin } = await userClient.rpc("is_admin_or_above");
 
   const admin = createClient(supabaseUrl, serviceRoleKey);
 
-  // 아직 안 보낸 그 알림 하나. 이미 보냈으면(pushed_at) 조용히 끝낸다 — 관리자가 화면을
-  // 두 번 눌러도 푸시가 두 번 가지 않는다.
+  // [2026-09-12] 예외 하나: **입금 신고 알림은 업체가 보낸다.**
+  //
+  // 다른 알림은 전부 관리자가 누른 결과라 "호출자는 관리자"로 충분했다. 그런데 입금
+  // 신고는 업체가 하고 받는 사람이 관리자다 — 업체는 관리자가 아니므로 그대로는 막힌다.
+  //
+  // 그래서 이 종류만, **그 신고를 낸 본인인지**를 확인해서 허용한다. dedupe_key가
+  // payment_requests.id이므로 그 행의 requested_by와 호출자를 맞춰 보면 된다.
+  // 남의 신고 id를 넣어도 통과하지 못한다.
+  let allowed = isAdmin === true;
+  if (!allowed && body.kind === "payment_requested") {
+    const { data: userData } = await userClient.auth.getUser();
+    const callerId = userData.user?.id ?? null;
+    if (callerId) {
+      const { data: request } = await admin
+        .from("payment_requests")
+        .select("id")
+        .eq("id", body.dedupeKey)
+        .eq("requested_by", callerId)
+        .maybeSingle();
+      allowed = !!request;
+    }
+  }
+
+  if (!allowed) {
+    return json({ error: "forbidden" }, 403);
+  }
+
+  // 아직 안 보낸 알림들. 이미 보냈으면(pushed_at) 조용히 건너뛴다 — 화면을 두 번 눌러도
+  // 푸시가 두 번 가지 않는다.
+  //
+  // [2026-09-12] **여러 건**을 처리한다. 예전에는 한 건만 보냈는데, 받는 사람이 여럿인
+  // 알림(입금 신고 → 관리자 전원, 신고 처리 → 신고자 전원)에서는 첫 사람만 받고 나머지는
+  // 영영 못 받았다. 같은 kind + dedupe_key는 "같은 사건"이므로 한 번에 다 보낸다.
   const { data: rows, error: rowError } = await admin
     .from("user_notifications")
     .select("id,user_id,kind,params,link")
     .eq("kind", body.kind)
     .eq("dedupe_key", body.dedupeKey)
     .is("pushed_at", null)
-    .limit(1);
+    .limit(50);
 
   if (rowError) {
     console.warn("[send-push] lookup failed:", rowError.message);
     return json({ result: "failed" });
   }
 
-  const row = rows?.[0];
-  if (!row) {
+  if (!rows || rows.length === 0) {
     return json({ result: "nothing-to-send" });
   }
 
-  const { data: tokens } = await admin
-    .from("push_tokens")
-    .select("token,lang")
-    .eq("user_id", row.user_id);
+  let sentCount = 0;
 
-  const sent = await sendExpoPush(
-    (tokens ?? []) as TokenRow[],
-    row.kind,
-    (row.params ?? {}) as Record<string, unknown>,
-    row.link,
-  );
+  for (const row of rows) {
+    const { data: tokens } = await admin
+      .from("push_tokens")
+      .select("token,lang")
+      .eq("user_id", row.user_id);
 
-  // 보낸 표시는 실제로 보낸 경우에만. 기기가 하나도 없는 사용자(웹만 쓰는 계정)는
-  // NULL로 남겨 둔다 — 나중에 앱을 깔면 그때 받을 수 있어야 한다.
-  if (sent) {
-    await admin
-      .from("user_notifications")
-      .update({ pushed_at: new Date().toISOString() })
-      .eq("id", row.id);
+    const sent = await sendExpoPush(
+      (tokens ?? []) as TokenRow[],
+      row.kind,
+      (row.params ?? {}) as Record<string, unknown>,
+      row.link,
+    );
+
+    // 보낸 표시는 실제로 보낸 경우에만. 기기가 하나도 없는 사용자(웹만 쓰는 계정)는
+    // NULL로 남겨 둔다 — 나중에 앱을 깔면 그때 받을 수 있어야 한다.
+    if (sent) {
+      sentCount += 1;
+      await admin
+        .from("user_notifications")
+        .update({ pushed_at: new Date().toISOString() })
+        .eq("id", row.id);
+    }
   }
 
-  return json({ result: sent ? "ok" : "no-device" });
+  return json({ result: sentCount > 0 ? "ok" : "no-device", sent: sentCount });
 });

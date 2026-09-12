@@ -83,7 +83,8 @@
     },
     "categoryLabel": "分类",
     "mapNoCoords": "没有可在地图上显示的房源位置信息。",
-    "mapMissingCoords": "{{count}} 个缺少位置信息的房源未在地图上显示。"
+    "mapMissingCoords": "{{count}} 个缺少位置信息的房源未在地图上显示。",
+    "top10Title": "TOP10 房源"
   },
   "propertyDetail": {
     "descriptionTitle": "详细描述",
@@ -892,7 +893,9 @@
     "registrantsTitle": "各公司广告费",
     "registrantsEmpty": "暂无可统计的公司",
     "registrantDeposited": "充值",
-    "registrantAvailable": "余额"
+    "registrantAvailable": "余额",
+    "depositsTitle": "充值记录",
+    "depositsEmpty": "暂无已通过的充值"
   },
   "adminPayments": {
     "title": "结算管理",
@@ -1161,6 +1164,10 @@
       "report_resolved": {
         "title": "举报已处理",
         "body": "您举报的房源已完成核查。"
+      },
+      "payment_requested": {
+        "title": "收到充值申报",
+        "body": "{{agency}} 申报了 {{amount}} VND 的充值。"
       }
     }
   }

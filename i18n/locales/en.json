@@ -83,7 +83,8 @@
     },
     "categoryLabel": "Category",
     "mapNoCoords": "No property locations available to show on the map.",
-    "mapMissingCoords": "{{count}} listing(s) without location data are not shown on the map."
+    "mapMissingCoords": "{{count}} listing(s) without location data are not shown on the map.",
+    "top10Title": "TOP10 listings"
   },
   "propertyDetail": {
     "descriptionTitle": "Description",
@@ -892,7 +893,9 @@
     "registrantsTitle": "Ad spend by agency",
     "registrantsEmpty": "No agencies to report yet",
     "registrantDeposited": "Deposited",
-    "registrantAvailable": "Balance"
+    "registrantAvailable": "Balance",
+    "depositsTitle": "Deposits",
+    "depositsEmpty": "No approved deposits yet"
   },
   "adminPayments": {
     "title": "Settlements",
@@ -1161,6 +1164,10 @@
       "report_resolved": {
         "title": "Report reviewed",
         "body": "The listing you reported has been reviewed."
+      },
+      "payment_requested": {
+        "title": "New top-up request",
+        "body": "{{agency}} reported a {{amount}} VND deposit."
       }
     }
   }

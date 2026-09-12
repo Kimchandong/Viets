@@ -76,6 +76,14 @@ const CATALOG: Record<string, Record<PushLang, Entry>> = {
     zh: { title: "咨询已回复", body: "{{title}} 的咨询已有回复。" },
     th: { title: "มีคำตอบสำหรับคำถามของคุณ", body: "มีคำตอบสำหรับ {{title}} แล้ว" },
   },
+  payment_requested: {
+    ko: { title: "입금 신고 도착", body: "{{agency}} 님이 {{amount}} VND 입금을 신고했습니다." },
+    en: { title: "New top-up request", body: "{{agency}} reported a {{amount}} VND deposit." },
+    vi: { title: "Có yêu cầu nạp tiền", body: "{{agency}} đã báo nạp {{amount}} VND." },
+    ja: { title: "入金申告が届きました", body: "{{agency}} が {{amount}} VND の入金を申告しました。" },
+    zh: { title: "收到充值申报", body: "{{agency}} 申报了 {{amount}} VND 的充值。" },
+    th: { title: "มีคำขอเติมเงินใหม่", body: "{{agency}} แจ้งโอน {{amount}} VND" },
+  },
   report_resolved: {
     ko: { title: "신고 처리 완료", body: "신고하신 매물의 검토가 완료되었습니다." },
     en: { title: "Report reviewed", body: "The listing you reported has been reviewed." },

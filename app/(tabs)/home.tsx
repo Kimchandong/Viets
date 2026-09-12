@@ -292,7 +292,13 @@ export default function HomeScreen() {
    * 비워 두면 운영 초기에 섹션이 거의 비어 보인다.
    */
   const top10 = useMemo(() => {
-    if (sortMode !== "distance" || top10Ids.length === 0) {
+    // [2026-09-12 사용자 결정] 정렬과 **무관하게** 광고를 위로 올린다.
+    //
+    // 예전에는 기본 상태(거리순)에서만 광고 순위를 얹었다 — "사용자가 고른 조건이
+    // 우선"이라는 판단이었는데, 실기기 테스트에서 TOP10 광고를 산 매물이 어디에도
+    // 보이지 않는 것으로 드러났다. 돈을 낸 자리가 정렬 하나로 사라지면 광고가 아니다.
+    // 조건별·금액별로 바꿔도 광고 매물이 먼저 오고, 그 아래를 고른 조건이 채운다.
+    if (top10Ids.length === 0) {
       return nearby.slice(0, HOME_LIST_LIMIT);
     }
     const byId = new Map(nearby.map((property) => [property.id, property]));
@@ -303,7 +309,7 @@ export default function HomeScreen() {
     const rankedIds = new Set(ranked.map((property) => property.id));
     const rest = nearby.filter((property) => !rankedIds.has(property.id));
     return [...ranked, ...rest].slice(0, HOME_LIST_LIMIT);
-  }, [nearby, sortMode, top10Ids]);
+  }, [nearby, top10Ids]);
 
   /**
    * [2026-09-12 사용자 지시] 광고로 노출된 매물을 누르면 그 매물의 클릭 단가가

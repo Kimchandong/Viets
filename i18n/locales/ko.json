@@ -83,7 +83,8 @@
     },
     "categoryLabel": "카테고리",
     "mapNoCoords": "지도에 표시할 매물 위치 정보가 없습니다.",
-    "mapMissingCoords": "위치 정보가 없는 매물 {{count}}건은 지도에 표시되지 않았습니다."
+    "mapMissingCoords": "위치 정보가 없는 매물 {{count}}건은 지도에 표시되지 않았습니다.",
+    "top10Title": "TOP10 매물"
   },
   "propertyDetail": {
     "descriptionTitle": "상세 설명",
@@ -892,7 +893,9 @@
     "registrantsTitle": "등록자별 광고비",
     "registrantsEmpty": "집계할 등록자가 없습니다",
     "registrantDeposited": "입금",
-    "registrantAvailable": "잔액"
+    "registrantAvailable": "잔액",
+    "depositsTitle": "입금 내역",
+    "depositsEmpty": "승인된 입금 내역이 없습니다"
   },
   "adminPayments": {
     "title": "정산 관리",
@@ -1161,6 +1164,10 @@
       "report_resolved": {
         "title": "신고 처리 완료",
         "body": "신고하신 매물의 검토가 완료되었습니다."
+      },
+      "payment_requested": {
+        "title": "입금 신고 도착",
+        "body": "{{agency}} 님이 {{amount}} VND 입금을 신고했습니다."
       }
     }
   }

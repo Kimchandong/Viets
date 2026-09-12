@@ -45,8 +45,9 @@ export function PropertyListRow({
 
   const thumbnail = property.images?.[0];
   const priceParts = splitYieldText(property.price);
-  // [2026-09-11 사용자 지시] 매매=파랑(accent), 임대=주황(warning) 배경에 흰 글씨.
-  const badgeColor = property.status === "forSale" ? theme.accent : theme.warning;
+  // [2026-09-12 사용자 지시] 배지를 **추천 캐러셀 카드(PropertyCard)와 같은 모양**으로
+  // 통일한다 — 흰 배경 + 본문 글자색. 같은 화면에 같은 임대/매매 라벨이 파랑·주황과
+  // 흰색 두 가지로 보이던 것을 없앤다. 거래유형은 배지 색이 아니라 글자가 말해 준다.
 
   return (
     <View>
@@ -74,9 +75,9 @@ export function PropertyListRow({
               <Ionicons name="image-outline" size={22} color={theme.secondaryText} />
             </View>
           )}
-          {/* [2026-09-11 사용자 지시] 임대/매매 배지는 사진 좌측 상단에. 색상은 그대로. */}
-          <View style={[styles.badge, { backgroundColor: badgeColor }]}>
-            <Text style={[styles.badgeText, { color: theme.onAccent }]} numberOfLines={1}>
+          {/* [2026-09-11 사용자 지시] 임대/매매 배지는 사진 좌측 상단에. */}
+          <View style={[styles.badge, { backgroundColor: theme.background }]}>
+            <Text style={[styles.badgeText, { color: theme.text }]} numberOfLines={1}>
               {t(`property.status.${property.status}`)}
             </Text>
           </View>

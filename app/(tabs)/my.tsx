@@ -30,6 +30,8 @@ import { getUnreadNotificationCount } from "@/services/notifications";
 import {
   getAgencyBalance,
   getLatestRejectedPayment,
+  listAdBillingSummary,
+  sumAdBilling,
   type AgencyBalance,
   type PaymentRequest,
 } from "@/services/payments";
@@ -169,6 +171,12 @@ export default function MyScreen() {
   // [2026-09-11 사용자 지시] 승인된 업체만 잔액이 있다 — 사용잔액(쓸 수 있는 돈)을
   // 크게, 현잔액(누적 입금)을 작게 보여 준다.
   const [balance, setBalance] = useState<AgencyBalance | null>(null);
+  /**
+   * [2026-09-12 사용자 지시] 상단 금액은 이제 "잔액"이 아니라 **광고비 집계**다.
+   * 관리자는 전체 업체 합(플랫폼 광고 수익), 업체는 자기 업체 것 — 어느 범위를
+   * 돌려줄지는 서버(ad_billing_summary)가 정하고, 여기서는 받은 줄을 더하기만 한다.
+   */
+  const [adBilling, setAdBilling] = useState({ adSpent: 0, totalDeposited: 0 });
   // [2026-09-11 사용자 지시 — 3차] 반려된 광고비 신청이 있으면 환불 예정임을 알린다 —
   // 반려만 하고 아무 말이 없으면 돈이 어디로 갔는지 알 수 없다.
   const [rejectedPayment, setRejectedPayment] = useState<PaymentRequest | null>(null);
@@ -192,6 +200,7 @@ export default function MyScreen() {
       setIsAdminUser(false);
       setAgency(null);
       setBalance(null);
+      setAdBilling({ adSpent: 0, totalDeposited: 0 });
       setRejectedPayment(null);
       setMyPropertyCount(0);
       setMyOrderCount(0);
@@ -234,6 +243,9 @@ export default function MyScreen() {
     });
     getUnreadNotificationCount().then((count) => {
       if (mounted) setUnreadNotifications(count);
+    });
+    listAdBillingSummary().then((rows) => {
+      if (mounted) setAdBilling(sumAdBilling(rows));
     });
     isAdmin().then((ok) => {
       if (mounted) setIsAdminUser(ok);
@@ -489,12 +501,16 @@ export default function MyScreen() {
                 {/* [2026-09-11 사용자 지시] 단위(VND)만 60% 크기·굵기 없이.
                     금액과 단위를 한 문자열로 두면 굵기·크기를 따로 줄 수 없어
                     숫자와 단위를 나눠 그린다. */}
+                {/* [2026-09-12 사용자 지시] 주황 큰 글씨 = 노출광고로 차감된 금액의
+                    합산(관리자는 전체 업체 합 = 플랫폼 광고 수익), 회색 = 입금 합산액.
+                    잔액은 '광고비 정산' 화면에서 등록자별로 본다 — 관리자에게 필요한
+                    것은 남은 돈이 아니라 들어온 돈과 쓰인 돈이다. */}
                 <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
-                  {Math.round(balance?.available ?? 0).toLocaleString("en-US")}
+                  {Math.round(adBilling.adSpent).toLocaleString("en-US")}
                   <Text style={styles.balanceUnit}> VND</Text>
                 </Text>
                 <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>
-                  {formatMoneyAmount(balance?.totalDeposited ?? 0, "VND")}
+                  {formatMoneyAmount(adBilling.totalDeposited, "VND")}
                 </Text>
                 <Text style={[styles.balanceEmail, { color: theme.secondaryText }]} numberOfLines={1}>
                   {session?.user.email ?? ""}

@@ -1,5 +1,5 @@
 import { getMyAgency } from "./agencies";
-import { supabase } from "./supabase";
+import { hasSession, supabase } from "./supabase";
 
 /**
  * [STEP 04] 현재 로그인 사용자의 내부 운영 role 조회 — DATABASE.md §1 user_roles.
@@ -25,6 +25,11 @@ export async function fetchMyRoles(): Promise<UserRole[]> {
   if (!supabase) {
     return [];
   }
+  // [2026-09-12] 비로그인 상태에서는 묻지 않는다 — user_roles는 본인 행만 열려 있어
+  // anon으로 부르면 permission denied가 날 뿐이다(빈 배열과 결과가 같다).
+  if (!(await hasSession())) {
+    return [];
+  }
 
   const { data, error } = await supabase.from("user_roles").select("role");
 
@@ -38,6 +43,9 @@ export async function fetchMyRoles(): Promise<UserRole[]> {
 /** 관리자가 나에게 부여한 기능 권한(활성 상태만). RLS Owner-Only라 본인 것만 돌아온다. */
 export async function fetchMyPermissions(): Promise<UserPermissionType[]> {
   if (!supabase) {
+    return [];
+  }
+  if (!(await hasSession())) {
     return [];
   }
 

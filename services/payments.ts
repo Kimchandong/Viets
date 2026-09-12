@@ -466,3 +466,66 @@ export async function listBalanceEntries(agencyId: string): Promise<BalanceEntry
     createdAt: row.created_at,
   }));
 }
+
+/* ==========================================================================
+ * [2026-09-12 사용자 지시] 등록자별 광고비 집계
+ * ======================================================================== */
+
+/**
+ * 업체별 광고비 요약.
+ *
+ * 보이는 범위는 서버가 정한다 — 관리자는 전체 업체, 그 외에는 본인이 활성 멤버인
+ * 업체만. 앱에서 다시 거르지 않는다(거르기 시작하면 서버 판단과 어긋나는 순간
+ * 남의 숫자가 새거나 내 숫자가 사라진다).
+ *
+ * adSpent는 **노출광고 클릭 차감만** 센다. 매물 등록비는 광고 수익이 아니라 등록
+ * 수수료라 한 숫자에 섞지 않는다.
+ */
+export type AdBillingRow = {
+  agencyId: string;
+  agencyName: string;
+  /** 노출광고로 빠져나간 금액(양수). */
+  adSpent: number;
+  /** 입금 합산액. */
+  totalDeposited: number;
+  /** 지금 남은 잔액. */
+  available: number;
+};
+
+export async function listAdBillingSummary(): Promise<AdBillingRow[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.rpc("ad_billing_summary");
+  if (error) {
+    console.warn("[services/payments] listAdBillingSummary failed:", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as {
+    agency_id: string;
+    agency_name: string | null;
+    ad_spent: number;
+    total_deposited: number;
+    available: number;
+  }[]).map((row) => ({
+    agencyId: row.agency_id,
+    agencyName: row.agency_name ?? "",
+    adSpent: Number(row.ad_spent),
+    totalDeposited: Number(row.total_deposited),
+    available: Number(row.available),
+  }));
+}
+
+/**
+ * MY 상단에 쓸 합계 — 돌려받은 줄을 그대로 더한다.
+ * 관리자면 전체 업체 합(= 플랫폼 광고 수익), 업체면 자기 업체 하나의 값이 된다.
+ */
+export function sumAdBilling(rows: AdBillingRow[]): { adSpent: number; totalDeposited: number } {
+  return rows.reduce(
+    (acc, row) => ({
+      adSpent: acc.adSpent + row.adSpent,
+      totalDeposited: acc.totalDeposited + row.totalDeposited,
+    }),
+    { adSpent: 0, totalDeposited: 0 },
+  );
+}

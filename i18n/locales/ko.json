@@ -888,7 +888,11 @@
     },
     "minDepositHint": "최소 충전액 {{amount}} (상한 없음)",
     "belowMinDeposit": "최소 충전액은 {{amount}} 입니다.",
-    "duplicateClickNotice": "같은 사용자 또는 같은 네트워크에서 1시간 이내에 다시 클릭한 경우에는 광고비가 차감되지 않습니다."
+    "duplicateClickNotice": "같은 사용자 또는 같은 네트워크에서 1시간 이내에 다시 클릭한 경우에는 광고비가 차감되지 않습니다.",
+    "registrantsTitle": "등록자별 광고비",
+    "registrantsEmpty": "집계할 등록자가 없습니다",
+    "registrantDeposited": "입금",
+    "registrantAvailable": "잔액"
   },
   "adminPayments": {
     "title": "정산 관리",

@@ -888,7 +888,11 @@
     },
     "minDepositHint": "Minimum top-up {{amount}} (no upper limit)",
     "belowMinDeposit": "The minimum top-up is {{amount}}.",
-    "duplicateClickNotice": "No ad fee is charged when the same user or the same network clicks again within one hour."
+    "duplicateClickNotice": "No ad fee is charged when the same user or the same network clicks again within one hour.",
+    "registrantsTitle": "Ad spend by agency",
+    "registrantsEmpty": "No agencies to report yet",
+    "registrantDeposited": "Deposited",
+    "registrantAvailable": "Balance"
   },
   "adminPayments": {
     "title": "Settlements",

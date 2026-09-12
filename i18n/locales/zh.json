@@ -888,7 +888,11 @@
     },
     "minDepositHint": "最低充值 {{amount}}（无上限）",
     "belowMinDeposit": "最低充值金额为 {{amount}}。",
-    "duplicateClickNotice": "同一用户或同一网络在1小时内再次点击时，不扣除广告费。"
+    "duplicateClickNotice": "同一用户或同一网络在1小时内再次点击时，不扣除广告费。",
+    "registrantsTitle": "各公司广告费",
+    "registrantsEmpty": "暂无可统计的公司",
+    "registrantDeposited": "充值",
+    "registrantAvailable": "余额"
   },
   "adminPayments": {
     "title": "结算管理",

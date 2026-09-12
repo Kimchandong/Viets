@@ -888,7 +888,11 @@
     },
     "minDepositHint": "最低チャージ額 {{amount}}（上限なし）",
     "belowMinDeposit": "最低チャージ額は {{amount}} です。",
-    "duplicateClickNotice": "同じユーザーまたは同じネットワークから1時間以内に再度クリックした場合、広告費は差し引かれません。"
+    "duplicateClickNotice": "同じユーザーまたは同じネットワークから1時間以内に再度クリックした場合、広告費は差し引かれません。",
+    "registrantsTitle": "登録者別の広告費",
+    "registrantsEmpty": "集計する登録者がありません",
+    "registrantDeposited": "入金",
+    "registrantAvailable": "残高"
   },
   "adminPayments": {
     "title": "精算管理",

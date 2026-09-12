@@ -141,3 +141,21 @@ if (!supabase) {
     "[services/supabase] EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY가 설정되지 않아 Supabase client를 생성하지 않았습니다. .env를 확인하세요."
   );
 }
+
+/**
+ * [2026-09-12 웹 검증에서 발견] 로그인한 사람만 읽을 수 있는 표를 **비로그인 상태에서도
+ * 그대로 조회하고 있었다.**
+ *
+ * 화면은 빈 상태로 잘 떨어졌지만(각 서비스가 실패를 0/빈 배열로 삼킨다), 비로그인
+ * 방문자가 화면을 옮길 때마다 실패 요청이 반복되고 콘솔이 `permission denied`로 덮여
+ * 진짜 오류를 가렸다. RLS는 제 일을 한 것이고, 고칠 곳은 "묻지 말았어야 할 질문을
+ * 하는 쪽"이다.
+ *
+ * 세션이 없으면 서버에 묻지 않는다. 토큰 검사는 하지 않는다 — 만료 여부는 서버가
+ * 판정할 일이고, 여기서는 "로그인한 적이 있는가"만 본다.
+ */
+export async function hasSession(): Promise<boolean> {
+  if (!supabase) return false;
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
+}

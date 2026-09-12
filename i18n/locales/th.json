@@ -888,7 +888,11 @@
     },
     "minDepositHint": "เติมขั้นต่ำ {{amount}} (ไม่จำกัดสูงสุด)",
     "belowMinDeposit": "ยอดเติมขั้นต่ำคือ {{amount}}",
-    "duplicateClickNotice": "ไม่มีการหักค่าโฆษณาหากผู้ใช้รายเดิมหรือเครือข่ายเดิมคลิกซ้ำภายใน 1 ชั่วโมง"
+    "duplicateClickNotice": "ไม่มีการหักค่าโฆษณาหากผู้ใช้รายเดิมหรือเครือข่ายเดิมคลิกซ้ำภายใน 1 ชั่วโมง",
+    "registrantsTitle": "ค่าโฆษณาตามบริษัท",
+    "registrantsEmpty": "ยังไม่มีบริษัทให้สรุป",
+    "registrantDeposited": "เติมเงิน",
+    "registrantAvailable": "ยอดคงเหลือ"
   },
   "adminPayments": {
     "title": "จัดการการชำระบัญชี",

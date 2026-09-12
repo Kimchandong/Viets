@@ -888,7 +888,11 @@
     },
     "minDepositHint": "Nạp tối thiểu {{amount}} (không giới hạn tối đa)",
     "belowMinDeposit": "Số tiền nạp tối thiểu là {{amount}}.",
-    "duplicateClickNotice": "Không tính phí quảng cáo nếu cùng một người dùng hoặc cùng một mạng nhấp lại trong vòng một giờ."
+    "duplicateClickNotice": "Không tính phí quảng cáo nếu cùng một người dùng hoặc cùng một mạng nhấp lại trong vòng một giờ.",
+    "registrantsTitle": "Chi phí quảng cáo theo công ty",
+    "registrantsEmpty": "Chưa có công ty nào để thống kê",
+    "registrantDeposited": "Đã nạp",
+    "registrantAvailable": "Số dư"
   },
   "adminPayments": {
     "title": "Quản lý quyết toán",

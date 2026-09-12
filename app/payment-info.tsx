@@ -18,13 +18,16 @@ import { formatMoneyAmount } from "@/utils/format";
 import { getMyAgency, type MyAgency } from "@/services/agencies";
 import {
   getPaymentSettings,
+  listAdBillingSummary,
   listBalanceEntries,
   listPaymentRequests,
   submitPaymentRequest,
+  type AdBillingRow,
   type BalanceEntry,
   type PaymentRequest,
   type PaymentSettings,
 } from "@/services/payments";
+import { isAdmin } from "@/services/roles";
 
 /**
  * [2026-09-11 사용자 지시] 결제 정보 — MY의 결제 버튼에서 들어온다.
@@ -55,12 +58,26 @@ export default function PaymentInfoScreen() {
   // 이유는 대개 "얼마가 어디에 쓰였나"를 보기 위해서다.
   const [settlementOpen, setSettlementOpen] = useState(false);
   const [entries, setEntries] = useState<BalanceEntry[]>([]);
+  /**
+   * [2026-09-12 사용자 지시] 등록자(업체)별 광고비 집계. 관리자는 전체 업체가,
+   * 업체 계정은 자기 업체 한 줄만 돌아온다 — 범위는 서버가 정한다.
+   * 관리자에게는 이 목록이 이 화면의 본문이다("누가 얼마 넣고 얼마 썼나").
+   */
+  const [billing, setBilling] = useState<AdBillingRow[]>([]);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const [nextAgency, nextSettings] = await Promise.all([getMyAgency(), getPaymentSettings()]);
+    const [nextAgency, nextSettings, nextBilling, admin] = await Promise.all([
+      getMyAgency(),
+      getPaymentSettings(),
+      listAdBillingSummary(),
+      isAdmin(),
+    ]);
     setAgency(nextAgency);
     setSettings(nextSettings);
+    setBilling(nextBilling);
+    setIsAdminUser(admin);
 
     if (nextAgency && nextAgency.approvalStatus === "approved") {
       const [requests, nextEntries] = await Promise.all([
@@ -253,6 +270,44 @@ export default function PaymentInfoScreen() {
               </View>
             ) : null}
           </View>
+        ) : null}
+
+        {/* [2026-09-12 사용자 지시] 관리자에게는 등록자 리스트를 먼저 보여 준다 —
+            관리자가 이 화면에 오는 이유는 자기 잔액이 아니라 "누가 얼마 넣고 얼마
+            썼나"를 보기 위해서다. 업체 계정에는 이 구획이 뜨지 않는다(자기 한 줄을
+            굳이 표로 만들 이유가 없고, 아래 광고내역이 더 자세하다). */}
+        {isAdminUser ? (
+          <>
+            <SectionHeader title={t("payment.registrantsTitle")} />
+            {billing.length === 0 ? (
+              <Text
+                style={[textStyles.bodySmall, { color: theme.secondaryText, fontSize: typography.size.xs }]}
+              >
+                {t("payment.registrantsEmpty")}
+              </Text>
+            ) : (
+              billing.map((row) => (
+                <View key={row.agencyId} style={[styles.historyRow, { borderBottomColor: theme.border }]}>
+                  <View style={styles.historyTexts}>
+                    <Text style={[textStyles.body, { color: theme.text }]} numberOfLines={1}>
+                      {row.agencyName}
+                    </Text>
+                    <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+                      {t("payment.registrantDeposited")} {formatMoneyAmount(row.totalDeposited, currency)}
+                      {" · "}
+                      {t("payment.registrantAvailable")} {formatMoneyAmount(row.available, currency)}
+                    </Text>
+                  </View>
+                  {/* 차감액이 이 줄의 주인공이다 — 나머지 둘은 그 아래 회색으로 붙인다. */}
+                  <Text
+                    style={[textStyles.body, { color: theme.warning, fontWeight: typography.weight.medium }]}
+                  >
+                    {formatMoneyAmount(row.adSpent, currency)}
+                  </Text>
+                </View>
+              ))
+            )}
+          </>
         ) : null}
 
         {/* 광고내역 — 매물명(좌) / 차감액(우). 입금(+)은 정산 쪽 이야기라 여기서는

@@ -144,7 +144,12 @@ Deno.serve(async (req: Request) => {
   if (error) {
     console.warn("[ad-click] charge failed:", error.message);
     // 과금에 실패해도 고객의 화면 이동을 막지 않는다 — 200으로 돌려준다.
-    return json({ charged: 0 });
+    //
+    // [2026-09-12] 다만 **실패했다는 사실은 돌려준다.** 예전에는 그냥 charged:0이라
+    // 앱에서도 콘솔에서도 구분이 되지 않았고, 그래서 service_role에 execute 권한이
+    // 없어 과금이 전부 실패하던 것을 아무도 몰랐다(20260914150000 참조).
+    // 정상적인 '과금 대상 아님'(중복 클릭·자리 밖)은 여전히 charged:0에 error 없음이다.
+    return json({ charged: 0, error: "charge-failed" });
   }
 
   const row = Array.isArray(data) ? data[0] : data;

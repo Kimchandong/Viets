@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { hasSession, supabase } from "./supabase";
 
 /**
  * [2026-09-11 사용자 지시] 홈 상단 우측 알림 — 부동산(상담 미읽음) / 투자(신규 상품).
@@ -19,6 +19,9 @@ async function callCount(
   fn: "my_unread_chat_count" | "my_new_investment_count" | "my_unread_notification_count",
 ): Promise<number> {
   if (!supabase) return 0;
+  // [2026-09-12] 비로그인 상태에서는 세는 대상 자체가 없다. 그대로 부르면 RPC 안에서
+  // permission denied가 나고(함수가 invoker 권한이다) 콘솔만 더러워진다.
+  if (!(await hasSession())) return 0;
 
   const { data, error } = await supabase.rpc(fn);
   if (error) {
@@ -107,6 +110,7 @@ type NotificationRow = {
 /** 내 알림 목록. 무엇이 보이는지는 RLS가 정한다 — 여기서 user_id로 거르지 않는다. */
 export async function listNotifications(limit = 50): Promise<AppNotification[]> {
   if (!supabase) return [];
+  if (!(await hasSession())) return [];
 
   const { data, error } = await supabase
     .from("user_notifications")
@@ -183,6 +187,7 @@ export async function deleteNotification(id: string): Promise<boolean> {
 /** 꺼 둔 종류들. 여기 없는 종류는 전부 켜져 있다. */
 export async function listDisabledNotificationKinds(): Promise<string[]> {
   if (!supabase) return [];
+  if (!(await hasSession())) return [];
 
   const { data, error } = await supabase
     .from("notification_preferences")

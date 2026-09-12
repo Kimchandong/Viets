@@ -174,7 +174,14 @@ export async function chargeAdClick(
     console.warn("[services/ads] chargeAdClick failed:", error.message);
     return 0;
   }
-  return Number((data as { charged?: number } | null)?.charged ?? 0);
+
+  const result = data as { charged?: number; error?: string } | null;
+  // [2026-09-12] 서버가 "과금하려다 실패했다"고 알려 주면 남긴다. 이 표시가 없던 동안
+  // service_role 권한 누락으로 모든 클릭 과금이 조용히 0이 되고 있었다.
+  if (result?.error) {
+    console.warn("[services/ads] chargeAdClick server error:", result.error);
+  }
+  return Number(result?.charged ?? 0);
 }
 
 export type AdNotification = {

@@ -1,5 +1,6 @@
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { readImageBytes } from "@/utils/imageBytes";
+import { translateOnce } from "./contentTranslation";
 import { supabase } from "./supabase";
 
 /**
@@ -208,28 +209,8 @@ export async function getAdjacentPosts(
 // 번역
 // ============================================================================
 
-async function translateOnce(
-  text: string,
-  sourceLang: string,
-  targetLang: string,
-): Promise<string | null> {
-  if (!supabase) return null;
-  try {
-    const { data, error } = await supabase.functions.invoke("translate", {
-      body: { text, sourceLang, targetLang },
-    });
-    if (error) {
-      console.warn("[services/boards] translate failed:", error.message);
-      return null;
-    }
-    const translated = (data as { translatedText?: unknown })?.translatedText;
-    return typeof translated === "string" ? translated : null;
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown-error";
-    console.warn("[services/boards] translate threw:", message);
-    return null;
-  }
-}
+// [2026-09-12] translateOnce는 services/contentTranslation.ts로 옮겼다 — 매물·투자상품
+// 설명도 같은 방식으로 번역하게 되면서 구현이 두 벌이 됐기 때문이다. 동작은 그대로다.
 
 /**
  * 제목과 본문을 원문 언어 외 5개 언어로 번역한다.

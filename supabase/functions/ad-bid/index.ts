@@ -12,6 +12,8 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { pushMessage } from "../_shared/pushText.ts";
+
 type AdBidRequest = {
   propertyId: string;
   placement: "featured" | "top10";
@@ -31,16 +33,24 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-async function sendExpoPush(tokens: string[], title: string, body: string) {
-  if (tokens.length === 0) return;
+// [2026-09-12] 문구를 기기 언어로 만든다(ad-click과 같은 이유 — 앱 밖만 한국어였다).
+async function sendExpoPush(tokens: { token: string; lang: string | null }[]) {
+  const messages = tokens
+    .map((row) => {
+      const text = pushMessage("ad_slot_dropped", row.lang);
+      if (!text) return null;
+      return {
+        to: row.token,
+        sound: "default",
+        title: text.title,
+        body: text.body,
+        // 자리에서 빠졌으니 다시 순위를 사러 가야 한다.
+        data: { route: "/ad-manage", kind: "ad_slot_dropped" },
+      };
+    })
+    .filter((message): message is NonNullable<typeof message> => message !== null);
 
-  const messages = tokens.map((to) => ({
-    to,
-    sound: "default",
-    title,
-    body,
-    data: { route: "/my", kind: "slot_dropped" },
-  }));
+  if (messages.length === 0) return;
 
   try {
     const response = await fetch("https://exp.host/--/api/v2/push/send", {
@@ -128,14 +138,10 @@ Deno.serve(async (req: Request) => {
     if (notificationId) {
       const { data: tokens } = await admin
         .from("push_tokens")
-        .select("token")
+        .select("token,lang")
         .eq("user_id", droppedOwner);
 
-      await sendExpoPush(
-        (tokens ?? []).map((row: { token: string }) => row.token),
-        "VIETS",
-        "다른 매물의 광고비가 더 높아 순위에서 밀려났습니다. 노출이 중단되었습니다.",
-      );
+      await sendExpoPush((tokens ?? []) as { token: string; lang: string | null }[]);
 
       await admin
         .from("ad_notifications")

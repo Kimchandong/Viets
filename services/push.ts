@@ -3,6 +3,7 @@ import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
+import i18n from "@/i18n";
 import { supabase } from "./supabase";
 
 /**
@@ -70,9 +71,12 @@ export async function registerPushToken(): Promise<void> {
     const token = tokenResponse.data;
     if (!token) return;
 
+    // [2026-09-12] 기기 언어를 함께 보낸다. 푸시는 앱 밖에서 표시되므로 보내는 쪽이
+    // 받는 사람의 언어를 알아야 한다 — 예전에는 모든 사용자에게 한국어로 나갔다.
     const { error } = await supabase.rpc("register_push_token", {
       p_token: token,
       p_platform: Platform.OS,
+      p_lang: (i18n.language ?? "").split("-")[0] || null,
     });
     if (error) {
       console.warn("[services/push] register_push_token failed:", error.message);
@@ -84,14 +88,23 @@ export async function registerPushToken(): Promise<void> {
 }
 
 /**
- * 알림을 눌렀을 때 이동할 경로. 보내는 쪽(엣지 함수 ad-click)이 data.route에 넣는다.
- * 모르는 값이면 null — 임의의 문자열로 router.push를 부르면 앱이 죽는다.
+ * 알림을 눌렀을 때 이동할 경로. 보내는 쪽(엣지 함수)이 data.route에 넣는다.
+ *
+ * **허용 목록으로 막는다** — 임의의 문자열로 router.push를 부르면 없는 화면으로 가서
+ * 앱이 죽는다. 푸시 내용은 서버가 넣지만, 목록으로 두면 나중에 경로를 지웠을 때도 안전하다.
  */
+const PUSH_ROUTES = [
+  "/my",
+  "/notifications",
+  "/payment-info",
+  "/ad-manage",
+  "/boards",
+] as const;
+
 export function routeFromNotification(response: Notifications.NotificationResponse): string | null {
   const data = response.notification.request.content.data as { route?: unknown } | undefined;
   const route = typeof data?.route === "string" ? data.route : null;
-  if (route === "/my") return route;
-  return null;
+  return route && (PUSH_ROUTES as readonly string[]).includes(route) ? route : null;
 }
 
 /** 알림 탭 구독. 해제 함수를 돌려준다. */

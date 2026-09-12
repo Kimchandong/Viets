@@ -21,6 +21,7 @@ import {
   getBoardPost,
   type BoardPost,
 } from "@/services/boards";
+import { sendNotificationPush } from "@/services/notifications";
 import { isAdmin } from "@/services/roles";
 
 /**
@@ -111,7 +112,12 @@ export default function BoardDetailScreen() {
     setBusy(false);
     setAnswerOpen(false);
     showToast(ok ? t("adminBoards.answered") : t("adminBoards.saveFailed"));
-    if (ok) await load();
+    if (ok) {
+      // [2026-09-12] 질문자에게 푸시. 수신함에는 트리거가 넣고, 밖으로 내보내는 일만
+      // 여기서 한다 — 답변을 기다리는 사람은 앱을 열어 두고 있지 않다.
+      void sendNotificationPush("qa_answered", post.id);
+      await load();
+    }
   }
 
   const screenTitle = post ? t(`board.kind.${post.kind}`) : t("board.title");

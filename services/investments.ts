@@ -3,6 +3,11 @@ import type { ImageSourcePropType } from "react-native";
 import { MOCK_INVEST_IMAGES, type InvestImageCategory } from "@/constants/mockImages";
 import type { MockInvestmentProduct, MockInvestmentStatus } from "@/constants/mockData";
 import { formatVndAmount } from "@/utils/format";
+import {
+  currentContentLang,
+  toContentMap,
+  translateTextForAllLanguages,
+} from "./contentTranslation";
 import { supabase } from "./supabase";
 
 /**
@@ -35,6 +40,9 @@ type InvestmentProductRow = {
   id: string;
   title: string;
   description: string | null;
+  /** [2026-09-12] 언어코드 → 번역된 설명. 매물과 같은 규칙. */
+  description_i18n: Record<string, string> | null;
+  description_lang: string | null;
   property_id: string | null;
   category: InvestImageCategory;
   target_amount: number;
@@ -49,7 +57,7 @@ type InvestmentProductRow = {
 };
 
 const PRODUCT_SELECT =
-  "id,title,description,property_id,category,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,status,raised_amount,properties(address)";
+  "id,title,description,description_i18n,description_lang,property_id,category,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,status,raised_amount,properties(address)";
 
 function resolveImages(category: InvestImageCategory): ImageSourcePropType[] {
   // 투자상품 사진 테이블은 아직 없다(DATABASE.md §3 investment_product_documents는
@@ -82,8 +90,8 @@ function mapRow(row: InvestmentProductRow): MockInvestmentProduct {
     targetAmountVnd: row.target_amount,
     raisedAmountVnd: row.raised_amount,
     dividendFrequency: (row.dividend_frequency as MockInvestmentProduct["dividendFrequency"]) ?? "quarterly",
-    // 단일 text 컬럼이라 vi 하나만 채운다 — localizedText가 없는 언어는 vi로 폴백한다.
-    description: { vi: row.description ?? "" },
+    // [2026-09-12] 저장 시점에 만들어 둔 번역. 없는 언어는 원문으로 폴백한다.
+    description: toContentMap(row.description, row.description_i18n, row.description_lang),
     images: resolveImages(category),
     isMock: false,
   };
@@ -177,9 +185,19 @@ export async function createInvestmentProduct(
     return null;
   }
 
+  // [2026-09-12] 설명을 나머지 5개 언어로 번역한 뒤 한 번에 넣는다(매물과 같은 규칙).
+  const descriptionLang = currentContentLang();
+  const descriptionI18n = await translateTextForAllLanguages(input.description, descriptionLang);
+
   const { data, error } = await supabase
     .from("investment_products")
-    .insert({ ...input, region: input.region.length > 0 ? input.region : null, currency: "VND" })
+    .insert({
+      ...input,
+      region: input.region.length > 0 ? input.region : null,
+      currency: "VND",
+      description_i18n: descriptionI18n,
+      description_lang: descriptionLang,
+    })
     .select("id")
     .single();
 
@@ -198,9 +216,31 @@ export async function updateInvestmentProduct(
     return false;
   }
 
+  // 설명이 그대로면 다시 번역하지 않는다 — 모집금액만 고치는 수정이 대부분이다.
+  const { data: current } = await supabase
+    .from("investment_products")
+    .select("description")
+    .eq("id", id)
+    .maybeSingle();
+
+  const prev = (current ?? null) as { description: string | null } | null;
+
+  let translation: { description_i18n?: Record<string, string>; description_lang?: string } = {};
+  if ((prev?.description ?? "") !== input.description) {
+    const descriptionLang = currentContentLang();
+    translation = {
+      description_i18n: await translateTextForAllLanguages(input.description, descriptionLang),
+      description_lang: descriptionLang,
+    };
+  }
+
   const { error } = await supabase
     .from("investment_products")
-    .update({ ...input, region: input.region.length > 0 ? input.region : null })
+    .update({
+      ...input,
+      region: input.region.length > 0 ? input.region : null,
+      ...translation,
+    })
     .eq("id", id);
 
   if (error) {

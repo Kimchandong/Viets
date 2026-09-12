@@ -1114,5 +1114,50 @@
     "noPermissionDescription": "관리자만 볼 수 있는 화면입니다.",
     "deletedProperty": "삭제된 매물",
     "count": "신고 {{count}}건"
+  },
+  "notifications": {
+    "title": "알림",
+    "emptyTitle": "알림이 없습니다",
+    "emptyDescription": "새로운 소식이 있으면 여기에 표시됩니다.",
+    "markAllRead": "모두 읽음으로 표시",
+    "allReadDone": "모두 읽음으로 표시했습니다",
+    "deleteOne": "알림 삭제",
+    "settings": "알림 설정",
+    "settingsHint": "받고 싶지 않은 알림은 꺼 두세요. 끈 알림은 수신함에도 쌓이지 않습니다.",
+    "actionFailed": "처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "kind": {
+      "ad_balance_empty": {
+        "title": "광고비 소진",
+        "body": "광고비 잔액이 모두 소진되어 광고 노출이 중단되었습니다."
+      },
+      "ad_slot_dropped": {
+        "title": "광고 순위 탈락",
+        "body": "다른 매물의 광고비가 더 높아 순위에서 밀려났습니다."
+      },
+      "agency_approved": {
+        "title": "업체 승인 완료",
+        "body": "{{agency}} 등록이 승인되었습니다."
+      },
+      "agency_rejected": {
+        "title": "업체 승인 반려",
+        "body": "{{agency}} 등록이 반려되었습니다. {{reason}}"
+      },
+      "payment_approved": {
+        "title": "충전 승인",
+        "body": "{{amount}} VND 충전이 잔액에 반영되었습니다."
+      },
+      "payment_rejected": {
+        "title": "충전 반려",
+        "body": "충전 신청이 반려되었습니다. {{reason}}"
+      },
+      "qa_answered": {
+        "title": "문의 답변 등록",
+        "body": "{{title}} 문의에 답변이 등록되었습니다."
+      },
+      "report_resolved": {
+        "title": "신고 처리 완료",
+        "body": "신고하신 매물의 검토가 완료되었습니다."
+      }
+    }
   }
 }

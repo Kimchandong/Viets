@@ -21,6 +21,7 @@ import {
   type AdminAgency,
   type AgencyApprovalStatus,
 } from "@/services/agencies";
+import { sendNotificationPush } from "@/services/notifications";
 import { isAdmin } from "@/services/roles";
 
 /**
@@ -89,6 +90,8 @@ export default function AdminAgenciesScreen() {
     setBusyId(null);
     showToast(ok ? t("adminAgencies.approved") : t("adminAgencies.actionFailed"));
     if (ok) {
+      // [2026-09-12] 수신함에는 트리거가 넣는다. 푸시만 여기서 밀어 준다.
+      void sendNotificationPush("agency_approved", `${agency.id}:approved`);
       setDetail(null);
       await refresh();
     }
@@ -104,6 +107,7 @@ export default function AdminAgenciesScreen() {
     setRejectReason("");
     showToast(ok ? t("adminAgencies.rejected") : t("adminAgencies.actionFailed"));
     if (ok) {
+      void sendNotificationPush("agency_rejected", `${target.id}:rejected`);
       setDetail(null);
       await refresh();
     }

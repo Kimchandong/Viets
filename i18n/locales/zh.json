@@ -1114,5 +1114,50 @@
     "noPermissionDescription": "该页面仅管理员可见。",
     "deletedProperty": "已删除的房源",
     "count": "{{count}} 条举报"
+  },
+  "notifications": {
+    "title": "通知",
+    "emptyTitle": "暂无通知",
+    "emptyDescription": "有新消息时会显示在这里。",
+    "markAllRead": "全部标为已读",
+    "allReadDone": "已全部标为已读",
+    "deleteOne": "删除通知",
+    "settings": "通知设置",
+    "settingsHint": "关闭不想收到的通知。关闭后也不会保留在这里。",
+    "actionFailed": "操作失败，请稍后再试。",
+    "kind": {
+      "ad_balance_empty": {
+        "title": "广告余额已用尽",
+        "body": "广告余额已用尽，房源已停止展示。"
+      },
+      "ad_slot_dropped": {
+        "title": "已跌出广告排名",
+        "body": "其他房源出价更高，您的房源失去了排位。"
+      },
+      "agency_approved": {
+        "title": "公司审核通过",
+        "body": "{{agency}} 的注册已通过审核。"
+      },
+      "agency_rejected": {
+        "title": "公司审核未通过",
+        "body": "{{agency}} 的注册未通过。{{reason}}"
+      },
+      "payment_approved": {
+        "title": "充值已通过",
+        "body": "{{amount}} VND 已计入余额。"
+      },
+      "payment_rejected": {
+        "title": "充值未通过",
+        "body": "充值申请未通过。{{reason}}"
+      },
+      "qa_answered": {
+        "title": "咨询已回复",
+        "body": "{{title}} 的咨询已有回复。"
+      },
+      "report_resolved": {
+        "title": "举报已处理",
+        "body": "您举报的房源已完成核查。"
+      }
+    }
   }
 }

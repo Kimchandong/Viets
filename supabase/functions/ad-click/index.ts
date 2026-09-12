@@ -15,6 +15,8 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { pushMessage } from "../_shared/pushText.ts";
+
 type AdClickRequest = {
   propertyId: string;
   placement: "featured" | "top10";
@@ -55,18 +57,27 @@ function clientIp(req: Request): string {
 /**
  * Expo 푸시 발송. 토큰이 여러 개(기기별)일 수 있어 한 번에 보낸다.
  * 실패해도 과금은 이미 끝났으므로 전체를 실패로 만들지 않는다 — 로그만 남긴다.
+ *
+ * [2026-09-12] 문구를 **기기 언어로** 만든다. 예전에는 한국어 문자열을 그대로 보내
+ * 베트남 사용자도 한국어 푸시를 받았다(앱 안은 6개 언어인데 앱 밖만 한국어였다).
  */
-async function sendExpoPush(tokens: string[], title: string, body: string) {
-  if (tokens.length === 0) return;
+async function sendExpoPush(tokens: { token: string; lang: string | null }[]) {
+  const messages = tokens
+    .map((row) => {
+      const text = pushMessage("ad_balance_empty", row.lang);
+      if (!text) return null;
+      return {
+        to: row.token,
+        sound: "default",
+        title: text.title,
+        body: text.body,
+        // 잔액이 비었으니 충전하러 가야 한다.
+        data: { route: "/payment-info", kind: "ad_balance_empty" },
+      };
+    })
+    .filter((message): message is NonNullable<typeof message> => message !== null);
 
-  const messages = tokens.map((to) => ({
-    to,
-    sound: "default",
-    title,
-    body,
-    // 앱이 알림을 눌렀을 때 어디로 갈지 — MY 화면(사용자 지시).
-    data: { route: "/my", kind: "balance_empty" },
-  }));
+  if (messages.length === 0) return;
 
   try {
     const response = await fetch("https://exp.host/--/api/v2/push/send", {
@@ -156,14 +167,10 @@ Deno.serve(async (req: Request) => {
     if (notificationId) {
       const { data: tokens } = await admin
         .from("push_tokens")
-        .select("token")
+        .select("token,lang")
         .eq("user_id", ownerId);
 
-      await sendExpoPush(
-        (tokens ?? []).map((row: { token: string }) => row.token),
-        "VIETS",
-        "광고비 잔액이 모두 소진되었습니다.",
-      );
+      await sendExpoPush((tokens ?? []) as { token: string; lang: string | null }[]);
 
       await admin
         .from("ad_notifications")

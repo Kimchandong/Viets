@@ -1114,5 +1114,50 @@
     "noPermissionDescription": "This screen is for admins only.",
     "deletedProperty": "Deleted listing",
     "count": "{{count}} report(s)"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "emptyTitle": "No notifications",
+    "emptyDescription": "Anything new will show up here.",
+    "markAllRead": "Mark all as read",
+    "allReadDone": "Marked all as read",
+    "deleteOne": "Delete notification",
+    "settings": "Notification settings",
+    "settingsHint": "Turn off what you do not want. Notifications you turn off are not kept here either.",
+    "actionFailed": "Could not complete that. Please try again shortly.",
+    "kind": {
+      "ad_balance_empty": {
+        "title": "Ad balance used up",
+        "body": "Your ad balance is empty, so the listing is no longer shown."
+      },
+      "ad_slot_dropped": {
+        "title": "Dropped from ad ranking",
+        "body": "Another listing bid higher, so yours lost its slot."
+      },
+      "agency_approved": {
+        "title": "Agency approved",
+        "body": "{{agency}} has been approved."
+      },
+      "agency_rejected": {
+        "title": "Agency rejected",
+        "body": "{{agency}} was rejected. {{reason}}"
+      },
+      "payment_approved": {
+        "title": "Top-up approved",
+        "body": "{{amount}} VND has been added to your balance."
+      },
+      "payment_rejected": {
+        "title": "Top-up rejected",
+        "body": "Your top-up request was rejected. {{reason}}"
+      },
+      "qa_answered": {
+        "title": "Your question was answered",
+        "body": "An answer was posted to {{title}}."
+      },
+      "report_resolved": {
+        "title": "Report reviewed",
+        "body": "The listing you reported has been reviewed."
+      }
+    }
   }
 }

@@ -1114,5 +1114,50 @@
     "noPermissionDescription": "Màn hình này chỉ dành cho quản trị viên.",
     "deletedProperty": "Tin đã xóa",
     "count": "{{count}} báo cáo"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "emptyTitle": "Chưa có thông báo",
+    "emptyDescription": "Tin mới sẽ hiển thị tại đây.",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "allReadDone": "Đã đánh dấu tất cả là đã đọc",
+    "deleteOne": "Xóa thông báo",
+    "settings": "Cài đặt thông báo",
+    "settingsHint": "Tắt những thông báo bạn không muốn nhận. Thông báo đã tắt cũng không lưu tại đây.",
+    "actionFailed": "Không thực hiện được. Vui lòng thử lại sau.",
+    "kind": {
+      "ad_balance_empty": {
+        "title": "Hết số dư quảng cáo",
+        "body": "Số dư quảng cáo đã hết nên tin không còn được hiển thị."
+      },
+      "ad_slot_dropped": {
+        "title": "Rớt khỏi thứ hạng quảng cáo",
+        "body": "Tin khác trả phí cao hơn nên tin của bạn mất vị trí."
+      },
+      "agency_approved": {
+        "title": "Công ty được duyệt",
+        "body": "{{agency}} đã được duyệt."
+      },
+      "agency_rejected": {
+        "title": "Công ty bị từ chối",
+        "body": "{{agency}} đã bị từ chối. {{reason}}"
+      },
+      "payment_approved": {
+        "title": "Nạp tiền được duyệt",
+        "body": "{{amount}} VND đã được cộng vào số dư."
+      },
+      "payment_rejected": {
+        "title": "Nạp tiền bị từ chối",
+        "body": "Yêu cầu nạp tiền đã bị từ chối. {{reason}}"
+      },
+      "qa_answered": {
+        "title": "Câu hỏi đã được trả lời",
+        "body": "Đã có câu trả lời cho {{title}}."
+      },
+      "report_resolved": {
+        "title": "Đã xử lý báo cáo",
+        "body": "Tin bạn báo cáo đã được xem xét."
+      }
+    }
   }
 }

@@ -4,6 +4,11 @@ import { MOCK_PROPERTY_IMAGES, type PropertyImageCategory } from "@/constants/mo
 import { MOCK_REGIONS, type MockProperty, type MockPropertyCategory, type MockPropertyStatus } from "@/constants/mockData";
 import { formatVndAmount } from "@/utils/format";
 import { readImageBytes } from "@/utils/imageBytes";
+import {
+  currentContentLang,
+  toContentMap,
+  translateTextForAllLanguages,
+} from "./contentTranslation";
 import { isAdmin } from "./roles";
 import { supabase } from "./supabase";
 
@@ -42,6 +47,10 @@ type PropertyRow = {
   id: string;
   title: string;
   description: string | null;
+  /** [2026-09-12] 언어코드 → 번역된 설명. 저장 시점에 채운다. */
+  description_i18n: Record<string, string> | null;
+  /** 설명 원문의 언어. NULL이면 모든 언어에서 원문이 보인다. */
+  description_lang: string | null;
   category: string;
   listing_type: "for_sale" | "for_rent";
   price: number;
@@ -60,7 +69,7 @@ type PropertyRow = {
 };
 
 const PROPERTY_SELECT =
-  "id,title,description,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,featured,amenities,address,latitude,longitude,region,created_by,property_images(url,sort_order)";
+  "id,title,description,description_i18n,description_lang,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,featured,amenities,address,latitude,longitude,region,created_by,property_images(url,sort_order)";
 
 /** 매물의 지역.
  *
@@ -113,9 +122,9 @@ function mapRowToMockProperty(row: PropertyRow): MockProperty {
     areaValueM2: row.area ?? 0,
     bedrooms: row.bedrooms ?? undefined,
     bathrooms: row.bathrooms ?? undefined,
-    // description은 아직 언어별 콘텐츠 분리가 없어(단일 text 컬럼) vi 하나만 채운다 —
-    // utils/format.ts localizedText()가 없는 언어는 vi로 폴백하므로 화면 쪽은 그대로 동작한다.
-    description: { vi: row.description ?? "" },
+    // [2026-09-12] 저장 시점에 만들어 둔 번역을 그대로 쓴다. 번역이 없는 언어(또는
+    // 번역 붙기 전에 등록된 매물)는 localizedText()가 원문으로 폴백한다.
+    description: toContentMap(row.description, row.description_i18n, row.description_lang),
     options: row.amenities ?? [],
     // [STEP 04-지도] 마커 좌표 — 둘 중 하나라도 없으면 좌표 없는 매물로 취급한다
     // (properties_geom_sync 트리거도 동일한 규칙으로 geom을 NULL 처리한다).
@@ -338,6 +347,13 @@ export async function createProperty(input: NewPropertyInput): Promise<string | 
   // 없어 NULL이 돌아오고, 그쪽은 각자의 정책으로 통과한다.
   const { data: agencyId } = await supabase.rpc("my_active_agency_id");
 
+  // [2026-09-12] 설명을 나머지 5개 언어로 번역한 뒤 한 번에 넣는다. 먼저 저장하고
+  // 나중에 번역을 덧붙이면, 번역이 실패했을 때 원문만 있는 매물이 남아 다른 언어
+  // 사용자에게는 등록자가 쓴 언어가 그대로 보인다. 그럴 바에는 저장이 몇 초 걸리는
+  // 편이 낫다(게시판과 같은 판단).
+  const descriptionLang = currentContentLang();
+  const descriptionI18n = await translateTextForAllLanguages(input.description, descriptionLang);
+
   const { data, error } = await supabase
     .from("properties")
     .insert({
@@ -345,6 +361,8 @@ export async function createProperty(input: NewPropertyInput): Promise<string | 
       region: input.region.length > 0 ? input.region : null,
       currency: "VND",
       agency_id: (agencyId as string | null) ?? null,
+      description_i18n: descriptionI18n,
+      description_lang: descriptionLang,
     })
     .select("id")
     .single();
@@ -365,9 +383,34 @@ export async function updateProperty(id: string, input: NewPropertyInput): Promi
     return false;
   }
 
+  // [2026-09-12] 설명이 그대로면 다시 번역하지 않는다. 매물 수정은 가격·상태만 손보는
+  // 경우가 대부분인데, 그때마다 다섯 번 번역하면 저장이 몇 초씩 걸리고 번역 비용도
+  // 수정 횟수만큼 늘어난다.
+  const { data: current } = await supabase
+    .from("properties")
+    .select("description,description_lang")
+    .eq("id", id)
+    .maybeSingle();
+
+  const prev = (current ?? null) as { description: string | null; description_lang: string | null } | null;
+  const descriptionChanged = (prev?.description ?? "") !== input.description;
+
+  let translation: { description_i18n?: Record<string, string>; description_lang?: string } = {};
+  if (descriptionChanged) {
+    const descriptionLang = currentContentLang();
+    translation = {
+      description_i18n: await translateTextForAllLanguages(input.description, descriptionLang),
+      description_lang: descriptionLang,
+    };
+  }
+
   const { error } = await supabase
     .from("properties")
-    .update({ ...input, region: input.region.length > 0 ? input.region : null })
+    .update({
+      ...input,
+      region: input.region.length > 0 ? input.region : null,
+      ...translation,
+    })
     .eq("id", id);
 
   if (error) {

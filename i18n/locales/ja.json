@@ -1114,5 +1114,50 @@
     "noPermissionDescription": "管理者のみ閲覧できる画面です。",
     "deletedProperty": "削除された物件",
     "count": "通報 {{count}}件"
+  },
+  "notifications": {
+    "title": "お知らせ",
+    "emptyTitle": "お知らせはありません",
+    "emptyDescription": "新しい情報があるとここに表示されます。",
+    "markAllRead": "すべて既読にする",
+    "allReadDone": "すべて既読にしました",
+    "deleteOne": "お知らせを削除",
+    "settings": "通知設定",
+    "settingsHint": "受け取りたくない通知はオフにしてください。オフにした通知はここにも残りません。",
+    "actionFailed": "処理できませんでした。しばらくしてからもう一度お試しください。",
+    "kind": {
+      "ad_balance_empty": {
+        "title": "広告費の残高切れ",
+        "body": "広告費の残高がなくなったため、掲載が停止されました。"
+      },
+      "ad_slot_dropped": {
+        "title": "広告順位から外れました",
+        "body": "他の物件の広告費が高く、順位から外れました。"
+      },
+      "agency_approved": {
+        "title": "会社の承認完了",
+        "body": "{{agency}} の登録が承認されました。"
+      },
+      "agency_rejected": {
+        "title": "会社の承認却下",
+        "body": "{{agency}} の登録が却下されました。{{reason}}"
+      },
+      "payment_approved": {
+        "title": "チャージ承認",
+        "body": "{{amount}} VND が残高に反映されました。"
+      },
+      "payment_rejected": {
+        "title": "チャージ却下",
+        "body": "チャージ申請が却下されました。{{reason}}"
+      },
+      "qa_answered": {
+        "title": "お問い合わせに回答",
+        "body": "{{title}} のお問い合わせに回答が登録されました。"
+      },
+      "report_resolved": {
+        "title": "通報の処理完了",
+        "body": "通報された物件の確認が完了しました。"
+      }
+    }
   }
 }

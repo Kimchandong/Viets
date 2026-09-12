@@ -27,6 +27,7 @@ import {
   type PaymentRequestStatus,
   type PaymentSettings,
 } from "@/services/payments";
+import { sendNotificationPush } from "@/services/notifications";
 import { isAdmin } from "@/services/roles";
 
 /**
@@ -187,22 +188,32 @@ export default function AdminPaymentsScreen() {
     }
 
     setBusyId(approveTarget.id);
-    const ok = await reviewPayment(approveTarget.id, true, undefined, amount);
+    const targetId = approveTarget.id;
+    const ok = await reviewPayment(targetId, true, undefined, amount);
     setBusyId(null);
     setApproveTarget(null);
     showToast(ok ? t("adminPayments.approved") : t("adminPayments.actionFailed"));
-    if (ok) await load();
+    if (ok) {
+      // [2026-09-12] 알림은 트리거가 이미 수신함에 넣었다. 푸시만 여기서 밀어 준다 —
+      // DB는 외부로 보낼 수 없어 누른 쪽이 한 번 불러야 한다. dedupe 키는 트리거와 같은 모양.
+      void sendNotificationPush("payment_approved", `${targetId}:approved`);
+      await load();
+    }
   }
 
   async function handleReject() {
     if (!rejectTarget) return;
     setBusyId(rejectTarget.id);
-    const ok = await reviewPayment(rejectTarget.id, false, rejectReason);
+    const targetId = rejectTarget.id;
+    const ok = await reviewPayment(targetId, false, rejectReason);
     setBusyId(null);
     setRejectTarget(null);
     setRejectReason("");
     showToast(ok ? t("adminPayments.rejected") : t("adminPayments.actionFailed"));
-    if (ok) await load();
+    if (ok) {
+      void sendNotificationPush("payment_rejected", `${targetId}:rejected`);
+      await load();
+    }
   }
 
   const screenTitle = t("adminPayments.title");

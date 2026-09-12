@@ -26,6 +26,7 @@ import { canManageInvestment, canRegisterProperty, isAdmin } from "@/services/ro
 import { getMyAgency, renameMyAgency, type MyAgency } from "@/services/agencies";
 import { getMyAvatarUrl, uploadMyAvatar } from "@/services/profile";
 import { listUnreadAdNotifications, markAdNotificationRead } from "@/services/ads";
+import { getUnreadNotificationCount } from "@/services/notifications";
 import {
   getAgencyBalance,
   getLatestRejectedPayment,
@@ -174,6 +175,8 @@ export default function MyScreen() {
   // 나의 활동 숫자 — 내가 등록한 매물 수와 내가 낸 투자신청 수.
   const [myPropertyCount, setMyPropertyCount] = useState(0);
   const [myOrderCount, setMyOrderCount] = useState(0);
+  // [2026-09-12] 알림 수신함의 안 읽은 개수. 설정 줄 오른쪽에 숫자로만 붙인다.
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   // [2026-09-11 버그 수정] 예전에는 useEffect([session])이었다. MY는 탭 화면이라
   // 언마운트되지 않고 session 객체도 그대로이므로, 관리자가 업체를 승인해도 /
@@ -192,6 +195,7 @@ export default function MyScreen() {
       setRejectedPayment(null);
       setMyPropertyCount(0);
       setMyOrderCount(0);
+      setUnreadNotifications(0);
       setPermissionChecked(false);
       setAvatarUrl(null);
       return;
@@ -227,6 +231,9 @@ export default function MyScreen() {
     });
     listMyInvestmentOrders().then((list) => {
       if (mounted) setMyOrderCount(list.length);
+    });
+    getUnreadNotificationCount().then((count) => {
+      if (mounted) setUnreadNotifications(count);
     });
     isAdmin().then((ok) => {
       if (mounted) setIsAdminUser(ok);
@@ -293,10 +300,8 @@ export default function MyScreen() {
     };
   }, [favoriteInvestmentIds]);
 
-  function showComingSoon() {
-    setToast(t("common.comingSoon"));
-    setTimeout(() => setToast(null), 1600);
-  }
+  // [2026-09-12] showComingSoon 제거 — 마지막 사용처였던 "알림" 줄이 실제 화면으로
+  // 연결되면서 이 화면에는 '준비 중'인 항목이 하나도 남지 않았다.
 
   function showToast(message: string, ms = 1600) {
     setToast(message);
@@ -828,10 +833,15 @@ export default function MyScreen() {
         <View style={[styles.section, styles.lastSection]}>
           <SectionHeader title={t("my.settingsTitle")} />
           <Card style={styles.rowsCard}>
+            {/* [2026-09-12 사용자 지시] 알림 수신함 — 여기는 "준비 중" 토스트였다.
+                푸시는 알림창을 지우면 끝이고 MY 토스트는 몇 초 뒤 사라져, 지나간
+                알림을 다시 볼 곳이 없었다. 안 읽은 개수는 숫자로만 붙인다 —
+                점과 숫자를 같이 두면 같은 사실을 두 번 말하게 된다. */}
             <SettingsRow
               icon="notifications-outline"
               label={t("my.rows.notifications")}
-              onPress={showComingSoon}
+              valueLabel={unreadNotifications > 0 ? String(unreadNotifications) : undefined}
+              onPress={() => router.push("/notifications")}
               theme={theme}
             />
             <SettingsRow

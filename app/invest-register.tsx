@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -289,7 +290,7 @@ export default function InvestRegisterScreen() {
   if (checkingPermission || loadingExisting) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/invest" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -298,7 +299,7 @@ export default function InvestRegisterScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/invest" />} />
         <EmptyState
           title={t("investRegister.noPermissionTitle")}
           description={t("investRegister.noPermissionDescription")}
@@ -309,7 +310,7 @@ export default function InvestRegisterScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/invest" />} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* [2026-09-11 사용자 지시 — 4차] 지역 — 컨텐츠 맨 위, 가로 슬라이드. */}
         <Text style={[styles.smallLabel, { color: theme.secondaryText, marginTop: spacing.sm }]}>
@@ -762,18 +763,6 @@ function riskColor(level: RiskLevel, theme: typeof colors.light): string {
   return theme.accent;
 }
 
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

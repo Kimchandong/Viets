@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -45,7 +46,6 @@ const STATUS_ORDER: PaymentRequestStatus[] = ["pending", "approved", "rejected"]
 export default function AdminPaymentsScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [settings, setSettings] = useState<PaymentSettings | null>(null);
@@ -58,13 +58,19 @@ export default function AdminPaymentsScreen() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<PaymentRequest | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  /** 승인 확인 모달 — 관리자가 실제 입금액을 적어 넣는다. */
+  const [approveTarget, setApproveTarget] = useState<PaymentRequest | null>(null);
+  const [approveAmount, setApproveAmount] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
   // 설정 입력값은 문자열로 들고 있다가 저장할 때 숫자로 바꾼다 — 입력 도중의 빈 칸이나
   // 중간 상태를 숫자로 강제하면 커서가 튄다.
   const [feeAgency, setFeeAgency] = useState("");
   const [feeGeneral, setFeeGeneral] = useState("");
-  const [featuredFee, setFeaturedFee] = useState("");
+  // [2026-09-12 사용자 지시] 추천/TOP10은 기간제가 아니라 금액 순위다 — 관리자는
+  // "그 자리에 들어가려면 최소 얼마"만 정한다.
+  const [featuredMinBid, setFeaturedMinBid] = useState("");
+  const [top10MinBid, setTop10MinBid] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountHolder, setAccountHolder] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -80,7 +86,8 @@ export default function AdminPaymentsScreen() {
     if (nextSettings) {
       setFeeAgency(String(nextSettings.registerFeeAgency));
       setFeeGeneral(String(nextSettings.registerFeeGeneral));
-      setFeaturedFee(String(nextSettings.featuredDailyFee));
+      setFeaturedMinBid(String(nextSettings.featuredMinBid));
+      setTop10MinBid(String(nextSettings.top10MinBid));
       setBankName(nextSettings.bankName);
       setAccountHolder(nextSettings.accountHolder);
       setAccountNumber(nextSettings.accountNumber);
@@ -144,7 +151,8 @@ export default function AdminPaymentsScreen() {
     const ok = await updatePaymentSettings({
       registerFeeAgency: toNumber(feeAgency),
       registerFeeGeneral: toNumber(feeGeneral),
-      featuredDailyFee: toNumber(featuredFee),
+      featuredMinBid: toNumber(featuredMinBid),
+      top10MinBid: toNumber(top10MinBid),
       bankName,
       accountHolder,
       accountNumber,
@@ -159,10 +167,29 @@ export default function AdminPaymentsScreen() {
     }
   }
 
-  async function handleApprove(request: PaymentRequest) {
-    setBusyId(request.id);
-    const ok = await reviewPayment(request.id, true);
+  /**
+   * [2026-09-12 사용자 지시] 승인은 곧바로 처리하지 않고 **실제 입금된 금액**을
+   * 확인받는다 — 신고 금액과 송금액이 어긋나는 경우가 있어, 그대로 승인하면
+   * 잔액이 실제보다 많거나 적어진다. 기본값은 신고 금액이다.
+   */
+  function openApprove(request: PaymentRequest) {
+    setApproveTarget(request);
+    setApproveAmount(String(Math.round(request.amount)));
+  }
+
+  async function handleApprove() {
+    if (!approveTarget) return;
+
+    const amount = Number(approveAmount.replace(/[^\d]/g, "")) || 0;
+    if (amount <= 0) {
+      showToast(t("adminPayments.approveAmountRequired"));
+      return;
+    }
+
+    setBusyId(approveTarget.id);
+    const ok = await reviewPayment(approveTarget.id, true, undefined, amount);
     setBusyId(null);
+    setApproveTarget(null);
     showToast(ok ? t("adminPayments.approved") : t("adminPayments.actionFailed"));
     if (ok) await load();
   }
@@ -184,7 +211,7 @@ export default function AdminPaymentsScreen() {
   if (allowed === null || loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -193,7 +220,7 @@ export default function AdminPaymentsScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <EmptyState
           title={t("adminPayments.noPermissionTitle")}
           description={t("adminPayments.noPermissionDescription")}
@@ -204,7 +231,7 @@ export default function AdminPaymentsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* [2026-09-11 사용자 지시 — 3차] 광고비 설정 — 눌러서 펼치는 아코디언. */}
@@ -243,11 +270,18 @@ export default function AdminPaymentsScreen() {
               keyboardType="numeric"
             />
             <Input
-              label={t("adminPayments.featuredFee")}
-              value={featuredFee}
-              onChangeText={setFeaturedFee}
+              label={t("adminPayments.featuredMinBid")}
+              value={featuredMinBid}
+              onChangeText={setFeaturedMinBid}
               keyboardType="numeric"
-              helperText={t("adminPayments.featuredFeeHint")}
+              helperText={t("adminPayments.featuredMinBidHint")}
+            />
+            <Input
+              label={t("adminPayments.top10MinBid")}
+              value={top10MinBid}
+              onChangeText={setTop10MinBid}
+              keyboardType="numeric"
+              helperText={t("adminPayments.top10MinBidHint")}
             />
 
             {/* 계좌는 은행명·예금주를 한 줄에, 계좌번호를 그 아래 한 줄에 둔다. */}
@@ -356,7 +390,7 @@ export default function AdminPaymentsScreen() {
                       disabled={disabled}
                       onPress={() => {
                         if (status === "approved") {
-                          handleApprove(request);
+                          openApprove(request);
                         } else if (status === "rejected") {
                           setRejectTarget(request);
                           setRejectReason("");
@@ -393,6 +427,35 @@ export default function AdminPaymentsScreen() {
         )}
       </ScrollView>
 
+      {/* [2026-09-12 사용자 지시] 승인 = 실제 입금액 입력. */}
+      <Modal
+        visible={!!approveTarget}
+        onClose={() => setApproveTarget(null)}
+        accessibilityLabel={t("common.cancel")}
+      >
+        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.xs }]}>
+          {t("adminPayments.approveTitle")}
+        </Text>
+        <Text style={[textStyles.caption, { color: theme.secondaryText, marginBottom: spacing.sm }]}>
+          {t("adminPayments.approveHint", {
+            agency: approveTarget?.agencyName ?? "",
+            amount: formatMoneyAmount(approveTarget?.amount ?? 0, currency),
+          })}
+        </Text>
+        <Input
+          label={t("adminPayments.approveAmountLabel")}
+          value={approveAmount}
+          onChangeText={setApproveAmount}
+          keyboardType="numeric"
+        />
+        <Button
+          title={t("adminPayments.approve")}
+          onPress={handleApprove}
+          loading={busyId === approveTarget?.id}
+          style={styles.save}
+        />
+      </Modal>
+
       <Modal
         visible={!!rejectTarget}
         onClose={() => setRejectTarget(null)}
@@ -420,19 +483,6 @@ function statusColor(status: PaymentRequestStatus, theme: typeof colors.light): 
   if (status === "approved") return theme.accent;
   if (status === "rejected") return theme.danger;
   return theme.warning;
-}
-
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
 }
 
 const styles = StyleSheet.create({

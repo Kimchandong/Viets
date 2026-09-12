@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import type { Session } from "@supabase/supabase-js";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,7 +23,9 @@ import { type MockInvestmentProduct, type MockProperty } from "@/constants/mockD
 import { getPropertiesByIds, listManagedProperties } from "@/services/properties";
 import { getInvestmentProductsByIds, listMyInvestmentOrders } from "@/services/investments";
 import { canManageInvestment, canRegisterProperty, isAdmin } from "@/services/roles";
-import { getMyAgency, type MyAgency } from "@/services/agencies";
+import { getMyAgency, renameMyAgency, type MyAgency } from "@/services/agencies";
+import { getMyAvatarUrl, uploadMyAvatar } from "@/services/profile";
+import { listUnreadAdNotifications, markAdNotificationRead } from "@/services/ads";
 import {
   getAgencyBalance,
   getLatestRejectedPayment,
@@ -109,6 +112,13 @@ export default function MyScreen() {
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  /** [2026-09-11 사용자 지시] 프로필 사진 — 없으면 기존 사람 아이콘을 그대로 쓴다. */
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  /** [2026-09-11 사용자 지시] 업체명 수정 모달. */
+  const [nameModalVisible, setNameModalVisible] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<"google" | "apple" | null>(null);
 
   useEffect(() => {
@@ -165,7 +175,13 @@ export default function MyScreen() {
   const [myPropertyCount, setMyPropertyCount] = useState(0);
   const [myOrderCount, setMyOrderCount] = useState(0);
 
-  useEffect(() => {
+  // [2026-09-11 버그 수정] 예전에는 useEffect([session])이었다. MY는 탭 화면이라
+  // 언마운트되지 않고 session 객체도 그대로이므로, 관리자가 업체를 승인해도 /
+  // 입금을 확인해도 / 매물을 등록해도 이 화면은 **다시 읽지 않았다**. 승인을 받고
+  // MY로 와도 매물등록 메뉴가 안 보이고 잔액이 0으로 남아, 로그아웃 후 다시
+  // 로그인해야만 반영됐다. useFocusEffect로 바꿔 탭에 들어올 때마다 다시 읽는다.
+  useFocusEffect(
+    useCallback(() => {
     let mounted = true;
     if (!session) {
       setCanRegister(false);
@@ -177,8 +193,26 @@ export default function MyScreen() {
       setMyPropertyCount(0);
       setMyOrderCount(0);
       setPermissionChecked(false);
+      setAvatarUrl(null);
       return;
     }
+    getMyAvatarUrl().then((url) => {
+      if (mounted) setAvatarUrl(url);
+    });
+    // [2026-09-12 사용자 지시] 광고비 잔액 소진 알림 — MY에 들어오면 한 번 보여 주고
+    // 읽음 처리한다. 푸시 발송이 붙기 전까지는 이 화면이 전달 경로다.
+    listUnreadAdNotifications().then((items) => {
+      // 잔액 소진이 더 급한 소식이라 그쪽을 먼저 보여 준다.
+      const notice =
+        items.find((item) => item.kind === "balance_empty") ??
+        items.find((item) => item.kind === "slot_dropped");
+      if (!mounted || !notice) return;
+      setToast(
+        notice.kind === "balance_empty" ? t("my.adBalanceEmpty") : t("my.adSlotDropped"),
+      );
+      setTimeout(() => setToast(null), 3000);
+      void markAdNotificationRead(notice.id);
+    });
     canRegisterProperty().then((ok) => {
       if (mounted) {
         setCanRegister(ok);
@@ -217,7 +251,8 @@ export default function MyScreen() {
     return () => {
       mounted = false;
     };
-  }, [session]);
+    }, [session, t]),
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -261,6 +296,70 @@ export default function MyScreen() {
   function showComingSoon() {
     setToast(t("common.comingSoon"));
     setTimeout(() => setToast(null), 1600);
+  }
+
+  function showToast(message: string, ms = 1600) {
+    setToast(message);
+    setTimeout(() => setToast(null), ms);
+  }
+
+  function openNameModal() {
+    setNameDraft(agency?.name ?? "");
+    setNameModalVisible(true);
+  }
+
+  /** 업체명 저장 — 성공하면 화면의 이름도 바로 바꾼다(다시 조회하지 않는다). */
+  async function handleSaveAgencyName() {
+    const next = nameDraft.trim();
+    if (next.length === 0 || nameSaving) return;
+
+    setNameSaving(true);
+    const ok = await renameMyAgency(next);
+    setNameSaving(false);
+
+    if (!ok) {
+      showToast(t("my.agencyName.failed"));
+      return;
+    }
+    setAgency((prev) => (prev ? { ...prev, name: next } : prev));
+    setNameModalVisible(false);
+    showToast(t("my.agencyName.updated"));
+  }
+
+  /**
+   * [2026-09-11 사용자 지시] 프로필 아이콘의 편집 버튼 — 사진을 골라 올린다.
+   *
+   * 업로드 중에는 버튼을 잠근다. 사용자가 연달아 누르면 같은 사람의 아바타가
+   * 여러 장 올라가고, 마지막에 끝난 업로드가 avatar_url을 이긴다(고른 순서와
+   * 다른 사진이 남을 수 있다).
+   */
+  async function handlePickAvatar() {
+    if (avatarUploading) return;
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showToast(t("my.avatar.permission"));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      // 아바타는 원형으로 잘려 보이므로 정사각형으로 자르게 한다.
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || result.assets.length === 0) return;
+
+    setAvatarUploading(true);
+    const url = await uploadMyAvatar(result.assets[0].uri);
+    setAvatarUploading(false);
+
+    if (!url) {
+      showToast(t("my.avatar.failed"));
+      return;
+    }
+    setAvatarUrl(url);
+    showToast(t("my.avatar.updated"));
   }
 
   async function handleSocialLogin(provider: "google" | "apple") {
@@ -319,8 +418,33 @@ export default function MyScreen() {
             <>
               {/* 사용자이미지(avatar) 영역은 로그인 상태에서만 표시한다 — 비로그인
                   상태는 아래에서 별도 렌더링(사용자 요청: 좌측 사용자이미지 영역 삭제) */}
-              <View style={[styles.avatar, { backgroundColor: theme.background, borderColor: theme.border }]}>
-                <Ionicons name="person-outline" size={28} color={theme.secondaryText} />
+              {/* [2026-09-11 사용자 지시] 아이콘 우하단에 편집 버튼 — 누르면 사진을
+                  고를 수 있다. 사진이 있으면 아이콘 대신 사진을 원형으로 보여 준다. */}
+              <View style={styles.avatarBox}>
+                <View style={[styles.avatar, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                  {avatarUrl ? (
+                    <Image source={{ uri: avatarUrl }} style={styles.avatarImage} resizeMode="cover" />
+                  ) : (
+                    <Ionicons name="person-outline" size={AVATAR_ICON_SIZE} color={theme.secondaryText} />
+                  )}
+                </View>
+                <Pressable
+                  onPress={handlePickAvatar}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("my.avatar.edit")}
+                  disabled={avatarUploading}
+                  hitSlop={6}
+                  style={({ pressed }) => [
+                    styles.avatarEdit,
+                    {
+                      backgroundColor: theme.accent,
+                      borderColor: theme.background,
+                      opacity: avatarUploading ? opacity.disabled : pressed ? opacity.pressed : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons name="camera" size={12} color={theme.onAccent} />
+                </Pressable>
               </View>
               {/* 업체명은 등록신청을 마친 계정에만 있다 — 없는 계정(고객/관리자)은
                   가운데를 비우고 우측 블록만 읽는다. */}
@@ -330,9 +454,24 @@ export default function MyScreen() {
                     <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
                       {t(`my.agencyStatus.${agency.approvalStatus}`)}
                     </Text>
-                    <Text style={[textStyles.cardTitle, { color: theme.text }]} numberOfLines={2}>
-                      {agency.name}
-                    </Text>
+                    {/* [2026-09-11 사용자 지시] 업체명 옆 수정 버튼. */}
+                    <View style={styles.agencyNameRow}>
+                      <Text
+                        style={[textStyles.cardTitle, styles.agencyName, { color: theme.text }]}
+                        numberOfLines={2}
+                      >
+                        {agency.name}
+                      </Text>
+                      <Pressable
+                        onPress={openNameModal}
+                        accessibilityRole="button"
+                        accessibilityLabel={t("my.agencyName.edit")}
+                        hitSlop={8}
+                        style={({ pressed }) => [{ opacity: pressed ? opacity.pressed : 1 }]}
+                      >
+                        <Ionicons name="create-outline" size={16} color={theme.secondaryText} />
+                      </Pressable>
+                    </View>
                   </>
                 ) : null}
               </View>
@@ -473,6 +612,18 @@ export default function MyScreen() {
                 onPress={() => router.push("/payment-info")}
               />
             ) : null}
+            {/* [2026-09-11 사용자 지시] 등록권한 신청 — 아래 별도 섹션에 있던 메뉴를
+                로그아웃 버튼 왼쪽으로 옮겼다. 조건은 그대로: 아직 매물 등록 권한이
+                없는 계정에게만 보인다(이미 승인됐거나 관리자가 권한을 켜 준 계정은
+                신청할 이유가 없다). 이미 신청했다면 상태 화면으로 간다. */}
+            {permissionChecked && !canRegister ? (
+              <Button
+                size="small"
+                variant="outline"
+                title={agency ? t("my.agencyStatusRow") : t("my.agencyApply")}
+                onPress={() => router.push("/agency-apply")}
+              />
+            ) : null}
             <Button
               size="small"
               variant="outline"
@@ -519,25 +670,6 @@ export default function MyScreen() {
         </View>
         ) : null}
 
-        {/* [2026-09-11 사용자 지시] 부동산 등록신청 — **아직 매물 등록 권한이 없는**
-            계정에게만 보인다. 승인을 이미 받았거나(승인된 Agency) 관리자가 직접
-            property_manage를 켜 준 계정은 신청할 이유가 없으므로 감춘다. 아직
-            신청하지 않았으면 폼으로, 심사 중/반려면 상태 화면으로 간다. */}
-        {isLoggedIn && permissionChecked && !canRegister ? (
-          <View style={styles.section}>
-            <SectionHeader title={t("my.agencyTitle")} />
-            <Card style={styles.rowsCard}>
-              <SettingsRow
-                icon="business-outline"
-                label={agency ? t("my.agencyStatusRow") : t("my.agencyApply")}
-                onPress={() => router.push("/agency-apply")}
-                theme={theme}
-                last
-              />
-            </Card>
-          </View>
-        ) : null}
-
         {/* [STEP 04] 매물 등록 — admin 계열 계정에만 노출되는 운영 진입점. */}
         {canRegister || canManageInvest || isAdminUser ? (
           <View style={styles.section}>
@@ -558,6 +690,16 @@ export default function MyScreen() {
                   icon="business-outline"
                   label={t("my.myProperties")}
                   onPress={() => router.push("/my-properties")}
+                  theme={theme}
+                />
+              ) : null}
+              {/* [2026-09-12 사용자 지시] 유료 노출광고 — 추천매물 / TOP10 순위 진입.
+                  매물 관리(상태 변경)와 목적이 달라 별도 화면으로 뒀다. */}
+              {canRegister ? (
+                <SettingsRow
+                  icon="megaphone-outline"
+                  label={t("my.adManage")}
+                  onPress={() => router.push("/ad-manage")}
                   theme={theme}
                 />
               ) : null}
@@ -590,6 +732,15 @@ export default function MyScreen() {
                   icon="key-outline"
                   label={t("my.manageRegisterPermission")}
                   onPress={() => router.push("/admin-agencies")}
+                  theme={theme}
+                />
+              ) : null}
+              {/* [2026-09-12 사용자 지시] 허위매물 신고 목록 — admin 전용. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="alert-circle-outline"
+                  label={t("my.manageReports")}
+                  onPress={() => router.push("/admin-reports")}
                   theme={theme}
                 />
               ) : null}
@@ -778,6 +929,32 @@ export default function MyScreen() {
         ))}
       </Modal>
 
+      {/* [2026-09-11 사용자 지시] 업체명 수정 — 이름 한 칸만 바꾼다. */}
+      <Modal
+        visible={nameModalVisible}
+        onClose={() => setNameModalVisible(false)}
+        accessibilityLabel={t("common.cancel")}
+      >
+        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
+          {t("my.agencyName.title")}
+        </Text>
+        <Input value={nameDraft} onChangeText={setNameDraft} maxLength={60} />
+        <View style={styles.nameModalActions}>
+          <Button
+            style={styles.nameModalButton}
+            variant="outline"
+            title={t("common.cancel")}
+            onPress={() => setNameModalVisible(false)}
+          />
+          <Button
+            style={styles.nameModalButton}
+            title={t("common.save")}
+            onPress={handleSaveAgencyName}
+            disabled={nameSaving || nameDraft.trim().length === 0}
+          />
+        </View>
+      </Modal>
+
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </SafeAreaView>
   );
@@ -813,6 +990,13 @@ function SettingsRow({ icon, label, valueLabel, onPress, theme, last }: Settings
   );
 }
 
+/**
+ * [2026-09-11 사용자 지시] 프로필 아이콘 크기 10% 확대 — 56 → 62(반올림).
+ * 안쪽 사람 아이콘도 같은 비율로 키운다(28 → 31).
+ */
+const AVATAR_SIZE = 62;
+const AVATAR_ICON_SIZE = 31;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -844,17 +1028,59 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  // 편집 버튼(absolute)의 기준점. 아바타와 같은 크기로 둔다.
+  avatarBox: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    position: "relative",
+  },
   avatar: {
-    width: 56,
-    height: 56,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
     borderRadius: radius.full,
     borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    // 사진이 원형 밖으로 삐져나오지 않게 한다.
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  avatarEdit: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: radius.full,
+    // 아바타 테두리와 겹쳐도 배지가 분리돼 보이도록 배경색 테두리를 두른다.
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
   profileText: {
     flex: 1,
     gap: 2,
+  },
+  // 업체명 + 수정 버튼. minWidth:0이 없으면 긴 이름이 버튼을 밀어낸다.
+  agencyNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  agencyName: {
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  nameModalActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  nameModalButton: {
+    flex: 1,
   },
   // 아이디/비번 로그인 블록 — 소셜 버튼과 구분되도록 위쪽에 구분선을 둔다.
   passwordLogin: {

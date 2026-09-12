@@ -22,6 +22,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Chip } from "@/components/Chip";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -168,7 +169,7 @@ export default function InvestApplyScreen() {
   if (sessionLoading || productLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("investApply.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title={t("investApply.headerTitle")} leftAction={<BackButton fallback="/invest" />} />
         <Loading fullscreen />
       </SafeAreaView>
     );
@@ -177,7 +178,7 @@ export default function InvestApplyScreen() {
   if (!session) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("investApply.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title={t("investApply.headerTitle")} leftAction={<BackButton fallback="/invest" />} />
         <EmptyState
           title={t("common.loginRequired")}
           description={t("investApply.loginRequiredDescription")}
@@ -190,7 +191,7 @@ export default function InvestApplyScreen() {
   if (!product) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("common.notFoundTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title={t("common.notFoundTitle")} leftAction={<BackButton fallback="/invest" />} />
         <EmptyState title={t("common.notFoundTitle")} description={t("common.notFoundDescription")} />
       </SafeAreaView>
     );
@@ -209,7 +210,7 @@ export default function InvestApplyScreen() {
   if (submitted) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("investApply.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title={t("investApply.headerTitle")} leftAction={<BackButton fallback="/invest" />} />
         <View style={styles.successContent}>
           <View style={[styles.successIcon, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <Ionicons name="checkmark-circle" size={48} color={theme.accent} />
@@ -298,7 +299,7 @@ export default function InvestApplyScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={t("investApply.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+      <Header title={t("investApply.headerTitle")} leftAction={<BackButton fallback="/invest" />} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           {/* [STEP: 2026-09-09-8] 사용자 요청 — 기존 상시노출 테스트 비고지 문구를
@@ -648,17 +649,6 @@ export default function InvestApplyScreen() {
   );
 }
 
-function BackButton({ onPress, theme }: { onPress: () => void; theme: ThemeColors }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 function AgreementRow({
   checked,

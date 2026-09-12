@@ -20,13 +20,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { LoginPromptModal } from "@/components/LoginPromptModal";
+import { Modal } from "@/components/Modal";
 import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, ThemeColors, typography } from "@/constants/theme";
+import {
+  colors,
+  opacity,
+  radius,
+  shadow,
+  spacing,
+  textStyles,
+  ThemeColors,
+  typography,
+} from "@/constants/theme";
 import {
   findSimilarPropertiesByArea,
   findSimilarPropertiesByPrice,
@@ -34,10 +45,14 @@ import {
   translateOption,
   type MockProperty,
 } from "@/constants/mockData";
-import { PROPERTY_OPTION_VALUE_PATTERN } from "@/constants/propertyOptions";
+import {
+  optionGroupsFor,
+  PROPERTY_OPTION_VALUE_PATTERN,
+} from "@/constants/propertyOptions";
 import { localizedText, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { getPropertyById } from "@/services/properties";
+import { reportProperty } from "@/services/reports";
 import {
   listInvestmentProductsByPropertyId,
 } from "@/services/investments";
@@ -142,6 +157,9 @@ export default function PropertyDetailScreen() {
   // [STEP: 2026-09-09] 사용자 요청 — "문의하기"를 비로그인 상태에서 누르면
   // 전체 화면 전환 대신 팝업으로 Google/Apple 로그인을 바로 띄운다.
   const [loginPromptVisible, setLoginPromptVisible] = useState(false);
+  /** [2026-09-12 사용자 지시] 허위매물 신고 확인 팝업. */
+  const [reportVisible, setReportVisible] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const isFavorite = useFavoritesStore((state) => (property ? state.isFavorite("property", property.id) : false));
@@ -151,6 +169,27 @@ export default function PropertyDetailScreen() {
   // 누가 올렸는지 모르는 매물을 아무 중개업소나 고치게 두지 않는다.
   const canEdit =
     isAdminUser || (!!session && !!property?.createdBy && property.createdBy === session.user.id);
+
+  /**
+   * [2026-09-12 사용자 지시] 이 매물이 가진 옵션을 구분(그룹)별로 묶는다.
+   *
+   * 그룹 정의는 등록 화면과 같은 것(propertyOptions)을 쓴다 — 두 곳이 다른 목록을
+   * 들고 있으면 고른 값이 상세에서 어느 그룹에도 속하지 않아 사라진다.
+   * 그룹에 없는 값(예전 자유 입력)은 맨 아래 "기타"로 모은다.
+   */
+  const listingKind = property?.status === "forRent" ? "rent" : "sale";
+  const optionGroups = useMemo(() => {
+    const owned = property?.options ?? [];
+    if (owned.length === 0) return [];
+
+    const groups = optionGroupsFor(listingKind === "rent" ? "for_rent" : "for_sale")
+      .map((group) => ({ id: group.id, values: group.values.filter((v) => owned.includes(v)) }))
+      .filter((group) => group.values.length > 0);
+
+    const grouped = new Set(groups.flatMap((group) => group.values));
+    const rest = owned.filter((value) => !grouped.has(value));
+    return rest.length > 0 ? [...groups, { id: "etc", values: rest }] : groups;
+  }, [property?.options, listingKind]);
 
   // [STEP: 2026-09-09-6] 사용자 요청 — "투자신청/문의하기 클릭 시 로그인이 안 되고
   // 다시 로그인창으로 돌아옴" 버그 수정. 기존에는 getSession()을 마운트 시 한 번만
@@ -213,7 +252,7 @@ export default function PropertyDetailScreen() {
   if (propertyLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title="" leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title="" leftAction={<BackButton fallback="/property" />} />
         <View style={styles.loadingBox}>
           <ActivityIndicator color={theme.accent} />
         </View>
@@ -226,7 +265,7 @@ export default function PropertyDetailScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
         <Header
           title={t("common.notFoundTitle")}
-          leftAction={<BackButton onPress={() => router.back()} theme={theme} />}
+          leftAction={<BackButton fallback="/property" />}
         />
         <EmptyState title={t("common.notFoundTitle")} description={t("common.notFoundDescription")} />
       </SafeAreaView>
@@ -237,7 +276,7 @@ export default function PropertyDetailScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header
         title={property.title}
-        leftAction={<BackButton onPress={() => router.back()} theme={theme} />}
+        leftAction={<BackButton fallback="/property" />}
         rightAction={
           <View style={styles.headerActions}>
             {/* [STEP 04-수정] 매물 관리 권한이 있는 계정에만 수정 진입점을 노출한다
@@ -394,19 +433,32 @@ export default function PropertyDetailScreen() {
             </View>
           ) : null}
 
+          {/* [2026-09-12 사용자 지시] 옵션을 구분(그룹)별로 묶어 보여 준다.
+              한 줄로 늘어놓으면 "주변 시설"과 "실내 옵션"이 섞여 무엇을 말하는지
+              알 수 없다. 등록 화면과 같은 그룹 정의(propertyOptions)를 쓴다. */}
           <View style={styles.section}>
             <SectionHeader title={t("propertyDetail.optionsTitle")} />
-            <View style={styles.optionsGrid}>
-              {property.options.map((option) => (
-                <View key={option} style={[styles.optionChip, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                  <Ionicons name="checkmark-circle-outline" size={14} color={theme.accent} />
-                  {/* [STEP: 2026-09-09-8] 사용자 요청 — 옵션(편의시설) 다국어 지원.
-                      options는 mock 데이터상 베트남어 원문 free text라 constants/mockData.ts의
-                      PROPERTY_OPTION_TRANSLATIONS 사전으로 변환하고, 사전에 없으면 원문 그대로 표시한다. */}
-                  <Text style={[styles.optionText, { color: theme.text }]}>{optionLabel(option)}</Text>
+            {optionGroups.map((group) => (
+              <View key={group.id} style={styles.optionGroup}>
+                <Text style={[textStyles.caption, styles.optionGroupTitle, { color: theme.text }]}>
+                  {t(`propertyOptions.groups.${listingKind}.${group.id}`)}
+                </Text>
+                <View style={styles.optionsGrid}>
+                  {group.values.map((option) => (
+                    <View
+                      key={option}
+                      style={[styles.optionChip, { backgroundColor: theme.card, borderColor: theme.border }]}
+                    >
+                      <Ionicons name="checkmark-circle-outline" size={14} color={theme.accent} />
+                      {/* [STEP: 2026-09-09-8] 사용자 요청 — 옵션(편의시설) 다국어 지원.
+                          예전 자유 입력값은 PROPERTY_OPTION_TRANSLATIONS 사전으로 변환하고,
+                          사전에 없으면 원문 그대로 표시한다. */}
+                      <Text style={[styles.optionText, { color: theme.text }]}>{optionLabel(option)}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
+              </View>
+            ))}
           </View>
 
           {/* [2026-09-11 사용자 지시 — 4차] 이 매물의 투자상품 — 연결된 상품이 있을
@@ -489,6 +541,31 @@ export default function PropertyDetailScreen() {
           에게는 "문의하기" 대신 "매물 수정"을 보여주고 수정 폼으로 보낸다 — 자기가 올린
           매물에 자기가 문의를 남기는 동작은 의미가 없고, 실제로 눌리면 담당자 명의의
           빈 상담 대화만 생긴다(그 대화는 chat-inbox에도 뜨지 않는다). */}
+      {/* [2026-09-12 사용자 지시] 허위매물 신고 — 문의하기 버튼 위에 떠 있는 원형
+          버튼. 레이아웃에 자리를 차지하지 않도록 absolute로 띄우고, 목록/푸터보다
+          위에 그려지도록 zIndex를 올린다(Android는 elevation도 함께 봐야 한다).
+          스크롤을 끝까지 내리지 않아도 신고할 수 있어야 한다 — 허위매물은 대개 첫
+          화면에서 눈치챈다. */}
+      <Pressable
+        onPress={() => {
+          if (!session) {
+            setLoginPromptVisible(true);
+            return;
+          }
+          setReportVisible(true);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={t("propertyReport.button")}
+        hitSlop={8}
+        style={({ pressed }) => [
+          styles.reportFab,
+          shadow.raised,
+          { backgroundColor: theme.background, opacity: pressed ? opacity.pressed : 1 },
+        ]}
+      >
+        <Ionicons name="alert-circle-outline" size={28} color={theme.danger} />
+      </Pressable>
+
       <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
         <Button
           title={canEdit ? t("propertyDetail.editButton") : t("propertyDetail.inquiryButton")}
@@ -507,6 +584,49 @@ export default function PropertyDetailScreen() {
         />
       </View>
 
+      {/* 신고 확인 — 한 번 더 묻는다. 신고는 취소할 수 없고 관리자에게 바로 간다. */}
+      <Modal
+        visible={reportVisible}
+        onClose={() => setReportVisible(false)}
+        accessibilityLabel={t("common.cancel")}
+      >
+        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.xs }]}>
+          {t("propertyReport.title")}
+        </Text>
+        <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
+          {t("propertyReport.message")}
+        </Text>
+        <View style={styles.reportActions}>
+          <Button
+            style={styles.reportActionButton}
+            variant="outline"
+            title={t("common.cancel")}
+            onPress={() => setReportVisible(false)}
+          />
+          <Button
+            style={styles.reportActionButton}
+            title={reporting ? t("propertyReport.submitting") : t("propertyReport.submit")}
+            disabled={reporting}
+            onPress={async () => {
+              if (reporting) return;
+              setReporting(true);
+              const result = await reportProperty(property.id);
+              setReporting(false);
+              setReportVisible(false);
+              showToast(
+                result === "ok"
+                  ? t("propertyReport.done")
+                  : result === "already"
+                    ? t("propertyReport.already")
+                    : result === "not-logged-in"
+                      ? t("propertyReport.needLogin")
+                      : t("propertyReport.failed"),
+              );
+            }}
+          />
+        </View>
+      </Modal>
+
       <LoginPromptModal visible={loginPromptVisible} onClose={() => setLoginPromptVisible(false)} />
 
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
@@ -514,17 +634,6 @@ export default function PropertyDetailScreen() {
   );
 }
 
-function BackButton({ onPress, theme }: { onPress: () => void; theme: ThemeColors }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 function MetaChip({
   icon,
@@ -643,6 +752,13 @@ const styles = StyleSheet.create({
   lastSection: {
     paddingBottom: spacing.xl,
   },
+  optionGroup: {
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  optionGroupTitle: {
+    fontWeight: typography.weight.medium,
+  },
   optionsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -723,6 +839,28 @@ const styles = StyleSheet.create({
   },
   aiTabList: {
     gap: spacing.sm,
+  },
+  // 신고 버튼 — 문의하기 버튼 위에 떠 있는 원형. footer 높이(패딩 16×2 + 버튼)를
+  // 넘는 값으로 띄워 겹치지 않게 한다.
+  reportFab: {
+    position: "absolute",
+    right: spacing.md,
+    bottom: 82,
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+    elevation: 6,
+  },
+  reportActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  reportActionButton: {
+    flex: 1,
   },
   footer: {
     padding: spacing.md,

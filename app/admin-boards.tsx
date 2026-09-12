@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
@@ -74,7 +75,7 @@ export default function AdminBoardsScreen() {
   if (allowed === false) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <EmptyState title={t("adminBoards.adminOnly")} />
       </SafeAreaView>
     );
@@ -82,7 +83,7 @@ export default function AdminBoardsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
       {/* 사각 탭 — 활성 탭은 위쪽 2px 파란 선(다른 관리자 화면과 같은 모양). */}
       <View style={[styles.tabRow, { borderBottomColor: theme.border }]}>
@@ -188,18 +189,6 @@ export default function AdminBoardsScreen() {
   );
 }
 
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

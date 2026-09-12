@@ -42,7 +42,20 @@
     "noticeTitle": "Notices",
     "faqTitle": "FAQ",
     "noticeEmpty": "No notices yet.",
-    "faqEmpty": "No questions yet."
+    "faqEmpty": "No questions yet.",
+    "locationUnknown": "Set location",
+    "regionPickerTitle": "Choose a region",
+    "regionPickerHint": "Location access is off — pick a region to measure from.",
+    "sort": {
+      "distance": "Nearest",
+      "condition": "Rooms",
+      "price": "Price",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "any": "Any",
+      "priceRange": "0 – {{max}}"
+    },
+    "top10Title": "Recent TOP10"
   },
   "property": {
     "title": "Property",
@@ -301,7 +314,7 @@
     "myProperties": "Listings",
     "managePayments": "Settlements",
     "agencyTitle": "Agency",
-    "agencyApply": "Apply as an agency",
+    "agencyApply": "Request listing access",
     "agencyStatusRow": "Application status",
     "agencyStatus": {
       "pending": "Under review",
@@ -312,7 +325,23 @@
     "refundNotice": "Your advertising payment of {{amount}} is scheduled for refund",
     "manageRegisterPermission": "Listing permissions",
     "adSettlement": "Ad payment",
-    "manageBoards": "Manage boards"
+    "manageBoards": "Manage boards",
+    "avatar": {
+      "edit": "Change profile photo",
+      "permission": "Photo library access is required.",
+      "failed": "Failed to upload the photo.",
+      "updated": "Profile photo updated."
+    },
+    "agencyName": {
+      "title": "Edit agency name",
+      "edit": "Edit agency name",
+      "failed": "Could not change the agency name.",
+      "updated": "Agency name updated."
+    },
+    "adBalanceEmpty": "Your ad balance has run out.",
+    "adSlotDropped": "Your listing was outbid and dropped from the ad ranking.",
+    "adManage": "Paid ads",
+    "manageReports": "Fake listing reports"
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",
@@ -376,7 +405,6 @@
     "titlePlaceholder": "Enter the property name",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "A detailed description of the property",
-    "categorySection": "Category",
     "priceSection": "Price & area",
     "priceSaleLabel": "Sale price (VND)",
     "priceRentLabel": "Monthly rent (VND)",
@@ -392,8 +420,6 @@
     "optionsSection": "Amenities & visibility",
     "amenitiesLabel": "Options (select all that apply)",
     "amenitiesHelper": "{{selected}} selected",
-    "featuredLabel": "Featured",
-    "featuredDescription": "Shown in the featured carousel on Home and Property",
     "publishLabel": "Publish now",
     "publishDescription": "When hidden, the listing is saved as a draft and does not appear in the list",
     "submit": "Register",
@@ -461,7 +487,8 @@
     "categoryLabel": "Category",
     "listingTypeLabel": "Listing type",
     "amenitiesLegacyGroup": "Other (previously entered)",
-    "savedAsDraftNoBalance": "Saved as hidden — not enough balance"
+    "savedAsDraftNoBalance": "Saved as hidden — not enough balance",
+    "regionLabel": "Choose a region"
   },
   "investRegister": {
     "title": "Register product",
@@ -782,7 +809,8 @@
         "nearby": "Neighborhood & Location",
         "complex": "Complex Facilities",
         "building": "Building Amenities",
-        "unit": "Unit Features"
+        "unit": "Unit Features",
+        "etc": "Other"
       },
       "rent": {
         "furniture": "Furniture",
@@ -792,7 +820,8 @@
         "internet": "Internet & TV",
         "living": "Living Spaces",
         "complex": "Building & Complex",
-        "terms": "Rental Terms"
+        "terms": "Rental Terms",
+        "etc": "Other"
       }
     }
   },
@@ -825,7 +854,9 @@
       "featured": "No listings have a paid feature running."
     },
     "noPermissionTitle": "No permission",
-    "noPermissionDescription": "Only accounts with listing management permission can see registered listings."
+    "noPermissionDescription": "Only accounts with listing management permission can see registered listings.",
+    "pendingInquiries": "{{pending}} unread inquiries",
+    "changedAdReleased": "Status updated. Any running paid ads were removed."
   },
   "payment": {
     "title": "Ad payment",
@@ -852,15 +883,17 @@
       "deposit": "Deposit",
       "property_register": "Listing",
       "featured": "Featured",
-      "adjustment": "Adjustment"
-    }
+      "adjustment": "Adjustment",
+      "top10": "TOP10 ad"
+    },
+    "minDepositHint": "Minimum top-up {{amount}} (no upper limit)",
+    "belowMinDeposit": "The minimum top-up is {{amount}}.",
+    "duplicateClickNotice": "No ad fee is charged when the same user or the same network clicks again within one hour."
   },
   "adminPayments": {
     "title": "Settlements",
     "settingsTitle": "Advertising fees",
     "registerFeeHint": "Deducted per listing. The rate depends on whether a licence number was registered.",
-    "featuredFee": "Featured (per day)",
-    "featuredFeeHint": "Multiplied by the number of days purchased.",
     "qrHint": "Shown as-is on the payment screen.",
     "pickQr": "Choose a QR image",
     "qrUploadFailed": "QR upload failed",
@@ -876,7 +909,7 @@
     },
     "emptyRequests": "No settlement records.",
     "noteLabel": "Note",
-    "approve": "Confirm deposit",
+    "approve": "Confirm",
     "reject": "Reject",
     "approved": "Approved",
     "rejected": "Rejected",
@@ -889,7 +922,15 @@
     "registerFeeGeneral": "Listing fee (general)",
     "bankName": "Bank",
     "accountHolder": "Account holder",
-    "accountNumber": "Account number"
+    "accountNumber": "Account number",
+    "featuredMinBid": "Featured minimum cost per click",
+    "featuredMinBidHint": "Minimum charged per click. Taking an occupied rank requires more than its current amount.",
+    "top10MinBid": "TOP10 minimum cost per click",
+    "top10MinBidHint": "Minimum charged per click. Only the top 10 are shown.",
+    "approveTitle": "Confirm deposit",
+    "approveHint": "{{agency}} reported {{amount}}. Enter the amount actually received.",
+    "approveAmountLabel": "Amount received",
+    "approveAmountRequired": "Enter the amount received."
   },
   "agencyApply": {
     "title": "Agency application",
@@ -1002,5 +1043,76 @@
     "translateHint": "Saving translates this into 6 languages.",
     "notFound": "Post not found.",
     "deleteConfirm": "Delete this post?"
+  },
+  "adSlots": {
+    "featuredTitle": "Featured listing ad",
+    "top10Title": "TOP10 ad",
+    "minBid": "Minimum cost per click",
+    "myBid": "My cost per click",
+    "noBid": "None",
+    "available": "Available balance",
+    "hint": "The amount you set is charged each time a customer taps your listing. Nothing is charged when you join, and only the top {{count}} are shown. When the balance runs out the slot is removed, and you must top up and set it again.",
+    "emptySlot": "Empty slot",
+    "mine": "My listing",
+    "enter": "Take",
+    "joinNew": "Start advertising",
+    "emptyTitle": "No ads running yet",
+    "emptyDescription": "You can take 1st place at the minimum cost per click.",
+    "purchaseTitle": "Take rank {{rank}}",
+    "purchaseHint": "Must be at least {{amount}}. This is charged per click.",
+    "tooLow": "Enter at least {{amount}}.",
+    "failed": "Could not register the ad.",
+    "needProperty": "Save the listing first.",
+    "minBidNotSet": "The admin has not set a minimum bid yet.",
+    "perClick": "{{amount}} per click",
+    "notShown": "Dropped",
+    "saved": "Cost per click saved.",
+    "saving": "Saving...",
+    "noBalance": "No balance — top up before advertising.",
+    "noAgency": "This listing is not linked to an agency. Ad fees come from the agency balance, so approval is required first.",
+    "notActive": "Listings marked sold or on hold are not shown to customers, so they cannot be advertised.",
+    "targetProperty": "Listing to advertise",
+    "targetUnknown": "Choose a listing",
+    "changeTarget": "Change",
+    "pickTargetTitle": "Choose a listing",
+    "changeBid": "Change my bid",
+    "lowerWarning": "Lowering the amount drops your rank; if you fall out of the visible slots, your ad stops showing."
+  },
+  "adManage": {
+    "title": "Paid ads",
+    "placement": {
+      "featured": "Featured listing",
+      "top10": "TOP10 listing"
+    },
+    "hint": "Choose the listing to advertise.",
+    "emptyTitle": "No listings yet",
+    "emptyDescription": "Register a listing first, then set up ads."
+  },
+  "propertyReport": {
+    "button": "Report",
+    "title": "Report listing",
+    "message": "Report this listing as a fake listing.",
+    "submit": "Report",
+    "submitting": "Reporting...",
+    "done": "Your report has been received.",
+    "already": "You already reported this listing.",
+    "needLogin": "Sign in to report.",
+    "failed": "Could not submit the report."
+  },
+  "adminReports": {
+    "title": "Fake listing reports",
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved"
+    },
+    "resolve": "Mark resolved",
+    "resolved": "Marked resolved.",
+    "actionFailed": "Could not update.",
+    "emptyTitle": "No reports",
+    "emptyDescription": "Reports from customers will appear here.",
+    "noPermissionTitle": "No permission",
+    "noPermissionDescription": "This screen is for admins only.",
+    "deletedProperty": "Deleted listing",
+    "count": "{{count}} report(s)"
   }
 }

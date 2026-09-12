@@ -1,12 +1,13 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -40,7 +41,6 @@ import {
 export default function PaymentInfoScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [agency, setAgency] = useState<MyAgency | null>(null);
   const [settings, setSettings] = useState<PaymentSettings | null>(null);
@@ -93,10 +93,18 @@ export default function PaymentInfoScreen() {
   const currency = settings?.currency ?? "VND";
   const amount = Number(amountText.replace(/[^\d]/g, "")) || 0;
 
+  /** [2026-09-12 사용자 지시] 최소 충전액. 상한은 없다. */
+  const minDeposit = settings?.minDeposit ?? 0;
+
   async function handleSubmit() {
     if (submitting) return;
     if (amount <= 0) {
       showToast(t("payment.amountRequired"));
+      return;
+    }
+    // 서버도 같은 조건을 확인하지만, 보내기 전에 알려 주는 편이 낫다.
+    if (minDeposit > 0 && amount < minDeposit) {
+      showToast(t("payment.belowMinDeposit", { amount: formatMoneyAmount(minDeposit, currency) }));
       return;
     }
     setSubmitting(true);
@@ -109,7 +117,11 @@ export default function PaymentInfoScreen() {
           ? t("payment.alreadyPending")
           : result.reason === "not-approved-agency"
             ? t("payment.notApproved")
-            : t("payment.submitFailed"),
+            : result.reason === "below-min-deposit"
+              ? t("payment.belowMinDeposit", {
+                  amount: formatMoneyAmount(minDeposit, currency),
+                })
+              : t("payment.submitFailed"),
       );
       return;
     }
@@ -124,7 +136,7 @@ export default function PaymentInfoScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -133,7 +145,7 @@ export default function PaymentInfoScreen() {
   if (!agency || agency.approvalStatus !== "approved") {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <EmptyState title={t("payment.notApprovedTitle")} description={t("payment.notApproved")} />
       </SafeAreaView>
     );
@@ -141,7 +153,7 @@ export default function PaymentInfoScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* 광고비 정산 — 아코디언. 펼치면 입금자명(업체명)·입금액·QR·계좌가 나온다. */}
@@ -192,6 +204,13 @@ export default function PaymentInfoScreen() {
                   value={amountText}
                   onChangeText={setAmountText}
                   keyboardType="numeric"
+                  helperText={
+                    minDeposit > 0
+                      ? t("payment.minDepositHint", {
+                          amount: formatMoneyAmount(minDeposit, currency),
+                        })
+                      : undefined
+                  }
                 />
                 <Input
                   label={t("payment.noteLabel")}
@@ -202,6 +221,12 @@ export default function PaymentInfoScreen() {
                 <Button title={t("payment.declare")} onPress={handleSubmit} loading={submitting} />
                 <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
                   {t("payment.declareHint")}
+                </Text>
+                {/* [2026-09-12 사용자 지시] 중복 클릭 과금 규칙을 광고비를 내는
+                    사람이 보는 자리에 주황색으로 명시한다 — 클릭 수와 청구액이
+                    다를 때 "왜 덜 빠졌나"를 묻기 전에 읽히도록. */}
+                <Text style={[textStyles.caption, { color: theme.warning }]}>
+                  {t("payment.duplicateClickNotice")}
                 </Text>
               </>
             )}
@@ -265,19 +290,6 @@ export default function PaymentInfoScreen() {
 
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </SafeAreaView>
-  );
-}
-
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
   );
 }
 

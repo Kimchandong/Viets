@@ -18,7 +18,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
 import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
-import { PropertyCard } from "@/components/PropertyCard";
+import { PROPERTY_CARD_IMAGE_HEIGHT, PropertyCard } from "@/components/PropertyCard";
+import { PropertyListRow } from "@/components/PropertyListRow";
 import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
@@ -26,6 +27,13 @@ import { colors, layout, opacity, radius, spacing, textStyles, ThemeColors } fro
 import { MOCK_REGIONS, type MockProperty, type MockPropertyStatus } from "@/constants/mockData";
 import type { PropertyImageCategory } from "@/constants/mockImages";
 import { listProperties } from "@/services/properties";
+import { chargeAdClick, listActiveAdSlots } from "@/services/ads";
+import {
+  distanceKm,
+  formatDistance,
+  getCurrentLocation,
+  type UserLocation,
+} from "@/services/location";
 
 // [STEP: 카테고리 재구성] 홈 화면 카테고리 아이콘 탭 시 이 화면으로 category 쿼리
 // param을 전달한다(app/(tabs)/home.tsx 참고) — 이 화면에서는 그 값을 서브카테고리
@@ -107,6 +115,48 @@ export default function PropertyScreen() {
   // 필터/정렬 로직 자체는 바뀌지 않는다 — 데이터 소스만 이 state로 교체했다.
   const [properties, setProperties] = useState<MockProperty[]>([]);
   const [loading, setLoading] = useState(true);
+  /**
+   * [2026-09-12 감사] 추천 캐러셀은 홈과 같은 광고 자리다. 여기서도 같은 기준
+   * (잔액이 남은 상위 5개)으로 뽑고, 누르면 같은 방식으로 과금해야 한다 —
+   * 화면마다 다르면 광고주는 "어디서 눌렀느냐"에 따라 돈이 나가거나 안 나간다.
+   */
+  const [featuredIds, setFeaturedIds] = useState<string[]>([]);
+
+  /**
+   * [2026-09-11 사용자 지시] 매물 행 우측 하단에 현위치로부터의 거리를 표시한다.
+   *
+   * 권한을 여기서 새로 요청하지는 않는다(requestPermission: false) — 목록 탭에
+   * 들어오자마자 권한 창이 뜨면 무슨 기능인지 모른 채 거부하기 쉽다. 홈에서
+   * 위치를 허용했다면 그 권한을 그대로 쓰고, 없으면 거리를 숨긴다.
+   */
+  const [userLocation, setUserLocation] = useState<UserLocation>({
+    origin: "none",
+    label: "",
+    coords: null,
+  });
+
+  useEffect(() => {
+    let active = true;
+    getCurrentLocation({ requestPermission: false }).then((result) => {
+      if (active) setUserLocation(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  /** 매물까지의 거리 문구 — 기준점과 좌표가 다 있을 때만(없으면 빈 문자열). */
+  function distanceLabel(property: MockProperty): string {
+    if (!userLocation.coords || property.latitude === undefined || property.longitude === undefined) {
+      return "";
+    }
+    return formatDistance(
+      distanceKm(userLocation.coords, {
+        latitude: property.latitude,
+        longitude: property.longitude,
+      }),
+    );
+  }
 
   // [2026-09-11 사용자 지시] 화면에 들어올 때마다 다시 조회한다.
   // 이전에는 useEffect(..., [])로 **마운트 시 1회만** 불러왔다. Expo Router는 탭
@@ -121,6 +171,9 @@ export default function PropertyScreen() {
           setProperties(result);
           setLoading(false);
         }
+      });
+      listActiveAdSlots("featured").then((ids) => {
+        if (active) setFeaturedIds(ids);
       });
       return () => {
         active = false;
@@ -150,11 +203,34 @@ export default function PropertyScreen() {
     return sortProperties(base, sort);
   }, [properties, region, status, category, normalizedSearch, isSearching, sort]);
 
-  const featured = isSearching ? [] : filtered.filter((property) => property.featured);
-  const listings = isSearching ? filtered : filtered.filter((property) => !property.featured);
+  // 광고 자리를 산 매물만, DB가 준 순위 그대로. 광고가 하나도 없을 때만 예전처럼
+  // featured 플래그(관리자 수동 큐레이션)를 쓴다.
+  const featured = isSearching
+    ? []
+    : featuredIds.length > 0
+      ? featuredIds
+          .map((id) => filtered.find((property) => property.id === id))
+          .filter((property): property is MockProperty => !!property)
+      : filtered.filter((property) => property.featured);
+
+  const featuredSet = new Set(featured.map((property) => property.id));
+  const listings = isSearching
+    ? filtered
+    : filtered.filter((property) => !featuredSet.has(property.id));
 
   function goToDetail(property: MockProperty) {
     router.push(`/property-detail/${property.id}`);
+  }
+
+  /**
+   * 추천 캐러셀에서 누른 경우 — 광고 클릭이므로 과금한다. 결과를 기다리지 않는다:
+   * 과금은 광고주와 플랫폼 사이의 일이고, 그 때문에 고객의 화면 전환이 늦어지면 안 된다.
+   */
+  function goToFeaturedDetail(property: MockProperty) {
+    if (featuredIds.includes(property.id)) {
+      void chargeAdClick(property.id, "featured");
+    }
+    goToDetail(property);
   }
 
   return (
@@ -403,13 +479,15 @@ export default function PropertyScreen() {
                   style={styles.bleedScroll}
                   contentContainerStyle={styles.featuredRow}
                   step={layout.featuredCardWidth + spacing.md}
+                  arrowCenterY={PROPERTY_CARD_IMAGE_HEIGHT / 2}
+                  autoPlayMs={3000}
                 >
                   {featured.map((property) => (
                     <PropertyCard
                       key={property.id}
                       property={property}
                       variant="featured"
-                      onPress={() => goToDetail(property)}
+                      onPress={() => goToFeaturedDetail(property)}
                     />
                   ))}
                 </HorizontalCardCarousel>
@@ -424,9 +502,17 @@ export default function PropertyScreen() {
                   description={t("property.emptyDescription")}
                 />
               ) : (
-                <View style={styles.stack}>
-                  {listings.map((property) => (
-                    <PropertyCard key={property.id} property={property} variant="list" onPress={() => goToDetail(property)} />
+                <View style={styles.propertyList}>
+                  {/* [2026-09-11 사용자 지시] 최신 매물은 홈과 같은 가로형 행 디자인을 쓴다.
+                      (추천 매물 캐러셀은 기존 PropertyCard 그대로.) */}
+                  {listings.map((property, index) => (
+                    <PropertyListRow
+                      key={property.id}
+                      property={property}
+                      distance={distanceLabel(property)}
+                      showDivider={index > 0}
+                      onPress={() => goToDetail(property)}
+                    />
                   ))}
                 </View>
               )}
@@ -606,7 +692,9 @@ const styles = StyleSheet.create({
   featuredRow: {
     gap: spacing.md,
   },
-  stack: {
-    gap: spacing.md,
+  // [2026-09-11 사용자 지시] 매물 목록은 행 사이 간격을 좁힌다 — 간격은
+  // PropertyListRow의 paddingVertical이 만들고, 그 가운데에 구분선이 놓인다.
+  propertyList: {
+    gap: 0,
   },
 });

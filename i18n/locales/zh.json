@@ -42,7 +42,20 @@
     "noticeTitle": "公告",
     "faqTitle": "常见问题",
     "noticeEmpty": "暂无公告。",
-    "faqEmpty": "暂无问题。"
+    "faqEmpty": "暂无问题。",
+    "locationUnknown": "设置位置",
+    "regionPickerTitle": "选择地区",
+    "regionPickerHint": "未获得定位权限，请选择参照地区。",
+    "sort": {
+      "distance": "距离最近",
+      "condition": "按房型",
+      "price": "按价格",
+      "bedrooms": "卧室数",
+      "bathrooms": "卫生间数",
+      "any": "不限",
+      "priceRange": "0 – {{max}}"
+    },
+    "top10Title": "最新TOP10"
   },
   "property": {
     "title": "房产",
@@ -100,7 +113,7 @@
     "overview": {
       "totalRaised": "累计募集",
       "activeProducts": "在售产品",
-      "avgReturn": "平均收益率"
+      "avgReturn": "平均收益"
     },
     "risk": {
       "low": "低风险",
@@ -301,7 +314,7 @@
     "myProperties": "房源信息",
     "managePayments": "结算管理",
     "agencyTitle": "房产经纪",
-    "agencyApply": "申请成为经纪",
+    "agencyApply": "申请发布权限",
     "agencyStatusRow": "申请状态",
     "agencyStatus": {
       "pending": "审核中",
@@ -312,7 +325,23 @@
     "refundNotice": "您申请的广告费 {{amount}} 将予退款",
     "manageRegisterPermission": "登记权限账户管理",
     "adSettlement": "广告费结算",
-    "manageBoards": "版块管理"
+    "manageBoards": "版块管理",
+    "avatar": {
+      "edit": "更换头像",
+      "permission": "需要访问相册的权限。",
+      "failed": "上传照片失败。",
+      "updated": "头像已更新。"
+    },
+    "agencyName": {
+      "title": "修改公司名称",
+      "edit": "修改公司名称",
+      "failed": "无法修改公司名称。",
+      "updated": "公司名称已更新。"
+    },
+    "adBalanceEmpty": "广告余额已全部用完。",
+    "adSlotDropped": "其他房源出价更高，您的房源已跌出广告排名。",
+    "adManage": "付费展示广告",
+    "manageReports": "虚假房源举报"
   },
   "auth": {
     "tagline": "越南房地产与投资平台",
@@ -376,7 +405,6 @@
     "titlePlaceholder": "输入房源名称",
     "descriptionLabel": "详细描述",
     "descriptionPlaceholder": "房源的具体说明",
-    "categorySection": "类别",
     "priceSection": "价格 · 面积",
     "priceSaleLabel": "售价 (VND)",
     "priceRentLabel": "月租金 (VND)",
@@ -392,8 +420,6 @@
     "optionsSection": "配套 · 公开设置",
     "amenitiesLabel": "选项（请选择符合的项目）",
     "amenitiesHelper": "已选 {{selected}} 项",
-    "featuredLabel": "推荐房源",
-    "featuredDescription": "将在首页和房源页顶部推荐栏中展示",
     "publishLabel": "立即公开",
     "publishDescription": "设为隐藏时将保存为草稿，不会出现在列表中",
     "submit": "发布",
@@ -461,7 +487,8 @@
     "categoryLabel": "类别",
     "listingTypeLabel": "交易类型",
     "amenitiesLegacyGroup": "其他（此前录入的项目）",
-    "savedAsDraftNoBalance": "余额不足，已保存为不公开"
+    "savedAsDraftNoBalance": "余额不足，已保存为不公开",
+    "regionLabel": "选择地区"
   },
   "investRegister": {
     "title": "发布投资产品",
@@ -782,7 +809,8 @@
         "nearby": "周边环境与位置",
         "complex": "小区与楼宇设施",
         "building": "楼宇配套",
-        "unit": "房源自身配置"
+        "unit": "房源自身配置",
+        "etc": "其他"
       },
       "rent": {
         "furniture": "家具",
@@ -792,7 +820,8 @@
         "internet": "网络与通信",
         "living": "生活空间",
         "complex": "楼宇与小区设施",
-        "terms": "租赁条件"
+        "terms": "租赁条件",
+        "etc": "其他"
       }
     }
   },
@@ -825,7 +854,9 @@
       "featured": "暂无正在进行付费推荐的房源。"
     },
     "noPermissionTitle": "没有权限",
-    "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。"
+    "noPermissionDescription": "仅具有房源管理权限的账户可以查看已登记房源。",
+    "pendingInquiries": "未读咨询 {{pending}} 条",
+    "changedAdReleased": "状态已更改，投放中的付费广告已自动下架。"
   },
   "payment": {
     "title": "广告费结算",
@@ -852,15 +883,17 @@
       "deposit": "充值",
       "property_register": "房源登记",
       "featured": "推荐",
-      "adjustment": "调整"
-    }
+      "adjustment": "调整",
+      "top10": "TOP10广告"
+    },
+    "minDepositHint": "最低充值 {{amount}}（无上限）",
+    "belowMinDeposit": "最低充值金额为 {{amount}}。",
+    "duplicateClickNotice": "同一用户或同一网络在1小时内再次点击时，不扣除广告费。"
   },
   "adminPayments": {
     "title": "结算管理",
     "settingsTitle": "广告费设置",
     "registerFeeHint": "每套房源登记时扣除。费率依是否登记中介编号而不同。",
-    "featuredFee": "推荐(每日)",
-    "featuredFeeHint": "按购买天数相乘扣除。",
     "qrHint": "将原样显示在支付页面。",
     "pickQr": "选择二维码图片",
     "qrUploadFailed": "二维码上传失败",
@@ -876,7 +909,7 @@
     },
     "emptyRequests": "暂无结算记录。",
     "noteLabel": "备注",
-    "approve": "确认到账",
+    "approve": "确认",
     "reject": "驳回",
     "approved": "已通过",
     "rejected": "已驳回",
@@ -889,7 +922,15 @@
     "registerFeeGeneral": "登记费(普通)",
     "bankName": "银行",
     "accountHolder": "户名",
-    "accountNumber": "账号"
+    "accountNumber": "账号",
+    "featuredMinBid": "推荐房源最低点击单价",
+    "featuredMinBidHint": "每次点击的最低扣费。进入已有房源的名次需高于其当前金额。",
+    "top10MinBid": "TOP10最低点击单价",
+    "top10MinBidHint": "每次点击的最低扣费。仅前10名展示。",
+    "approveTitle": "确认到账",
+    "approveHint": "{{agency}} 申报金额 {{amount}}。请输入实际到账金额。",
+    "approveAmountLabel": "实际到账金额",
+    "approveAmountRequired": "请输入实际到账金额。"
   },
   "agencyApply": {
     "title": "经纪入驻申请",
@@ -1002,5 +1043,76 @@
     "translateHint": "保存后将自动翻译为 6 种语言。",
     "notFound": "找不到该内容。",
     "deleteConfirm": "要删除这条内容吗？"
+  },
+  "adSlots": {
+    "featuredTitle": "推荐房源广告",
+    "top10Title": "TOP10广告",
+    "minBid": "最低点击单价",
+    "myBid": "我的点击单价",
+    "noBid": "无",
+    "available": "可用余额",
+    "hint": "设置的金额会在客户每次点击时扣除。进入时不扣费，仅前 {{count}} 名展示。余额用完会被移出排名，需充值后重新设置。",
+    "emptySlot": "空位",
+    "mine": "我的房源",
+    "enter": "进入",
+    "joinNew": "开始投放广告",
+    "emptyTitle": "暂无投放中的广告",
+    "emptyDescription": "可用最低点击单价占据第1名。",
+    "purchaseTitle": "进入第{{rank}}名",
+    "purchaseHint": "需不低于 {{amount}}，该金额按每次点击扣除。",
+    "tooLow": "请输入不低于 {{amount}} 的金额。",
+    "failed": "广告登记失败。",
+    "needProperty": "请先保存房源。",
+    "minBidNotSet": "管理员尚未设置最低出价。",
+    "perClick": "每次点击 {{amount}}",
+    "notShown": "已淘汰",
+    "saved": "已保存点击单价。",
+    "saving": "保存中...",
+    "noBalance": "余额不足，无法投放广告，请先充值。",
+    "noAgency": "该房源未关联所属公司。广告费从公司余额扣除，需先通过审核。",
+    "notActive": "已成交或暂停的房源不会向客户展示，因此无法投放广告。",
+    "targetProperty": "要投放的房源",
+    "targetUnknown": "请选择房源",
+    "changeTarget": "更改",
+    "pickTargetTitle": "选择要投放的房源",
+    "changeBid": "修改我的出价",
+    "lowerWarning": "降低金额会下调排名；若跌出展示位，广告将停止展示。"
+  },
+  "adManage": {
+    "title": "付费展示广告",
+    "placement": {
+      "featured": "推荐展示",
+      "top10": "TOP10展示"
+    },
+    "hint": "请选择要投放的房源。",
+    "emptyTitle": "暂无房源",
+    "emptyDescription": "请先登记房源再设置广告。"
+  },
+  "propertyReport": {
+    "button": "举报",
+    "title": "举报房源",
+    "message": "举报该房源为虚假房源。",
+    "submit": "举报",
+    "submitting": "提交中...",
+    "done": "举报已受理。",
+    "already": "您已举报过该房源。",
+    "needLogin": "登录后才能举报。",
+    "failed": "举报失败。"
+  },
+  "adminReports": {
+    "title": "虚假房源举报",
+    "status": {
+      "open": "待处理",
+      "resolved": "已处理"
+    },
+    "resolve": "标记为已处理",
+    "resolved": "已处理。",
+    "actionFailed": "更新失败。",
+    "emptyTitle": "暂无举报",
+    "emptyDescription": "客户举报后会显示在这里。",
+    "noPermissionTitle": "没有权限",
+    "noPermissionDescription": "该页面仅管理员可见。",
+    "deletedProperty": "已删除的房源",
+    "count": "{{count}} 条举报"
   }
 }

@@ -19,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 // react-native의 Modal을 이미 쓰고 있어 공용 컴포넌트는 별칭으로 가져온다.
 import { Modal as AppModal } from "@/components/Modal";
@@ -274,7 +275,7 @@ export default function PropertyChatScreen() {
   if (sessionLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("chat.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title={t("chat.headerTitle")} leftAction={<BackButton fallback="/property" />} />
         <Loading fullscreen />
       </SafeAreaView>
     );
@@ -283,7 +284,7 @@ export default function PropertyChatScreen() {
   if (!session) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("chat.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title={t("chat.headerTitle")} leftAction={<BackButton fallback="/property" />} />
         <EmptyState
           title={t("common.loginRequired")}
           description={t("chat.loginRequiredDescription")}
@@ -296,7 +297,7 @@ export default function PropertyChatScreen() {
   if (!property) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("common.notFoundTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title={t("common.notFoundTitle")} leftAction={<BackButton fallback="/property" />} />
         <EmptyState title={t("common.notFoundTitle")} description={t("common.notFoundDescription")} />
       </SafeAreaView>
     );
@@ -304,7 +305,7 @@ export default function PropertyChatScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={t("chat.headerTitle")} leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+      <Header title={t("chat.headerTitle")} leftAction={<BackButton fallback="/property" />} />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -472,17 +473,6 @@ export default function PropertyChatScreen() {
   );
 }
 
-function BackButton({ onPress, theme }: { onPress: () => void; theme: ThemeColors }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

@@ -7,6 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
@@ -96,7 +97,7 @@ export default function ChatInboxScreen() {
   if (sessionLoading || checkingPermission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -105,7 +106,7 @@ export default function ChatInboxScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <EmptyState title={t("chatInbox.noPermissionTitle")} description={t("chatInbox.noPermissionDescription")} />
       </SafeAreaView>
     );
@@ -113,7 +114,7 @@ export default function ChatInboxScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
       {loading ? (
         <Loading />
@@ -180,18 +181,6 @@ export default function ChatInboxScreen() {
   );
 }
 
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

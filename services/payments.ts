@@ -19,8 +19,14 @@ export type PaymentSettings = {
   registerFeeAgency: number;
   /** 등록비(일반) — 중개번호가 없는 업체의 매물 1건당 차감액. */
   registerFeeGeneral: number;
-  /** 추천매물(1일) 요금. */
+  /** [사용 안 함 — 2026-09-12] 기간제 추천매물 1일 요금. 금액 순위로 대체됐다. */
   featuredDailyFee: number;
+  /** [2026-09-12] 추천매물 자리 최소 진입금액. */
+  featuredMinBid: number;
+  /** [2026-09-12] TOP10 자리 최소 진입금액. */
+  top10MinBid: number;
+  /** [2026-09-12 사용자 지시] 입금 신고 1건의 최소 금액(상한 없음). */
+  minDeposit: number;
   /** 공개 버킷이라 바로 <Image>에 넣을 수 있는 URL. 등록 전이면 null. */
   qrImageUrl: string | null;
   qrImagePath: string;
@@ -36,6 +42,9 @@ type SettingsRow = {
   register_fee_agency: number;
   register_fee_general: number;
   featured_daily_fee: number;
+  featured_min_bid: number;
+  top10_min_bid: number;
+  min_deposit: number;
   qr_image_path: string | null;
   bank_name: string | null;
   account_holder: string | null;
@@ -50,7 +59,9 @@ export async function getPaymentSettings(): Promise<PaymentSettings | null> {
 
   const { data, error } = await supabase
     .from("payment_settings")
-    .select("register_fee_agency,register_fee_general,featured_daily_fee,qr_image_path,bank_name,account_holder,account_number,currency")
+    .select(
+      "register_fee_agency,register_fee_general,featured_daily_fee,featured_min_bid,top10_min_bid,min_deposit,qr_image_path,bank_name,account_holder,account_number,currency",
+    )
     .eq("id", "default")
     .maybeSingle();
 
@@ -65,6 +76,9 @@ export async function getPaymentSettings(): Promise<PaymentSettings | null> {
     registerFeeAgency: Number(row.register_fee_agency),
     registerFeeGeneral: Number(row.register_fee_general),
     featuredDailyFee: Number(row.featured_daily_fee),
+    featuredMinBid: Number(row.featured_min_bid ?? 0),
+    top10MinBid: Number(row.top10_min_bid ?? 0),
+    minDeposit: Number(row.min_deposit ?? 0),
     qrImagePath: path,
     qrImageUrl:
       path.length > 0
@@ -81,7 +95,8 @@ export async function getPaymentSettings(): Promise<PaymentSettings | null> {
 export async function updatePaymentSettings(input: {
   registerFeeAgency: number;
   registerFeeGeneral: number;
-  featuredDailyFee: number;
+  featuredMinBid: number;
+  top10MinBid: number;
   bankName: string;
   accountHolder: string;
   accountNumber: string;
@@ -96,7 +111,8 @@ export async function updatePaymentSettings(input: {
     .update({
       register_fee_agency: input.registerFeeAgency,
       register_fee_general: input.registerFeeGeneral,
-      featured_daily_fee: input.featuredDailyFee,
+      featured_min_bid: input.featuredMinBid,
+      top10_min_bid: input.top10MinBid,
       bank_name: input.bankName,
       account_holder: input.accountHolder,
       account_number: input.accountNumber,
@@ -192,7 +208,10 @@ export type PaymentRequest = {
 
 export type SubmitPaymentResult =
   | { ok: true }
-  | { ok: false; reason: "already-pending" | "not-approved-agency" | "failed" };
+  | {
+      ok: false;
+      reason: "already-pending" | "not-approved-agency" | "below-min-deposit" | "failed";
+    };
 
 /**
  * "입금했습니다" 신고. 실제 입금은 은행에서 일어나므로 앱이 할 수 있는 것은 신고를
@@ -215,6 +234,9 @@ export async function submitPaymentRequest(
     if (error.message.includes("already-pending")) return { ok: false, reason: "already-pending" };
     if (error.message.includes("not-approved-agency")) {
       return { ok: false, reason: "not-approved-agency" };
+    }
+    if (error.message.includes("below-min-deposit")) {
+      return { ok: false, reason: "below-min-deposit" };
     }
     console.warn("[services/payments] submitPaymentRequest failed:", error.message);
     return { ok: false, reason: "failed" };
@@ -268,11 +290,17 @@ export async function listPaymentRequests(): Promise<PaymentRequest[]> {
   return ((data ?? []) as unknown as RequestRow[]).map(mapRequest);
 }
 
-/** 관리자 전용 — 입금 확인 승인(잔액 반영) 또는 반려. */
+/**
+ * 관리자 전용 — 입금 확인 승인(잔액 반영) 또는 반려.
+ *
+ * [2026-09-12 사용자 지시] amount를 주면 신고 금액 대신 **실제 입금된 금액**으로
+ * 잔액을 올리고 신고 행도 그 금액으로 고친다 — 신고와 송금이 어긋나는 경우가 있다.
+ */
 export async function reviewPayment(
   requestId: string,
   approve: boolean,
   reason?: string,
+  amount?: number,
 ): Promise<boolean> {
   if (!supabase) {
     return false;
@@ -282,6 +310,7 @@ export async function reviewPayment(
     target_request: requestId,
     approve,
     reason: reason ?? null,
+    p_amount: amount ?? null,
   });
 
   if (error) {
@@ -357,7 +386,13 @@ export async function getMyBalance(): Promise<AgencyBalance | null> {
  * 광고내역 — 무엇에 얼마가 쓰였는가
  * ======================================================================== */
 
-export type BalanceEntryKind = "deposit" | "property_register" | "featured" | "adjustment";
+// [2026-09-12] top10 추가 — 광고 자리 구매(추천/TOP10)가 각각 별도 종류로 남는다.
+export type BalanceEntryKind =
+  | "deposit"
+  | "property_register"
+  | "featured"
+  | "top10"
+  | "adjustment";
 
 export type BalanceEntry = {
   id: string;

@@ -1,12 +1,13 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -38,7 +39,6 @@ const STATUS_ORDER: AgencyApprovalStatus[] = ["pending", "approved", "rejected"]
 export default function AdminAgenciesScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [agencies, setAgencies] = useState<AdminAgency[]>([]);
@@ -124,7 +124,7 @@ export default function AdminAgenciesScreen() {
   if (allowed === null || loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -133,7 +133,7 @@ export default function AdminAgenciesScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <EmptyState
           title={t("adminAgencies.noPermissionTitle")}
           description={t("adminAgencies.noPermissionDescription")}
@@ -144,7 +144,7 @@ export default function AdminAgenciesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
       <View style={[styles.tabRow, { borderBottomColor: theme.border }]}>
         {STATUS_ORDER.map((status) => {
@@ -315,19 +315,6 @@ function Field({ label, value }: { label: string; value: string }) {
         {value}
       </Text>
     </View>
-  );
-}
-
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
   );
 }
 

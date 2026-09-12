@@ -7,6 +7,7 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
@@ -204,8 +205,9 @@ export default function MyPropertiesScreen() {
 
   async function handleSelect(property: ManagedProperty, next: string) {
     if (next === "featured") {
-      // 유료 서비스 — 상태를 바꾸지 않고 매물 상세로 보낸다(결제 유도 지점).
-      router.push(`/property-detail/${property.id}`);
+      // [2026-09-12] 유료 서비스 — 상태가 아니라 광고 설정이다. 광고 화면으로 보낸다
+      // (예전에는 매물 상세로 보냈는데, 그곳에는 이제 광고 진입점이 없다).
+      router.push("/ad-manage");
       return;
     }
 
@@ -217,10 +219,16 @@ export default function MyPropertiesScreen() {
       showToast(t("myProperties.changeFailed"));
       return;
     }
+    // 공개를 벗어나면 서버(트리거)가 광고 자리를 반납하고 추천 표시도 내린다.
+    const released = status !== "active";
     setProperties((prev) =>
-      prev.map((item) => (item.id === property.id ? { ...item, status } : item)),
+      prev.map((item) =>
+        item.id === property.id
+          ? { ...item, status, featured: released ? false : item.featured }
+          : item,
+      ),
     );
-    showToast(t("myProperties.changed"));
+    showToast(released ? t("myProperties.changedAdReleased") : t("myProperties.changed"));
   }
 
   const screenTitle = t("myProperties.title");
@@ -233,7 +241,7 @@ export default function MyPropertiesScreen() {
   if (sessionLoading || checkingPermission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -242,7 +250,7 @@ export default function MyPropertiesScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <EmptyState
           title={t("myProperties.noPermissionTitle")}
           description={t("myProperties.noPermissionDescription")}
@@ -253,7 +261,7 @@ export default function MyPropertiesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
       {/* [2026-09-11 사용자 지시 — 2·4차] 4개 탭이 화면 폭을 정확히 4등분하는 사각 탭.
           선택은 윗변 2px 파란 선으로만 표시한다 — 비활성 탭도 같은 두께의 투명 선을
@@ -516,18 +524,6 @@ function StatusBadge({
   );
 }
 
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

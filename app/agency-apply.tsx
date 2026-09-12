@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
+
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -39,7 +40,6 @@ import {
 export default function AgencyApplyScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [agency, setAgency] = useState<MyAgency | null>(null);
   const [loading, setLoading] = useState(true);
@@ -165,7 +165,7 @@ export default function AgencyApplyScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -176,7 +176,7 @@ export default function AgencyApplyScreen() {
     const approved = agency.approvalStatus === "approved";
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
         <ScrollView contentContainerStyle={styles.content}>
           <View style={[styles.statusCard, { borderColor: theme.border, backgroundColor: theme.card }]}>
             <Ionicons
@@ -209,7 +209,7 @@ export default function AgencyApplyScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* 반려된 신청은 사유를 먼저 보여 준다 — 무엇을 고쳐야 하는지 모르면
@@ -361,19 +361,6 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
         {value || "-"}
       </Text>
     </View>
-  );
-}
-
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
   );
 }
 

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
+
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip } from "@/components/Chip";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
@@ -33,7 +34,6 @@ const USD_PER_MILLION_CHARS = 20;
 export default function AdminTranslationUsageScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [checkingPermission, setCheckingPermission] = useState(true);
   const [allowed, setAllowed] = useState(false);
@@ -78,7 +78,7 @@ export default function AdminTranslationUsageScreen() {
   if (checkingPermission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("translationUsage.title")} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={t("translationUsage.title")} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -87,7 +87,7 @@ export default function AdminTranslationUsageScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("translationUsage.title")} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={t("translationUsage.title")} leftAction={<BackButton fallback="/my" />} />
         <EmptyState
           title={t("translationUsage.noPermissionTitle")}
           description={t("translationUsage.noPermissionDescription")}
@@ -104,7 +104,7 @@ export default function AdminTranslationUsageScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={t("translationUsage.title")} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={t("translationUsage.title")} leftAction={<BackButton fallback="/my" />} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.chipRow}>
           {(["today", "week", "month", "all"] as TranslationUsagePeriod[]).map((item) => (
@@ -261,19 +261,6 @@ function CostRow({
         {value}
       </Text>
     </View>
-  );
-}
-
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
   );
 }
 

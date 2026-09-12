@@ -72,7 +72,8 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
       ) : null}
 
       <View style={styles.headerRow}>
-        <Text style={[textStyles.cardTitle, { color: theme.text, flex: 1 }]} numberOfLines={2}>
+        {/* [2026-09-11 사용자 지시] 상품명 글자 한 치수 크게 — cardTitle(md) 위 단계인 lg. */}
+        <Text style={[textStyles.cardTitle, styles.titleText, { color: theme.text, flex: 1 }]} numberOfLines={2}>
           {product.title}
         </Text>
       </View>
@@ -156,7 +157,17 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
   );
 }
 
+/**
+ * 썸네일 높이. 캐러셀 화살표를 "이미지 상하 가운데"에 놓으려면 바깥(화면)에서도
+ * 이 값을 알아야 해서 내보낸다.
+ */
+export const INVESTMENT_CARD_IMAGE_HEIGHT = 165;
+
 const styles = StyleSheet.create({
+  // [2026-09-11 사용자 지시] 상품명만 한 단계 큰 크기(cardTitle md → lg).
+  titleText: {
+    fontSize: typography.size.lg,
+  },
   card: {
     gap: spacing.xs,
     width: "100%",
@@ -168,7 +179,7 @@ const styles = StyleSheet.create({
   },
   image: {
     // [STEP: 2026-09-09-6] 사용자 요청 — 썸네일 이미지 높이 50% 증가(110 → 165).
-    height: 165,
+    height: INVESTMENT_CARD_IMAGE_HEIGHT,
     // [STEP: 2026-09-09] 사용자 요청 — 썸네일 이미지는 카드 상/좌/우 여백 없이
     // 카드 테두리에 딱 맞닿게 하고(내용 영역은 기존 padding 그대로 유지), 이미지는
     // 첫 번째 자식이라 flex gap이 marginTop보다 앞서 적용되지 않아 안전하다(위

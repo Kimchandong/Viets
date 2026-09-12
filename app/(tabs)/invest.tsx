@@ -10,7 +10,7 @@ import { Chip } from "@/components/Chip";
 import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
-import { InvestmentCard } from "@/components/InvestmentCard";
+import { INVESTMENT_CARD_IMAGE_HEIGHT, InvestmentCard } from "@/components/InvestmentCard";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -166,18 +166,11 @@ export default function InvestScreen() {
               labelStyle={styles.overviewLabel}
               style={styles.overviewStatBox}
             />
+            {/* [2026-09-12 사용자 지시] 기간 단위(/năm)를 숫자 옆이 아니라 라벨 옆으로
+                옮긴다 — 숫자 칸이 좁아 "8.4% / n..."으로 잘렸다. 라벨과 같은 크기로 붙는다. */}
             <StatTile
-              label={t("invest.overview.avgReturn")}
-              value={
-                <>
-                  {splitYieldText(MOCK_INVEST_OVERVIEW.avgReturn).rate}
-                  {splitYieldText(MOCK_INVEST_OVERVIEW.avgReturn).suffix ? (
-                    <Text style={styles.overviewUnit}>
-                      {splitYieldText(MOCK_INVEST_OVERVIEW.avgReturn).suffix}
-                    </Text>
-                  ) : null}
-                </>
-              }
+              label={`${t("invest.overview.avgReturn")}${splitYieldText(MOCK_INVEST_OVERVIEW.avgReturn).suffix}`}
+              value={splitYieldText(MOCK_INVEST_OVERVIEW.avgReturn).rate}
               valueStyle={styles.overviewValue}
               labelStyle={styles.overviewLabel}
               style={styles.overviewStatBox}
@@ -267,6 +260,7 @@ export default function InvestScreen() {
               style={styles.bleedScroll}
               contentContainerStyle={styles.featuredRow}
               step={layout.featuredCardWidth + spacing.md}
+              arrowCenterY={INVESTMENT_CARD_IMAGE_HEIGHT / 2}
             >
               {featured.map((product) => (
                 <InvestmentCard

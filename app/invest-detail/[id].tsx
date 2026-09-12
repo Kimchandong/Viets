@@ -21,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { buildGradientSteps, formatVndAmount, localizedText, splitYieldText } from "@/utils/format";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { Loading } from "@/components/Loading";
@@ -177,7 +178,7 @@ export default function InvestDetailScreen() {
   if (productLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title="" leftAction={<BackButton onPress={() => router.back()} theme={theme} />} />
+        <Header title="" leftAction={<BackButton fallback="/invest" />} />
         <Loading fullscreen />
       </SafeAreaView>
     );
@@ -188,7 +189,7 @@ export default function InvestDetailScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
         <Header
           title={t("common.notFoundTitle")}
-          leftAction={<BackButton onPress={() => router.back()} theme={theme} />}
+          leftAction={<BackButton fallback="/invest" />}
         />
         <EmptyState title={t("common.notFoundTitle")} description={t("common.notFoundDescription")} />
       </SafeAreaView>
@@ -202,7 +203,7 @@ export default function InvestDetailScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header
         title={product.title}
-        leftAction={<BackButton onPress={() => router.back()} theme={theme} />}
+        leftAction={<BackButton fallback="/invest" />}
         rightAction={
           <View style={styles.headerActions}>
             {/* [STEP 06] 투자상품 관리 권한(admin 또는 investment_manage)이 있는 계정에만
@@ -444,17 +445,6 @@ export default function InvestDetailScreen() {
   );
 }
 
-function BackButton({ onPress, theme }: { onPress: () => void; theme: ThemeColors }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 // [STEP: 2026-09-09] 사용자 요청 — targetAmountLabel처럼 formatVndAmount가
 // "N tỷ"를 반환할 수 있는 곳은 splitUnit={true}로 단위(tỷ)만 bold를 없앤다.

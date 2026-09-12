@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Chip } from "@/components/Chip";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -281,7 +282,7 @@ export default function PropertyRegisterScreen() {
         ? (existing.category as DbCategory)
         : "apartment");
       setListingType(existing.listing_type);
-      setPrice(String(existing.price));
+      setPrice(formatThousands(String(existing.price)));
       setArea(existing.area !== null ? String(existing.area) : "");
       setBedrooms(existing.bedrooms !== null ? String(existing.bedrooms) : "");
       setBathrooms(existing.bathrooms !== null ? String(existing.bathrooms) : "");
@@ -314,6 +315,18 @@ export default function PropertyRegisterScreen() {
   }
 
   /** "1,234" / "1 234" 같은 입력도 받아들이되, 숫자가 아니면 null을 돌려준다. */
+  /**
+   * [2026-09-12 사용자 지시] 금액 입력에 세 자리마다 쉼표.
+   *
+   * 숫자만 남기고 다시 묶는다 — 사용자가 중간에 쉼표를 지우거나 붙여넣어도 표기가
+   * 흐트러지지 않는다. 저장할 때는 parseNumber가 쉼표를 걷어내므로 값에는 영향이 없다.
+   */
+  function formatThousands(value: string): string {
+    const digits = value.replace(/[^\d]/g, "");
+    if (digits.length === 0) return "";
+    return Number(digits).toLocaleString("en-US");
+  }
+
   function parseNumber(value: string): number | null {
     const cleaned = value.replace(/[,\s]/g, "");
     if (cleaned.length === 0) return null;
@@ -449,7 +462,7 @@ export default function PropertyRegisterScreen() {
   if (checkingPermission || loadingExisting) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my-properties" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -458,7 +471,7 @@ export default function PropertyRegisterScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={screenTitle} leftAction={<BackButton fallback="/my-properties" />} />
         <EmptyState
           title={t("propertyRegister.noPermissionTitle")}
           description={t("propertyRegister.noPermissionDescription")}
@@ -469,14 +482,18 @@ export default function PropertyRegisterScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={screenTitle} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={screenTitle} leftAction={<BackButton fallback="/my-properties" />} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* [2026-09-11 사용자 지시 — 4차] 지역 — 컨텐츠 맨 위 가로 슬라이드.
             투자상품 등록 화면과 같은 목록·같은 모양으로 둔다(두 곳의 지역 값이
             같아야 지역으로 묶어 볼 수 있다). */}
-        <Text style={[styles.regionLabel, { color: theme.secondaryText }]}>
-          {t("propertyRegister.regionLabel")}
-        </Text>
+        {/* [2026-09-12 사용자 지시] 제목을 아래 "기본 정보"와 같은 크기로 맞추고,
+            제목과 칩 사이 간격을 좁힌다. content의 gap(lg)이 형제 사이에 끼어들어
+            벌어져 있었으므로 둘을 한 View로 묶어 간격을 직접 정한다. */}
+        <View style={styles.regionSection}>
+        {/* [2026-09-12 사용자 지시] "기본 정보"와 완전히 같은 모양이어야 하므로 같은
+            컴포넌트를 쓴다 — 스타일을 흉내 내면 SectionHeader가 바뀔 때 여기만 남는다. */}
+        <SectionHeader title={t("propertyRegister.regionLabel")} />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -493,9 +510,28 @@ export default function PropertyRegisterScreen() {
             />
           ))}
         </ScrollView>
+        </View>
 
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.basicSection")} />
+
+          {/* [2026-09-12 사용자 지시] 카테고리를 기본 정보의 첫 항목으로 올린다.
+              [2026-09-11] 칩 나열 → 셀렉트. 카테고리는 8종이라 칩으로 펼치면 자리를
+              많이 차지하고 선택된 값이 한눈에 들어오지 않는다.
+              Select의 label은 Input의 label과 같은 스타일이라(sm·medium·본문색)
+              "매물명"과 크기·색이 자동으로 맞는다. */}
+          <Select
+            label={t("propertyRegister.categoryLabel")}
+            value={category}
+            options={DB_CATEGORIES.map((item) => ({
+              value: item,
+              label: t(`propertyRegister.dbCategory.${item}`),
+            }))}
+            onChange={(next) => setCategory(next as DbCategory)}
+            theme={theme}
+            closeLabel={t("common.cancel")}
+          />
+
           <Input
             label={t("propertyRegister.titleLabel")}
             value={title}
@@ -515,25 +551,22 @@ export default function PropertyRegisterScreen() {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title={t("propertyRegister.categorySection")} />
-          {/* [2026-09-11 사용자 지시] 칩 나열 → 셀렉트. 카테고리는 8종이라 칩으로
-              펼치면 자리를 많이 차지하고 선택된 값이 한눈에 들어오지 않는다. */}
-          <Select
-            label={t("propertyRegister.categoryLabel")}
-            value={category}
-            options={DB_CATEGORIES.map((item) => ({
-              value: item,
-              label: t(`propertyRegister.dbCategory.${item}`),
-            }))}
-            onChange={(next) => setCategory(next as DbCategory)}
+          <SectionHeader title={t("propertyRegister.priceSection")} />
+
+          {/* [2026-09-12 사용자 지시] 거래 유형을 가격·면적의 첫 항목으로 올린다.
+              바로 아래 가격 입력의 라벨(매매가/월세)이 이 값에 따라 바뀌므로, 먼저
+              고르는 순서가 자연스럽다. 아래 옵션 목록도 계속 이 선택을 따라간다. */}
+          <SegmentedToggle
+            label={t("propertyRegister.listingTypeLabel")}
+            value={listingType}
+            options={[
+              { value: "for_sale", label: t("property.status.forSale") },
+              { value: "for_rent", label: t("property.status.forRent") },
+            ]}
+            onChange={(next) => handleListingTypeChange(next as "for_sale" | "for_rent")}
             theme={theme}
-            closeLabel={t("common.cancel")}
           />
 
-        </View>
-
-        <View style={styles.section}>
-          <SectionHeader title={t("propertyRegister.priceSection")} />
           <Input
             label={
               listingType === "for_rent"
@@ -541,7 +574,11 @@ export default function PropertyRegisterScreen() {
                 : t("propertyRegister.priceSaleLabel")
             }
             value={price}
-            onChangeText={setPrice}
+            onChangeText={(next) => {
+              setPrice(formatThousands(next));
+              // 고치는 중에 예전 오류 문구가 남아 있으면 방금 입력이 틀린 것처럼 보인다.
+              if (errors.price) setErrors((prev) => ({ ...prev, price: undefined }));
+            }}
             keyboardType="numeric"
             error={errors.price}
             helperText={t("propertyRegister.priceHelper")}
@@ -716,20 +753,6 @@ export default function PropertyRegisterScreen() {
         <View style={styles.section}>
           <SectionHeader title={t("propertyRegister.optionsSection")} />
 
-          {/* [2026-09-11 사용자 지시] 거래 유형을 옵션 바로 위에 둔다 — 아래 옵션
-              목록이 이 선택에 따라 통째로 바뀌므로, 붙어 있어야 인과가 보인다.
-              모양은 홈 화면의 "부동산 투자 / 부동산 매물" 토글과 동일하다. */}
-          <SegmentedToggle
-            label={t("propertyRegister.listingTypeLabel")}
-            value={listingType}
-            options={[
-              { value: "for_sale", label: t("property.status.forSale") },
-              { value: "for_rent", label: t("property.status.forRent") },
-            ]}
-            onChange={(next) => handleListingTypeChange(next as "for_sale" | "for_rent")}
-            theme={theme}
-          />
-
           {/* [2026-09-11 사용자 지시] 옵션을 분류별로 모두 보여주고 골라서 넣는다.
               거래 유형(매매/임대)에 따라 목록 자체가 바뀐다. */}
           <Text style={[textStyles.bodySmall, styles.amenityTitle, { color: theme.text }]}>
@@ -803,14 +826,9 @@ export default function PropertyRegisterScreen() {
             description={t("propertyRegister.publishDescription")}
           />
 
-          {/* [2026-09-11 사용자 지시] 추천 매물은 가장 아래로 — 선택 빈도가 낮고,
-              앞으로 유료 서비스가 붙을 자리라 다른 항목과 섞이지 않게 둔다. */}
-          <ToggleRow
-            label={t("propertyRegister.featuredLabel")}
-            description={t("propertyRegister.featuredDescription")}
-            value={featured}
-            onToggle={() => setFeatured((prev) => !prev)}
-          />
+          {/* [2026-09-12 사용자 지시] 광고(추천매물 / TOP10) 진입점은 이 폼에서 뺐다.
+              광고는 설정하는 즉시 반영되고 매물 "저장"과 무관한데, 폼 안에 있으면
+              저장해야 적용되는 것처럼 읽힌다. MY > 내 매물 목록의 "광고" 버튼으로 옮겼다. */}
         </View>
 
         <Button
@@ -919,18 +937,6 @@ export default function PropertyRegisterScreen() {
   );
 }
 
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 function ToggleRow({
   label,
@@ -971,13 +977,13 @@ function ToggleRow({
 
 const styles = StyleSheet.create({
   // 지역 슬라이드 — 칩 사이 간격만 두고 좌우 여백은 content가 이미 갖고 있다.
-  regionLabel: {
-    fontSize: 11,
-    marginTop: spacing.sm,
+  regionSection: {
+    gap: spacing.xs,
   },
   regionRow: {
     gap: spacing.xs,
-    paddingVertical: spacing.xs,
+    // 제목과 칩 사이는 위 gap이 맡는다 — 여기서 또 띄우면 두 번 벌어진다.
+    paddingVertical: 0,
   },
   container: {
     flex: 1,

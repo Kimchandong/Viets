@@ -254,3 +254,21 @@ export async function reviewAgency(
   }
   return true;
 }
+
+/**
+ * [2026-09-11 사용자 지시] 업체명 변경 — MY 상단의 연필 버튼.
+ *
+ * 테이블을 직접 update하지 않고 rename_my_agency 함수를 부른다: agencies의 UPDATE는
+ * 관리자 전용이고(agencies_update_admin), RLS를 행 단위로 열면 승인 상태까지 함께
+ * 바꿀 수 있게 되기 때문이다. 함수는 호출자가 owner인 업체의 name만 고친다.
+ */
+export async function renameMyAgency(name: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  const { error } = await supabase.rpc("rename_my_agency", { p_name: name });
+  if (error) {
+    console.warn("[services/agencies] renameMyAgency failed:", error.message);
+    return false;
+  }
+  return true;
+}

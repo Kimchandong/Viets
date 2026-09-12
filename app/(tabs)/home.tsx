@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { setStatusBarBackgroundColor, setStatusBarStyle, setStatusBarTranslucent } from "expo-status-bar";
@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   Animated,
   Image,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -17,11 +18,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { FadeInText } from "@/components/FadeInText";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
-import { InvestmentCard } from "@/components/InvestmentCard";
-import { PropertyCard } from "@/components/PropertyCard";
+import { INVESTMENT_CARD_IMAGE_HEIGHT, InvestmentCard } from "@/components/InvestmentCard";
+import { Modal } from "@/components/Modal";
+import { PROPERTY_CARD_IMAGE_HEIGHT, PropertyCard } from "@/components/PropertyCard";
+import { PropertyListRow } from "@/components/PropertyListRow";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
 import { colors, layout, opacity, radius, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
@@ -34,7 +38,17 @@ import {
 import { listProperties } from "@/services/properties";
 import { listInvestmentProducts } from "@/services/investments";
 import { listBoardPosts, type BoardPost } from "@/services/boards";
+import { formatVndAmount } from "@/utils/format";
 import { getNewInvestmentCount, getUnreadChatCount } from "@/services/notifications";
+import { chargeAdClick, listActiveAdSlots } from "@/services/ads";
+import {
+  distanceKm,
+  formatDistance,
+  getCurrentLocation,
+  locationFromRegion,
+  selectableRegions,
+  type UserLocation,
+} from "@/services/location";
 
 // STEP 4-9B — Home UI 레이아웃 기반. 실제 Property/Market 데이터 fetch는 하지 않는다
 // (constants/mockData.ts의 mock 값만 사용).
@@ -43,6 +57,12 @@ import { getNewInvestmentCount, getUnreadChatCount } from "@/services/notificati
 // "추천 투자상품"(MOCK_INVESTMENT_PRODUCTS 기반) 섹션을 추가해 Home에서도 Invest
 // 상세로 바로 진입할 수 있게 했다(§7 요구사항 — Home 최소 구성에 추천 투자상품 포함).
 // 위치/알림/시장 소식은 아직 실제 기능이 없으므로 기존처럼 showComingSoon으로 남긴다.
+
+/** [2026-09-11 사용자 지시] 최신매물 정렬 방식. 기본은 거리순. */
+type NearbySort = "distance" | "condition" | "price";
+
+/** 금액 필터 상한 — 사용자 지시 "0~100억동". */
+const PRICE_MAX_VND = 10_000_000_000;
 
 export default function HomeScreen() {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지, 비로그인 공개 화면)
@@ -112,6 +132,30 @@ export default function HomeScreen() {
   const [unreadChats, setUnreadChats] = useState(0);
   const [newInvestments, setNewInvestments] = useState(0);
 
+  // [2026-09-11 사용자 지시] 현위치 — 상단 주소 표시 + 매물 거리순 정렬 기준점.
+  // 앱을 켜자마자 권한 창을 띄우지 않는다(requestPermission 없이 조회) — 무슨
+  // 기능인지 모른 채 거부당하면 되돌리기 어렵다. 위치를 누르거나 거리순을 고를 때 묻는다.
+  const [userLocation, setUserLocation] = useState<UserLocation>({
+    origin: "none",
+    label: "",
+    coords: null,
+  });
+  const [regionPickerOpen, setRegionPickerOpen] = useState(false);
+  /**
+   * [2026-09-12 사용자 지시] "최근 TOP10" — 광고비 순위를 산 매물 id가 1위부터.
+   * 열 자리가 다 차지 않으면 아래에서 최신 매물로 채운다.
+   */
+  const [top10Ids, setTop10Ids] = useState<string[]>([]);
+  /** 추천 캐러셀의 노출 순서 — 역시 광고비 순위다(금액 높은 매물이 앞). */
+  const [featuredIds, setFeaturedIds] = useState<string[]>([]);
+
+  // 최신매물 정렬 — 거리순(기본) / 조건별(방·욕실) / 금액별.
+  const [sortMode, setSortMode] = useState<NearbySort>("distance");
+  const [sortSheet, setSortSheet] = useState<NearbySort | null>(null);
+  const [minBedrooms, setMinBedrooms] = useState(0);
+  const [minBathrooms, setMinBathrooms] = useState(0);
+  const [priceMax, setPriceMax] = useState(PRICE_MAX_VND);
+
   // [2026-09-11 사용자 지시] 화면에 들어올 때마다 다시 조회한다.
   // 이전에는 useEffect(..., [])로 **마운트 시 1회만** 불러왔다. Expo Router는 탭
   // 화면을 언마운트하지 않고 그대로 두므로, 매물을 등록하고 목록 탭으로 돌아와도
@@ -139,11 +183,38 @@ export default function HomeScreen() {
       getNewInvestmentCount().then((count) => {
         if (active) setNewInvestments(count);
       });
+      // 노출 판정(잔액 소진·자리 수)은 DB가 한다 — 화면은 결과 순서만 받는다.
+      listActiveAdSlots("top10").then((ids) => {
+        if (active) setTop10Ids(ids);
+      });
+      listActiveAdSlots("featured").then((ids) => {
+        if (active) setFeaturedIds(ids);
+      });
+      // 위치는 포커스마다 다시 잡지 않는다 — 아래 마운트 1회 useEffect가 맡는다.
       return () => {
         active = false;
       };
     }, [i18n.language]),
   );
+
+  /**
+   * [2026-09-11 사용자 지시] 앱을 켜면 자동으로 위치를 잡는다 — 시스템 권한 팝업을
+   * 첫 진입에 띄운다.
+   *
+   * 포커스마다가 아니라 마운트 1회로 둔 이유: useFocusEffect 안에 두면 탭을 오갈
+   * 때마다 위치를 다시 잡아 배터리를 쓴다. 권한 팝업 자체는 OS가 한 번만 띄우고
+   * (getCurrentLocation이 canAskAgain을 확인한다), 거부한 뒤에는 좌측 상단
+   * "위치 설정"을 눌러 지역을 직접 고를 수 있다.
+   */
+  useEffect(() => {
+    let active = true;
+    getCurrentLocation({ requestPermission: true }).then((next) => {
+      if (active && next.origin !== "none") setUserLocation(next);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function submitHomeSearch() {
     const query = homeSearch.trim();
@@ -159,8 +230,120 @@ export default function HomeScreen() {
   // Supabase properties 테이블을 읽는다 — app/(tabs)/property.tsx와 동일하게
   // services/properties.ts의 listProperties()(status='active'만 조회)를 쓴다.
   // [STEP 06] 투자상품도 실제 investment_products 테이블로 전환(시장동향은 DB 없음 — Mock 유지).
-  const featured = properties.filter((property) => property.featured);
-  const nearby = properties.filter((property) => !property.featured);
+  /**
+   * [2026-09-12 사용자 지시] 추천 캐러셀은 광고 자리 다섯 개다 — 클릭 단가 순위로
+   * DB(active_ad_slots)가 정하며, 잔액이 바닥난 업체의 매물은 여기서 빠진다.
+   */
+  const featured = useMemo(() => {
+    // 광고 자리를 산 매물(잔액이 남아 실제로 노출되는 것)만, DB가 준 순위 그대로.
+    if (featuredIds.length > 0) {
+      const byId = new Map(properties.map((property) => [property.id, property]));
+      return featuredIds
+        .map((id) => byId.get(id))
+        .filter((property): property is MockProperty => !!property);
+    }
+    // 광고가 하나도 없을 때만 관리자가 수동으로 켜 둔 featured를 보여 준다.
+    return properties.filter((property) => property.featured);
+  }, [properties, featuredIds]);
+  // [2026-09-11 사용자 지시] 최신매물 — 거리순(기본) / 조건별 / 금액별.
+  //
+  // 정렬은 화면에서 한다. 거리 기준점이 기기마다 다르고 사용자가 즉시 바꾸므로,
+  // 서버에 맡기면 바꿀 때마다 다시 조회해야 한다. 매물 수가 한 화면 분량이라
+  // 클라이언트 계산으로 충분하다.
+  const nearby = useMemo(() => {
+    const base = properties.filter((property) => !property.featured);
+
+    if (sortMode === "condition") {
+      return base.filter(
+        (property) =>
+          (property.bedrooms ?? 0) >= minBedrooms && (property.bathrooms ?? 0) >= minBathrooms,
+      );
+    }
+
+    if (sortMode === "price") {
+      return base
+        .filter((property) => property.priceValueVnd <= priceMax)
+        .sort((a, b) => a.priceValueVnd - b.priceValueVnd);
+    }
+
+    // 거리순 — 기준점이 없거나 좌표가 없는 매물은 뒤로 보낸다(최신순 유지).
+    if (!userLocation.coords) return base;
+    const origin = userLocation.coords;
+    return base
+      .map((property) => ({
+        property,
+        km:
+          property.latitude !== undefined && property.longitude !== undefined
+            ? distanceKm(origin, { latitude: property.latitude, longitude: property.longitude })
+            : Number.POSITIVE_INFINITY,
+      }))
+      .sort((a, b) => a.km - b.km)
+      .map((entry) => entry.property);
+  }, [properties, sortMode, minBedrooms, minBathrooms, priceMax, userLocation.coords]);
+
+  /**
+   * [2026-09-12 사용자 지시] 홈에 노출할 "최근 TOP10" 10건.
+   *
+   * 기본 상태(거리순)에서만 광고 순위를 얹는다 — 사용자가 조건별/금액별을 직접
+   * 고른 순간에는 그 조건이 우선이고, 그 위에 광고를 끼워 넣으면 고른 조건과
+   * 맞지 않는 매물이 맨 위에 남는다(검색 결과와 광고의 관계와 같다).
+   *
+   * 광고 자리가 열을 못 채우면 나머지는 같은 목록의 다음 매물로 채운다. 빈 자리를
+   * 비워 두면 운영 초기에 섹션이 거의 비어 보인다.
+   */
+  const top10 = useMemo(() => {
+    if (sortMode !== "distance" || top10Ids.length === 0) {
+      return nearby.slice(0, HOME_LIST_LIMIT);
+    }
+    const byId = new Map(nearby.map((property) => [property.id, property]));
+    const ranked = top10Ids
+      .map((id) => byId.get(id))
+      .filter((property): property is MockProperty => !!property);
+
+    const rankedIds = new Set(ranked.map((property) => property.id));
+    const rest = nearby.filter((property) => !rankedIds.has(property.id));
+    return [...ranked, ...rest].slice(0, HOME_LIST_LIMIT);
+  }, [nearby, sortMode, top10Ids]);
+
+  /**
+   * [2026-09-12 사용자 지시] 광고로 노출된 매물을 누르면 그 매물의 클릭 단가가
+   * 차감된다. 차감 결과를 기다리지 않고 바로 이동하는 이유: 과금은 광고주와
+   * 플랫폼 사이의 일이고, 그것 때문에 고객의 화면 전환이 늦어지면 안 된다.
+   * 광고가 아닌 매물(순위 밖·빈 자리를 채운 최신 매물)은 아무 일도 하지 않는다.
+   */
+  function openProperty(propertyId: string, placement: "featured" | "top10") {
+    const adIds = placement === "featured" ? featuredIds : top10Ids;
+    if (adIds.includes(propertyId)) {
+      void chargeAdClick(propertyId, placement);
+    }
+    router.push(`/property-detail/${propertyId}`);
+  }
+
+  /** 매물까지의 거리 문구 — 기준점과 좌표가 다 있을 때만. */
+  function distanceLabel(property: MockProperty): string {
+    if (!userLocation.coords || property.latitude === undefined || property.longitude === undefined) {
+      return "";
+    }
+    return formatDistance(
+      distanceKm(userLocation.coords, {
+        latitude: property.latitude,
+        longitude: property.longitude,
+      }),
+    );
+  }
+
+  /**
+   * 위치 표시를 눌렀을 때 / 거리순을 골랐을 때.
+   * 권한이 있으면 현위치를 쓰고, 없으면 지역을 고르게 한다(사용자 결정).
+   */
+  async function resolveLocation() {
+    const next = await getCurrentLocation({ requestPermission: true });
+    if (next.origin === "none") {
+      setRegionPickerOpen(true);
+      return;
+    }
+    setUserLocation(next);
+  }
   const recommendedInvestments = investmentProducts.filter((product) => product.featured);
   // [STEP: 2026-09-08] "전체상품" 섹션 — invest.tsx의 "전체상품"(전체보기 없이 항상
   // 노출되는 전체 목록) 섹션과 동일하게 featured가 아닌 상품만 별도로 나열한다
@@ -195,14 +378,17 @@ export default function HomeScreen() {
                 ]}
               />
               {/* 사용자 요청: 로고 아래 위치 표기(아이콘+텍스트+화살표) 전체를 70% 불투명도로. */}
+              {/* [2026-09-11 사용자 지시] 현위치. 예전에는 "Thành phố Hồ Chí Minh"가
+                  코드에 박혀 있었고 눌러도 "준비 중"이었다. 이제 실제 위치를 읽어
+                  구/시 이름을 보여 주고, 권한이 없으면 눌렀을 때 지역을 고르게 한다. */}
               <Pressable
                 style={[styles.locationRow, { opacity: 0.7 }]}
-                onPress={showComingSoon}
+                onPress={resolveLocation}
                 accessibilityRole="button"
               >
                 <Ionicons name="location-outline" size={14} color={theme.onAccent} />
-                <Text style={[textStyles.caption, { color: theme.onAccent }]}>
-                  Thành phố Hồ Chí Minh
+                <Text style={[textStyles.caption, { color: theme.onAccent }]} numberOfLines={1}>
+                  {userLocation.label || t("home.locationUnknown")}
                 </Text>
                 <Ionicons name="chevron-down" size={12} color={theme.onAccent} />
               </Pressable>
@@ -254,9 +440,10 @@ export default function HomeScreen() {
               autoCorrect={false}
               // [STEP: 2026-09-08] 사용자 요청 — 검색창 내부 텍스트를 caption 크기로 축소.
               // [STEP: 2026-09-09-11] 사용자 요청 — 검색창 미리보기(placeholder)
-              // 글씨 12px 고정 (공용 caption 토큰은 디바이스별로 moderateScale이
-              // 적용돼 11px 근처로 흔들릴 수 있어, 이 입력창만 명시적으로 고정).
-              style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: 12 }]}
+              // 글씨를 px로 고정한다 (공용 caption 토큰은 디바이스별로 moderateScale이
+              // 적용돼 값이 흔들릴 수 있어, 이 입력창만 명시적으로 고정).
+              // [2026-09-11 사용자 지시] 한 치수 크게 — 12 → 13.
+              style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: 13 }]}
             />
             {/* [2026-09-11 사용자 지시] 음성검색 아이콘 크게(18 → 22). */}
             <Pressable onPress={showComingSoon} accessibilityRole="button" hitSlop={8}>
@@ -296,7 +483,10 @@ export default function HomeScreen() {
               옅은 padding을 둬 활성 탭이 그 안에서 다시 완전히 둥근 파란색 pill로
               떠 보이게 하고, 비활성 탭은 바깥 배경(theme.card, 연회색) 위에 텍스트만
               얹혀 보이도록 한다. */}
-          <View testID="home-category-tab-row" style={[styles.categoryTabRow, { borderColor: theme.border, backgroundColor: theme.card }]}>
+          {/* [2026-09-11 사용자 지시] 비활성(선택 안 된) 쪽 배경은 #EEEEEE
+              (constants/theme.ts surfaceMuted) — 비활성 버튼은 배경 없이 이 트랙을
+              그대로 비춘다. */}
+          <View testID="home-category-tab-row" style={[styles.categoryTabRow, { borderColor: theme.border, backgroundColor: theme.surfaceMuted }]}>
             <CategoryTabButton
               label={t("home.categoryTabs.invest")}
               active={categoryTab === "invest"}
@@ -354,13 +544,15 @@ export default function HomeScreen() {
               style={styles.bleedScroll}
               contentContainerStyle={styles.featuredRow}
               step={layout.featuredCardWidth + spacing.md}
+              arrowCenterY={PROPERTY_CARD_IMAGE_HEIGHT / 2}
+              autoPlayMs={FEATURED_AUTOPLAY_MS}
             >
               {featured.map((property) => (
                 <PropertyCard
                   key={property.id}
                   property={property}
                   variant="featured"
-                  onPress={() => router.push(`/property-detail/${property.id}`)}
+                  onPress={() => openProperty(property.id, "featured")}
                 />
               ))}
             </HorizontalCardCarousel>
@@ -379,6 +571,7 @@ export default function HomeScreen() {
               style={styles.bleedScroll}
               contentContainerStyle={styles.featuredRow}
               step={layout.featuredCardWidth + spacing.md}
+              arrowCenterY={INVESTMENT_CARD_IMAGE_HEIGHT / 2}
             >
               {recommendedInvestments.map((product) => (
                 <InvestmentCard
@@ -420,24 +613,64 @@ export default function HomeScreen() {
 
         {categoryTab === "property" ? (
           <View testID="home-section-property-nearby" style={styles.section}>
-            <SectionHeader
-              title={t("home.nearbyTitle")}
-              actionLabel={t("common.seeAll")}
-              onAction={() => router.push("/property")}
-            />
+            {/* [2026-09-12 사용자 지시] 타이틀 "주변·최근" → "최근 TOP10". */}
+            <SectionHeader title={t("home.top10Title")} />
+
+            {/* [2026-09-11 사용자 지시] 제목 아래 우측 정렬 버튼 3개.
+                고른 것만 파란 테두리로 남고, 조건별·금액별은 누르면 팝업이 열린다.
+                거리순은 팝업 없이 바로 적용되지만, 기준 위치가 없으면 먼저 위치를
+                정하게 한다 — 기준 없는 "가까운 순"은 거짓말이다. */}
+            <View style={styles.sortRow}>
+              {(["distance", "condition", "price"] as NearbySort[]).map((mode) => {
+                const active = sortMode === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    onPress={() => {
+                      if (mode === "distance") {
+                        setSortMode("distance");
+                        if (!userLocation.coords) void resolveLocation();
+                        return;
+                      }
+                      setSortSheet(mode);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    style={({ pressed }) => [
+                      styles.sortChip,
+                      {
+                        borderColor: active ? theme.accent : theme.border,
+                        opacity: pressed ? opacity.pressed : 1,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        textStyles.caption,
+                        { color: active ? theme.accent : theme.secondaryText },
+                      ]}
+                    >
+                      {t(`home.sort.${mode}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
             {/* [STEP 04] 실DB 전환 후에는 등록된 매물이 0건일 수 있어(초기 운영
                 상태), 섹션 헤더만 덩그러니 남지 않도록 EmptyState를 노출한다 —
                 위 "투자 전체" 섹션과 동일한 패턴. */}
-            {nearby.length === 0 ? (
+            {top10.length === 0 ? (
               <EmptyState title={t("property.emptyTitle")} description={t("property.emptyDescription")} />
             ) : (
-              <View style={styles.stack}>
-                {nearby.map((property) => (
-                  <PropertyCard
+              <View style={styles.propertyList}>
+                {top10.map((property, index) => (
+                  <PropertyListRow
                     key={property.id}
                     property={property}
-                    variant="list"
-                    onPress={() => router.push(`/property-detail/${property.id}`)}
+                    distance={distanceLabel(property)}
+                    showDivider={index > 0}
+                    onPress={() => openProperty(property.id, "top10")}
                   />
                 ))}
               </View>
@@ -534,6 +767,88 @@ export default function HomeScreen() {
         </View>
         </View>
       </ScrollView>
+      {/* [2026-09-11 사용자 지시] 조건별 — 방수/화장실수 최소값을 고른다. */}
+      <Modal visible={sortSheet === "condition"} onClose={() => setSortSheet(null)}>
+        <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{t("home.sort.condition")}</Text>
+        <CountPicker
+          label={t("home.sort.bedrooms")}
+          value={minBedrooms}
+          onChange={setMinBedrooms}
+          theme={theme}
+        />
+        <CountPicker
+          label={t("home.sort.bathrooms")}
+          value={minBathrooms}
+          onChange={setMinBathrooms}
+          theme={theme}
+        />
+        <View style={styles.sheetActions}>
+          <Button
+            variant="outline"
+            title={t("common.cancel")}
+            onPress={() => setSortSheet(null)}
+            style={styles.sheetButton}
+          />
+          <Button
+            title={t("common.confirm")}
+            onPress={() => {
+              setSortMode("condition");
+              setSortSheet(null);
+            }}
+            style={styles.sheetButton}
+          />
+        </View>
+      </Modal>
+
+      {/* 금액별 — 0원부터 고른 값까지. 막대를 끌어 상한을 정한다. */}
+      <Modal visible={sortSheet === "price"} onClose={() => setSortSheet(null)}>
+        <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{t("home.sort.price")}</Text>
+        <Text style={[textStyles.caption, { color: theme.secondaryText, marginTop: spacing.xs }]}>
+          {t("home.sort.priceRange", { max: formatVndAmount(priceMax) })}
+        </Text>
+        <PriceSlider value={priceMax} onChange={setPriceMax} theme={theme} />
+        <View style={styles.sheetActions}>
+          <Button
+            variant="outline"
+            title={t("common.cancel")}
+            onPress={() => setSortSheet(null)}
+            style={styles.sheetButton}
+          />
+          <Button
+            title={t("common.confirm")}
+            onPress={() => {
+              setSortMode("price");
+              setSortSheet(null);
+            }}
+            style={styles.sheetButton}
+          />
+        </View>
+      </Modal>
+
+      {/* 위치 권한이 없을 때 — 기준 지역을 직접 고르게 한다(사용자 결정). */}
+      <Modal visible={regionPickerOpen} onClose={() => setRegionPickerOpen(false)}>
+        <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{t("home.regionPickerTitle")}</Text>
+        <Text style={[textStyles.caption, { color: theme.secondaryText, marginTop: spacing.xs }]}>
+          {t("home.regionPickerHint")}
+        </Text>
+        {selectableRegions().map((region) => (
+          <Pressable
+            key={region}
+            onPress={() => {
+              setUserLocation(locationFromRegion(region));
+              setRegionPickerOpen(false);
+            }}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.regionOption,
+              { borderBottomColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+            ]}
+          >
+            <Text style={[textStyles.body, { color: theme.text }]}>{region}</Text>
+          </Pressable>
+        ))}
+      </Modal>
+
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </View>
   );
@@ -569,10 +884,146 @@ const TICKER_SLIDE_MS = 400;
  */
 // [2026-09-11 사용자 지시] 알림 버튼 배경/테두리 — 흰 반투명에서 검은 반투명으로.
 // 배너 영상이 밝을 때 흰 배경 위 흰 아이콘이 묻혀 보였다.
+/** [2026-09-12 사용자 지시] 홈 매물 목록은 10건까지만. */
+const HOME_LIST_LIMIT = 10;
+
+/**
+ * [2026-09-12 사용자 지시] 추천매물은 다섯 자리뿐이라 가만히 두면 1~2위만 보인다.
+ * 3초마다 한 장씩 넘겨 다섯 곳이 모두 노출되게 한다 — 돈을 낸 자리이므로 보여야 한다.
+ */
+const FEATURED_AUTOPLAY_MS = 3000;
+
 const IDLE_BORDER = "rgba(255,255,255,0.3)";
 const ICON_BUTTON_BG = "rgba(0,0,0,0.3)";
 /** [2026-09-11 사용자 지시] 알림 아이콘 글리프 크기 — 20의 10% 축소. */
 const ALERT_ICON_SIZE = 18;
+
+/** 조건별 팝업의 "N개 이상" 선택 — 0(무관)부터 4까지. */
+function CountPicker({
+  label,
+  value,
+  onChange,
+  theme,
+}: {
+  label: string;
+  value: number;
+  onChange: (next: number) => void;
+  theme: ThemeColors;
+}) {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.countBlock}>
+      <Text style={[textStyles.caption, { color: theme.secondaryText }]}>{label}</Text>
+      <View style={styles.countRow}>
+        {[0, 1, 2, 3, 4].map((n) => {
+          const active = value === n;
+          return (
+            <Pressable
+              key={n}
+              onPress={() => onChange(n)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={({ pressed }) => [
+                styles.countChip,
+                {
+                  borderColor: active ? theme.accent : theme.border,
+                  backgroundColor: active ? theme.accent : "transparent",
+                  opacity: pressed ? opacity.pressed : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  textStyles.caption,
+                  { color: active ? theme.onAccent : theme.secondaryText },
+                ]}
+              >
+                {n === 0 ? t("home.sort.any") : `${n}+`}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+/**
+ * [2026-09-11 사용자 지시] 금액 막대 — 0 ~ 100억동.
+ *
+ * 슬라이더 라이브러리를 추가하지 않고 PanResponder로 직접 만든다(사용자 결정).
+ * 새 의존성이 없고, 막대 모양과 색을 앱의 다른 요소와 맞출 수 있다.
+ *
+ * 폭을 onLayout으로 재는 이유: 퍼센트만으로는 손가락 x좌표를 값으로 바꿀 수 없다.
+ * 폭을 재기 전(0)에는 나누기를 하지 않는다 — 0으로 나누면 NaN이 되어 막대가 사라진다.
+ */
+function PriceSlider({
+  value,
+  onChange,
+  theme,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+  theme: ThemeColors;
+}) {
+  const [width, setWidth] = useState(0);
+  // PanResponder는 처음 만들어진 클로저를 계속 쓰므로, 최신 폭을 ref로 읽는다.
+  const widthRef = useRef(0);
+  widthRef.current = width;
+
+  const responder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (event) => {
+        const w = widthRef.current;
+        if (w > 0) onChange(clampToStep((event.nativeEvent.locationX / w) * PRICE_MAX_VND));
+      },
+      onPanResponderMove: (event, gesture) => {
+        const w = widthRef.current;
+        if (w <= 0) return;
+        // moveX는 화면 기준이라 막대 시작점을 빼야 하는데, 시작점을 따로 재지 않으려고
+        // grant 시점의 locationX에 이동량을 더하는 대신 gesture.moveX를 쓰지 않고
+        // locationX를 그대로 쓴다(막대 안에서만 반응하므로 충분하다).
+        void gesture;
+        onChange(clampToStep((event.nativeEvent.locationX / w) * PRICE_MAX_VND));
+      },
+    }),
+  ).current;
+
+  const ratio = width > 0 ? Math.min(1, Math.max(0, value / PRICE_MAX_VND)) : 0;
+
+  return (
+    <View style={styles.sliderBlock}>
+      <View
+        onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+        {...responder.panHandlers}
+        style={[styles.sliderTrack, { backgroundColor: theme.border }]}
+      >
+        <View style={[styles.sliderFill, { width: `${ratio * 100}%`, backgroundColor: theme.accent }]} />
+        <View
+          style={[
+            styles.sliderKnob,
+            { left: `${ratio * 100}%`, backgroundColor: theme.accent, borderColor: theme.onAccent },
+          ]}
+        />
+      </View>
+      <View style={styles.sliderScale}>
+        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>0</Text>
+        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+          {formatVndAmount(PRICE_MAX_VND)}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+/** 1억동 단위로 끊는다 — 1원 단위로 움직이면 값이 읽히지 않는다. */
+function clampToStep(raw: number): number {
+  const step = 100_000_000;
+  const clamped = Math.min(PRICE_MAX_VND, Math.max(0, raw));
+  return Math.round(clamped / step) * step;
+}
 
 function AlertIconButton({
   icon,
@@ -733,13 +1184,18 @@ function CategoryTabButton({
       accessibilityState={{ selected: active }}
       style={({ pressed }) => [
         styles.categoryTabButton,
+        // [2026-09-11 사용자 지시] 활성 탭은 실제 버튼이 눌린 것처럼 안쪽으로
+        // 들어간 그림자(inset)를 준다.
+        active && styles.categoryTabButtonActive,
         { backgroundColor: active ? theme.accent : "transparent", opacity: pressed ? opacity.pressed : 1 },
       ]}
     >
+      {/* [2026-09-11 사용자 지시] 비활성 탭 글자색은 파란색(accent) — 활성 탭은
+          파란 배경 위 흰 글씨이므로 색이 뒤집히는 형태가 된다. */}
       <Text
         style={[
           textStyles.bodySmall,
-          { color: active ? theme.onAccent : theme.text, fontWeight: typography.weight.medium },
+          { color: active ? theme.onAccent : theme.accent, fontWeight: typography.weight.medium },
         ]}
       >
         {label}
@@ -788,10 +1244,83 @@ const styles = StyleSheet.create({
   // 상단 padding(lg)을 이 영역에서만 상쇄해 이미지가 화면 가로 100%/맨 위까지 채우게
   // 하고(bleedScroll과 동일 원칙), 내부에는 다시 동일한 좌우 padding을 줘 topBar/
   // searchBar가 기존과 같은 위치에 보이도록 한다.
+  // [2026-09-11 사용자 지시] 최신매물 정렬 버튼 — 제목 아래 우측.
+  sortRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  sortChip: {
+    borderWidth: 1,
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+
+  // 정렬 팝업.
+  sheetActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  sheetButton: {
+    flex: 1,
+  },
+  countBlock: {
+    marginTop: spacing.md,
+    gap: spacing.xs,
+  },
+  countRow: {
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  countChip: {
+    flex: 1,
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingVertical: 6,
+  },
+  regionOption: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+
+  // 금액 막대.
+  sliderBlock: {
+    marginTop: spacing.lg,
+    gap: spacing.xs,
+  },
+  sliderTrack: {
+    height: 6,
+    borderRadius: radius.full,
+    justifyContent: "center",
+    // 손잡이가 막대 밖으로 나가므로 세로 여백을 둬 터치 영역을 넓힌다.
+    marginVertical: spacing.sm,
+  },
+  sliderFill: {
+    height: 6,
+    borderRadius: radius.full,
+  },
+  sliderKnob: {
+    position: "absolute",
+    width: 20,
+    height: 20,
+    borderRadius: radius.full,
+    borderWidth: 2,
+    marginLeft: -10,
+  },
+  sliderScale: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
   // [2026-09-11 사용자 지시] 상단 우측 알림 아이콘 두 개를 나란히.
   topIcons: {
     flexDirection: "row",
-    gap: spacing.sm,
+    // [2026-09-11 사용자 지시] 두 알림 아이콘 간격을 좁게(8 → 4).
+    gap: spacing.xs,
   },
 
   // [2026-09-11 사용자 지시] 하단 공지 목록 — 썸네일 카드.
@@ -1040,6 +1569,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     padding: 0,
     gap: spacing.xs,
+    // [2026-09-11 사용자 지시] 바깥 pill(트랙)도 살짝 파인 느낌 — 활성 탭보다
+    // 훨씬 연하게 넣어 두 그림자가 경쟁하지 않게 한다.
+    boxShadow: "inset 0 1px 3px rgba(0,0,0,0.10)",
   },
   categoryTabButton: {
     flex: 1,
@@ -1047,6 +1579,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
+  },
+  // [2026-09-11 사용자 지시] 눌려 들어간 느낌 — 위쪽은 어둡게(그림자가 지는 면),
+  // 아래쪽은 밝게(빛이 닿는 면) 두 겹의 inset 그림자를 겹친다.
+  // RN 0.81 + 신아키텍처(app.json newArchEnabled)와 웹에서 모두 지원되는
+  // boxShadow 문자열을 쓴다 — RN의 shadow*/elevation은 바깥 그림자만 그린다.
+  categoryTabButtonActive: {
+    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.35), inset 0 -1px 2px rgba(255,255,255,0.18)",
   },
   categoryRow: {
     // 사용자 요청(2026-09-08): 아이콘 간 가로 간격을 lg(24)에서 sm(8)으로 좁혔다.
@@ -1076,6 +1615,11 @@ const styles = StyleSheet.create({
   },
   stack: {
     gap: spacing.md,
+  },
+  // [2026-09-11 사용자 지시] 매물 목록은 행 사이 간격을 좁힌다 — 간격은
+  // PropertyListRow의 paddingVertical이 만들고, 그 가운데에 구분선이 놓인다.
+  propertyList: {
+    gap: 0,
   },
   insightCard: {
     borderWidth: 1,

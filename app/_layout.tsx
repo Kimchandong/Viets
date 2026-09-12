@@ -8,6 +8,7 @@ import type { Session } from "@supabase/supabase-js";
 import { Loading } from "@/components/Loading";
 import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
+import { registerPushToken, subscribeToNotificationTaps } from "@/services/push";
 import { useLocaleStore } from "@/store/useLocaleStore";
 
 // STEP 03 범위: Navigation/Provider 골격만 구성한다. Supabase 클라이언트,
@@ -71,6 +72,8 @@ function useAuthGuard(session: Session | null, sessionLoading: boolean) {
 }
 
 export default function RootLayout() {
+  // 푸시 알림 탭 처리에 필요하다(useAuthGuard 안의 router와는 다른 스코프).
+  const router = useRouter();
   const [i18nReady, setI18nReady] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -117,6 +120,25 @@ export default function RootLayout() {
   }, []);
 
   useAuthGuard(session, sessionLoading);
+
+  /**
+   * [2026-09-12 사용자 지시] 푸시 — 로그인한 뒤에 토큰을 등록하고, 알림을 누르면
+   * MY로 보낸다.
+   *
+   * 여기(루트 레이아웃)에 두는 이유: 알림 탭은 앱이 어느 화면에 있든, 심지어 꺼져
+   * 있다가 알림으로 켜져도 처리돼야 한다. 화면마다 구독하면 그 화면에 있을 때만
+   * 동작한다.
+   */
+  useEffect(() => {
+    if (!session) return;
+    void registerPushToken();
+  }, [session]);
+
+  useEffect(() => {
+    return subscribeToNotificationTaps((route) => {
+      router.push(route as "/my");
+    });
+  }, [router]);
 
   if (!i18nReady) {
     // STEP 4-10A-3: 이 분기는 i18n이 "아직" 준비되지 않은 상태다 — 여기서 Loading을

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
+
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
@@ -33,7 +34,6 @@ const MANAGED_PERMISSIONS: UserPermissionType[] = ["investment_manage", "propert
 export default function AdminPermissionsScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [checkingPermission, setCheckingPermission] = useState(true);
   const [allowed, setAllowed] = useState(false);
@@ -100,7 +100,7 @@ export default function AdminPermissionsScreen() {
   if (checkingPermission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("adminPermissions.title")} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={t("adminPermissions.title")} leftAction={<BackButton fallback="/my" />} />
         <Loading />
       </SafeAreaView>
     );
@@ -109,7 +109,7 @@ export default function AdminPermissionsScreen() {
   if (!allowed) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-        <Header title={t("adminPermissions.title")} leftAction={<BackButton onPress={() => router.back()} />} />
+        <Header title={t("adminPermissions.title")} leftAction={<BackButton fallback="/my" />} />
         <EmptyState
           title={t("adminPermissions.noPermissionTitle")}
           description={t("adminPermissions.noPermissionDescription")}
@@ -120,7 +120,7 @@ export default function AdminPermissionsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
-      <Header title={t("adminPermissions.title")} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={t("adminPermissions.title")} leftAction={<BackButton fallback="/my" />} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={[styles.searchBar, { borderColor: theme.border }]}>
           <TextInput
@@ -223,19 +223,6 @@ export default function AdminPermissionsScreen() {
       </ScrollView>
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
     </SafeAreaView>
-  );
-}
-
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
   );
 }
 

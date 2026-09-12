@@ -42,7 +42,20 @@
     "noticeTitle": "Thông báo",
     "faqTitle": "Câu hỏi thường gặp",
     "noticeEmpty": "Chưa có thông báo.",
-    "faqEmpty": "Chưa có câu hỏi."
+    "faqEmpty": "Chưa có câu hỏi.",
+    "locationUnknown": "Đặt vị trí",
+    "regionPickerTitle": "Chọn khu vực",
+    "regionPickerHint": "Chưa có quyền vị trí — hãy chọn khu vực làm mốc.",
+    "sort": {
+      "distance": "Gần nhất",
+      "condition": "Phòng",
+      "price": "Giá",
+      "bedrooms": "Phòng ngủ",
+      "bathrooms": "Phòng tắm",
+      "any": "Bất kỳ",
+      "priceRange": "0 – {{max}}"
+    },
+    "top10Title": "TOP10 mới nhất"
   },
   "property": {
     "title": "Bất động sản",
@@ -301,7 +314,7 @@
     "myProperties": "Tin đăng",
     "managePayments": "Quản lý quyết toán",
     "agencyTitle": "Môi giới",
-    "agencyApply": "Đăng ký môi giới",
+    "agencyApply": "Xin quyền đăng tin",
     "agencyStatusRow": "Trạng thái đăng ký",
     "agencyStatus": {
       "pending": "Đang xét duyệt",
@@ -312,7 +325,23 @@
     "refundNotice": "Khoản phí quảng cáo {{amount}} của bạn sẽ được hoàn lại",
     "manageRegisterPermission": "Quản lý quyền đăng tin",
     "adSettlement": "Thanh toán quảng cáo",
-    "manageBoards": "Quản lý bảng tin"
+    "manageBoards": "Quản lý bảng tin",
+    "avatar": {
+      "edit": "Đổi ảnh đại diện",
+      "permission": "Cần quyền truy cập thư viện ảnh.",
+      "failed": "Tải ảnh lên thất bại.",
+      "updated": "Đã cập nhật ảnh đại diện."
+    },
+    "agencyName": {
+      "title": "Sửa tên công ty",
+      "edit": "Sửa tên công ty",
+      "failed": "Không thể đổi tên công ty.",
+      "updated": "Đã cập nhật tên công ty."
+    },
+    "adBalanceEmpty": "Số dư quảng cáo đã hết.",
+    "adSlotDropped": "Tin của bạn đã bị trả giá cao hơn và rớt khỏi bảng xếp hạng quảng cáo.",
+    "adManage": "Quảng cáo trả phí",
+    "manageReports": "Báo cáo tin giả"
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
@@ -376,7 +405,6 @@
     "titlePlaceholder": "Nhập tên bất động sản",
     "descriptionLabel": "Mô tả chi tiết",
     "descriptionPlaceholder": "Mô tả chi tiết về bất động sản",
-    "categorySection": "Loại hình",
     "priceSection": "Giá · Diện tích",
     "priceSaleLabel": "Giá bán (VND)",
     "priceRentLabel": "Giá thuê hàng tháng (VND)",
@@ -392,8 +420,6 @@
     "optionsSection": "Tiện ích · Hiển thị",
     "amenitiesLabel": "Tuỳ chọn (chọn những mục phù hợp)",
     "amenitiesHelper": "Đã chọn {{selected}}",
-    "featuredLabel": "Bất động sản nổi bật",
-    "featuredDescription": "Hiển thị trong mục nổi bật ở Trang chủ và Bất động sản",
     "publishLabel": "Đăng ngay",
     "publishDescription": "Khi ẩn, tin được lưu ở dạng nháp và không hiển thị trong danh sách",
     "submit": "Đăng",
@@ -461,7 +487,8 @@
     "categoryLabel": "Loại hình",
     "listingTypeLabel": "Hình thức giao dịch",
     "amenitiesLegacyGroup": "Khác (đã nhập trước đây)",
-    "savedAsDraftNoBalance": "Số dư không đủ — đã lưu ở chế độ ẩn"
+    "savedAsDraftNoBalance": "Số dư không đủ — đã lưu ở chế độ ẩn",
+    "regionLabel": "Chọn khu vực"
   },
   "investRegister": {
     "title": "Đăng sản phẩm",
@@ -782,7 +809,8 @@
         "nearby": "Môi trường & Vị trí",
         "complex": "Tiện ích khu/toà nhà",
         "building": "Tiện ích toà nhà",
-        "unit": "Đặc điểm căn nhà"
+        "unit": "Đặc điểm căn nhà",
+        "etc": "Khác"
       },
       "rent": {
         "furniture": "Nội thất",
@@ -792,7 +820,8 @@
         "internet": "Internet & Truyền hình",
         "living": "Không gian sinh hoạt",
         "complex": "Tiện ích toà nhà/khu",
-        "terms": "Điều kiện thuê"
+        "terms": "Điều kiện thuê",
+        "etc": "Khác"
       }
     }
   },
@@ -825,7 +854,9 @@
       "featured": "Chưa có tin nào đang chạy dịch vụ đề xuất trả phí."
     },
     "noPermissionTitle": "Không có quyền",
-    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này."
+    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý tin đăng mới xem được danh sách này.",
+    "pendingInquiries": "{{pending}} tin nhắn chưa đọc",
+    "changedAdReleased": "Đã đổi trạng thái. Quảng cáo đang chạy đã được gỡ."
   },
   "payment": {
     "title": "Thanh toán quảng cáo",
@@ -852,15 +883,17 @@
       "deposit": "Nạp tiền",
       "property_register": "Đăng tin",
       "featured": "Đề xuất",
-      "adjustment": "Điều chỉnh"
-    }
+      "adjustment": "Điều chỉnh",
+      "top10": "Quảng cáo TOP10"
+    },
+    "minDepositHint": "Nạp tối thiểu {{amount}} (không giới hạn tối đa)",
+    "belowMinDeposit": "Số tiền nạp tối thiểu là {{amount}}.",
+    "duplicateClickNotice": "Không tính phí quảng cáo nếu cùng một người dùng hoặc cùng một mạng nhấp lại trong vòng một giờ."
   },
   "adminPayments": {
     "title": "Quản lý quyết toán",
     "settingsTitle": "Thiết lập phí quảng cáo",
     "registerFeeHint": "Trừ cho mỗi tin đăng. Mức phí khác nhau tùy có số chứng chỉ hay không.",
-    "featuredFee": "Đề xuất (1 ngày)",
-    "featuredFeeHint": "Nhân với số ngày đã mua.",
     "qrHint": "Hiển thị nguyên trạng trên màn hình thanh toán.",
     "pickQr": "Chọn ảnh QR",
     "qrUploadFailed": "Tải mã QR lên không thành công",
@@ -876,7 +909,7 @@
     },
     "emptyRequests": "Chưa có lịch sử quyết toán.",
     "noteLabel": "Ghi chú",
-    "approve": "Xác nhận đã nhận",
+    "approve": "Xác nhận",
     "reject": "Từ chối",
     "approved": "Đã duyệt",
     "rejected": "Đã từ chối",
@@ -889,7 +922,15 @@
     "registerFeeGeneral": "Phí đăng tin (thường)",
     "bankName": "Ngân hàng",
     "accountHolder": "Chủ tài khoản",
-    "accountNumber": "Số tài khoản"
+    "accountNumber": "Số tài khoản",
+    "featuredMinBid": "Giá nhấp tối thiểu (tin nổi bật)",
+    "featuredMinBidHint": "Số tiền tối thiểu bị trừ mỗi lần nhấp. Muốn chiếm vị trí đã có người phải trả cao hơn.",
+    "top10MinBid": "Giá nhấp tối thiểu (TOP10)",
+    "top10MinBidHint": "Số tiền tối thiểu bị trừ mỗi lần nhấp. Chỉ 10 vị trí đầu được hiển thị.",
+    "approveTitle": "Xác nhận nạp tiền",
+    "approveHint": "{{agency}} khai báo {{amount}}. Nhập số tiền thực nhận.",
+    "approveAmountLabel": "Số tiền thực nhận",
+    "approveAmountRequired": "Vui lòng nhập số tiền thực nhận."
   },
   "agencyApply": {
     "title": "Đăng ký môi giới",
@@ -1002,5 +1043,76 @@
     "translateHint": "Khi lưu, bài viết được dịch sang 6 ngôn ngữ.",
     "notFound": "Không tìm thấy bài viết.",
     "deleteConfirm": "Xóa bài viết này?"
+  },
+  "adSlots": {
+    "featuredTitle": "Quảng cáo tin nổi bật",
+    "top10Title": "Quảng cáo TOP10",
+    "minBid": "Giá mỗi lần nhấp tối thiểu",
+    "myBid": "Giá mỗi lần nhấp của tôi",
+    "noBid": "Chưa có",
+    "available": "Số dư khả dụng",
+    "hint": "Số tiền bạn đặt sẽ bị trừ mỗi lần khách nhấp vào tin. Khi tham gia không bị trừ, và chỉ {{count}} vị trí đầu được hiển thị. Hết số dư sẽ bị loại khỏi bảng xếp hạng và phải nạp tiền rồi đặt lại.",
+    "emptySlot": "Vị trí trống",
+    "mine": "Tin của tôi",
+    "enter": "Chiếm",
+    "joinNew": "Bắt đầu quảng cáo",
+    "emptyTitle": "Chưa có quảng cáo nào",
+    "emptyDescription": "Bạn có thể chiếm hạng 1 với giá tối thiểu.",
+    "purchaseTitle": "Chiếm hạng {{rank}}",
+    "purchaseHint": "Tối thiểu {{amount}}. Số tiền này bị trừ mỗi lần nhấp.",
+    "tooLow": "Hãy nhập tối thiểu {{amount}}.",
+    "failed": "Không thể đăng quảng cáo.",
+    "needProperty": "Hãy lưu tin trước.",
+    "minBidNotSet": "Quản trị viên chưa đặt giá tối thiểu.",
+    "perClick": "{{amount}} mỗi lần nhấp",
+    "notShown": "Bị loại",
+    "saved": "Đã lưu giá mỗi lần nhấp.",
+    "saving": "Đang lưu...",
+    "noBalance": "Không còn số dư — hãy nạp tiền trước khi quảng cáo.",
+    "noAgency": "Tin này chưa được liên kết với công ty. Phí quảng cáo trừ từ số dư công ty nên cần được duyệt trước.",
+    "notActive": "Tin đã bán hoặc tạm dừng không hiển thị với khách hàng nên không thể đăng quảng cáo.",
+    "targetProperty": "Tin cần quảng cáo",
+    "targetUnknown": "Chọn một tin",
+    "changeTarget": "Đổi",
+    "pickTargetTitle": "Chọn tin để quảng cáo",
+    "changeBid": "Đổi giá của tôi",
+    "lowerWarning": "Giảm giá sẽ hạ thứ hạng; nếu rớt khỏi vị trí hiển thị, quảng cáo sẽ ngừng."
+  },
+  "adManage": {
+    "title": "Quảng cáo trả phí",
+    "placement": {
+      "featured": "Hiển thị nổi bật",
+      "top10": "Hiển thị TOP10"
+    },
+    "hint": "Chọn tin muốn quảng cáo.",
+    "emptyTitle": "Chưa có tin nào",
+    "emptyDescription": "Hãy đăng tin trước rồi thiết lập quảng cáo."
+  },
+  "propertyReport": {
+    "button": "Báo cáo",
+    "title": "Báo cáo tin",
+    "message": "Báo cáo tin này là tin giả.",
+    "submit": "Báo cáo",
+    "submitting": "Đang gửi...",
+    "done": "Đã nhận báo cáo của bạn.",
+    "already": "Bạn đã báo cáo tin này.",
+    "needLogin": "Hãy đăng nhập để báo cáo.",
+    "failed": "Không gửi được báo cáo."
+  },
+  "adminReports": {
+    "title": "Báo cáo tin giả",
+    "status": {
+      "open": "Mới",
+      "resolved": "Đã xử lý"
+    },
+    "resolve": "Đánh dấu đã xử lý",
+    "resolved": "Đã xử lý.",
+    "actionFailed": "Không cập nhật được.",
+    "emptyTitle": "Chưa có báo cáo",
+    "emptyDescription": "Báo cáo từ khách hàng sẽ hiện ở đây.",
+    "noPermissionTitle": "Không có quyền",
+    "noPermissionDescription": "Màn hình này chỉ dành cho quản trị viên.",
+    "deletedProperty": "Tin đã xóa",
+    "count": "{{count}} báo cáo"
   }
 }

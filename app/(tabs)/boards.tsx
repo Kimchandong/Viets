@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -111,7 +112,7 @@ export default function BoardsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={[]}>
-      <Header title={t("board.title")} leftAction={<BackButton onPress={() => router.back()} />} />
+      <Header title={t("board.title")} leftAction={<BackButton fallback="/home" />} />
 
       <View style={[styles.tabRow, { borderBottomColor: theme.border }]}>
         {KIND_ORDER.map((item) => {
@@ -267,18 +268,6 @@ export default function BoardsScreen() {
   );
 }
 
-function BackButton({ onPress }: { onPress: () => void }) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
-    >
-      <Ionicons name="chevron-back" size={24} color={theme.text} />
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

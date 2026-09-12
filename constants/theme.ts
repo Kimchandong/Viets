@@ -16,6 +16,9 @@ export const colors = {
   light: {
     background: "#FFFFFF",
     card: "#FAFAFA",
+    // [2026-09-11 사용자 지시] 홈 투자/매물 토글의 비활성 트랙 배경 — card(#FAFAFA)
+    // 보다 한 단계 짙은 회색이라 활성 pill이 더 또렷하게 떠 보인다.
+    surfaceMuted: "#EEEEEE",
     text: "#111111",
     secondaryText: "#6B6B6B",
     border: "#E5E5E5",
@@ -39,6 +42,8 @@ export const colors = {
   dark: {
     background: "#0B0B0C",
     card: "#161618",
+    // light의 surfaceMuted와 같은 역할(카드보다 한 단계 눈에 띄는 중립 면).
+    surfaceMuted: "#202023",
     text: "#F5F5F5",
     secondaryText: "#A0A0A0",
     border: "#2A2A2C",

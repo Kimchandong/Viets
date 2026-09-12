@@ -237,11 +237,6 @@ export default function PropertyScreen() {
     }
   }
 
-  function showComingSoon() {
-    setToast(t("common.comingSoon"));
-    setTimeout(() => setToast(null), 1600);
-  }
-
   const normalizedSearch = search.trim().toLowerCase();
   const isSearching = normalizedSearch.length > 0;
 
@@ -261,15 +256,15 @@ export default function PropertyScreen() {
 
   // 광고 자리를 산 매물만, DB가 준 순위 그대로. 광고가 하나도 없을 때만 예전처럼
   // featured 플래그(관리자 수동 큐레이션)를 쓴다.
-  const featured = isSearching
-    ? []
-    : featuredIds.length > 0
-      ? featuredIds
-          .map((id) => filtered.find((property) => property.id === id))
-          .filter((property): property is MockProperty => !!property)
-      : filtered.filter((property) => property.featured);
+  const featured = useMemo(() => {
+    if (isSearching) return [];
+    if (featuredIds.length === 0) return filtered.filter((property) => property.featured);
+    return featuredIds
+      .map((id) => filtered.find((property) => property.id === id))
+      .filter((property): property is MockProperty => !!property);
+  }, [isSearching, featuredIds, filtered]);
 
-  const featuredSet = new Set(featured.map((property) => property.id));
+  const featuredSet = useMemo(() => new Set(featured.map((property) => property.id)), [featured]);
 
   /**
    * [2026-09-12 사용자 결정] TOP10 = **유료 광고 자리 10칸**. 순위는 DB가 정한 그대로다.
@@ -295,7 +290,10 @@ export default function PropertyScreen() {
       .slice(0, TOP10_LIMIT);
   }, [properties, top10Ids, isSearching]);
 
-  const adSet = new Set([...featuredSet, ...top10.map((property) => property.id)]);
+  const adSet = useMemo(
+    () => new Set([...featuredSet, ...top10.map((property) => property.id)]),
+    [featuredSet, top10],
+  );
 
   /**
    * 일반 매물 — 광고 자리를 뺀 나머지에 정렬·조건을 적용한다.
@@ -307,8 +305,7 @@ export default function PropertyScreen() {
     const base = isSearching ? filtered : filtered.filter((property) => !adSet.has(property.id));
     if (isSearching) return base;
     return applyPropertySort(base, sortState, userLocation.coords);
-    // adSet은 featured/top10에서 파생되므로 의존성으로 top10을 둔다.
-  }, [filtered, isSearching, sortState, userLocation.coords, top10, featured]);
+  }, [filtered, isSearching, sortState, userLocation.coords, adSet]);
 
   /** 지금 화면에 그릴 일반 매물. 바닥에 닿을 때마다 5개씩 늘어난다. */
   const visibleListings = isSearching ? listings : listings.slice(0, visibleCount);

@@ -199,7 +199,9 @@ export default function AiScreen() {
       setListening(false);
       showToast(t("ai.voiceFailed"));
     }
-  }, [listening, t]);
+    // i18n.language가 빠지면 언어를 바꿔도 이 콜백이 처음 만들어질 때의 언어로
+    // 굳는다 — 한국어로 바꿔 놓고 말해도 인식기는 계속 영어를 듣는다.
+  }, [listening, t, i18n.language]);
 
   /** 잘못 읽은 조건을 끄고 다시 찾는다. */
   const handleRemoveCondition = useCallback(

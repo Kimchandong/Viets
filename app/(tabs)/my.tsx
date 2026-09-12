@@ -170,7 +170,9 @@ export default function MyScreen() {
   const [agency, setAgency] = useState<MyAgency | null>(null);
   // [2026-09-11 사용자 지시] 승인된 업체만 잔액이 있다 — 사용잔액(쓸 수 있는 돈)을
   // 크게, 현잔액(누적 입금)을 작게 보여 준다.
-  const [balance, setBalance] = useState<AgencyBalance | null>(null);
+  // 값은 더 이상 화면에 쓰지 않지만(상단 금액은 아래 광고비 집계가 대신한다),
+  // 업체 전환·로그아웃 시 이전 업체의 잔액이 남지 않도록 초기화는 계속한다.
+  const [, setBalance] = useState<AgencyBalance | null>(null);
   /**
    * [2026-09-12 사용자 지시] 상단 금액은 이제 "잔액"이 아니라 **광고비 집계**다.
    * 관리자는 전체 업체 합(플랫폼 광고 수익), 업체는 자기 업체 것 — 어느 범위를

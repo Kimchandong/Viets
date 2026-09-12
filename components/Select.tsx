@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleProp, StyleSheet, Text, View, ViewStyle } f
 import { Ionicons } from "@expo/vector-icons";
 
 import { Modal } from "@/components/Modal";
-import { colors, opacity, radius, spacing, textStyles, typography, type ThemeColors } from "@/constants/theme";
+import { opacity, radius, spacing, textStyles, typography, type ThemeColors } from "@/constants/theme";
 
 /**
  * [2026-09-11 사용자 지시] 목록에서 하나를 고르는 공용 셀렉트.

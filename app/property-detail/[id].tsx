@@ -35,6 +35,7 @@ import {
   findSimilarPropertiesByRooms,
   translateOption,
   type MockProperty,
+  type MockInvestmentProduct,
 } from "@/constants/mockData";
 import {
   optionGroupsFor,
@@ -48,7 +49,6 @@ import {
   listInvestmentProductsByPropertyId,
 } from "@/services/investments";
 import { InvestmentCard } from "@/components/InvestmentCard";
-import { type MockInvestmentProduct } from "@/constants/mockData";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 
 // [FULL-DEV] Property 상세 화면 — app/(tabs)/property.tsx(리스트/카드)와 app/(tabs)/home.tsx

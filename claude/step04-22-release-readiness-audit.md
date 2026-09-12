@@ -22,17 +22,16 @@
 
 | # | 항목 | 근거 / 현황 |
 |---|---|---|
-| 1 | **AI 탭이 껍데기** | `app/(tabs)/ai.tsx`에 `supabase` import 없음. 검색 시 `setTimeout(..., 900)` 후 결과가 **하나도 없다**. 하단 탭에 노출되는 기능이 동작하지 않으면 Apple 심사 가이드라인 2.1(완성도), Google Play 정책 위반 |
+| 1 | ~~**AI 탭이 껍데기**~~ → **해결(2026-09-12)** | `services/aiSearch.ts` 신설 + `ai.tsx` 전면 재작성. 자연어 6개 언어 파싱 → DB 조회, 해석 조건 칩 노출·제거 재검색, 음성 입력(expo-speech-recognition), 최근 검색 실제 저장. 파서 15개 질의 검증 통과 |
 | 2 | **계정 삭제 기능 없음** | 계정 생성이 가능한 앱은 **앱 내에서** 계정 삭제를 제공해야 한다 (Apple 2022-06~, Google 2024~). 현재 `services/`, `app/` 어디에도 구현 없음 |
 | 3 | **개인정보처리방침 화면·URL 없음** | i18n에 문구(`privacyLabel`, `termsNotice`)만 있고 실제 화면이 없다. 스토어 등록 시 공개 URL이 필수 |
 | 4 | **이용약관 화면 없음** | 동일 |
 
 ### 결정 대기 (사용자만 정할 수 있음)
 
-1. **AI 탭 처리** — ① 실제 구현 / ② 하단 탭에서 제거 / ③ "준비 중" 명시 화면으로 대체
-2. **계정 삭제 시 데이터 처리 정책** — 등록 매물·채팅·충전 잔액을 어떻게 할 것인가
+1. **계정 삭제 시 데이터 처리 정책** — 등록 매물·채팅·충전 잔액을 어떻게 할 것인가
    (즉시 삭제 / 익명화 후 보존 / 잔액 환불 절차). 법·회계 영향이 있어 임의로 정하면 안 된다.
-3. **약관·개인정보처리방침 원문** — 법적 문서이므로 원문을 받아 화면에 넣는다.
+2. **약관·개인정보처리방침 원문** — 법적 문서이므로 원문을 받아 화면에 넣는다.
 
 ---
 
@@ -61,9 +60,9 @@
 
 | # | 항목 |
 |---|---|
-| 12 | `app/(tabs)/property.tsx:194` `showComingSoon` — **미사용 함수** (린트 경고) |
-| 13 | `app/(tabs)/home.tsx` 음성 검색 버튼 — 기능 없이 "준비 중" 토스트만 |
-| 14 | `app/(tabs)/ai.tsx` 음성 버튼 — 동일 |
+| 12 | ~~`showComingSoon` 미사용 함수~~ → **삭제(2026-09-12)** |
+| 13 | `app/(tabs)/home.tsx` 음성 검색 버튼 — 기능 없이 "준비 중" 토스트만 **(미해결 — AI 탭 쪽만 활성화했다)** |
+| 14 | ~~`app/(tabs)/ai.tsx` 음성 버튼~~ → **활성화(2026-09-12)**. 인식기가 없는 기기에서는 버튼을 그리지 않는다 |
 
 ---
 
@@ -71,10 +70,10 @@
 
 | # | 항목 |
 |---|---|
-| 15 | **오늘 작업 전체 미커밋** (약 20개 파일) |
+| 15 | ~~오늘 작업 전체 미커밋~~ → **커밋·푸시 완료(`0cb95b0`, 33개 파일)** |
 | 16 | 웹 검증 미완료 — 섹션 타이틀 15px / 카드 제목 14px / TOP10 노출 / 일반매물 무한스크롤 / FAQ 아코디언 / 공지 점선 |
 | 17 | RLS 전수 재점검 — `service_role` GRANT 복구(20260915000000) 이후 미검증 |
-| 18 | `npx expo-doctor`, `npx eslint .` 미실행 |
+| 18 | ~~`npx expo-doctor`, `npx eslint .` 미실행~~ → **완료(2026-09-12)**. expo-doctor 18/18 통과, ESLint 27건(오류 5·경고 22) 전부 정리해 **0건**, `npx tsc --noEmit` 통과 |
 
 ---
 
@@ -137,10 +136,10 @@ iOS는 **설치될 기기의 UDID가 빌드 시점에 앱 안에 박혀 있어�
 - 2-3 RLS 전수 SQL (항목 17)
 
 ### 3단계 · 심사 필수 기능 (결정 3건 선행)
-- 3-1 AI 탭 처리 (항목 1)
-- 3-2 계정 삭제 (항목 2)
-- 3-3 약관·개인정보처리방침 화면 (항목 3·4)
-- 3-4 데드코드 정리 (항목 12~14)
+- ~~3-1 AI 탭 처리 (항목 1)~~ **완료**
+- 3-1 계정 삭제 (항목 2) — 데이터 처리 정책 결정 필요
+- 3-2 약관·개인정보처리방침 화면 (항목 3·4) — 원문 필요
+- 3-3 홈 화면 음성 버튼 (항목 13)
 
 ### 4단계 · 빌드 설정 정비 (항목 5~9 일괄)
 
@@ -178,3 +177,39 @@ iOS는 **설치될 기기의 UDID가 빌드 시점에 앱 안에 박혀 있어�
 - 폭에 반응해야 하는 화면 스타일은 `StyleSheet.create` 대신 `createScaledStyles(() => ({ ... }))`
 - `createScaledStyles`의 제네릭은 react-native `StyleSheet.create`와 **글자 그대로** 같아야 한다
   (`NamedStyles<any>`를 `Record<string, unknown>`이나 `NamedStyles<never>`로 바꾸면 타입 추론이 무너진다 — 각각 135개·428개 오류)
+
+
+---
+
+## 10. ESLint 전수 정리 (2026-09-12 추가)
+
+`npx eslint .` → **27 problems (5 errors, 22 warnings)** → **0건**.
+
+### 오류 5건 — 코드 문제가 아니었다
+
+전부 `supabase/functions/*/index.ts`의 `jsr:@supabase/supabase-js@2` import다.
+이 파일들은 **Deno 런타임**이고 Node용 resolver는 `jsr:` 스키마를 모른다 —
+린터가 다른 런타임을 보고 있었던 것이다.
+`eslint.config.js`의 `ignores`에 `supabase/functions/**`와 `.expo/**`(자동 생성)를 추가했다.
+Deno 쪽 문법 검사가 필요하면 `deno check supabase/functions/*/index.ts`.
+
+### 실제 버그 2건 (내가 만든 것)
+
+| 파일 | 증상 |
+|---|---|
+| `app/(tabs)/ai.tsx` | `useCallback` 의존성에 `i18n.language` 누락 — 앱 언어를 바꿔도 음성 인식이 콜백이 처음 만들어질 때의 언어로 굳는다 |
+| `app/(tabs)/property.tsx` | `adSet`이 매 렌더 새 객체라 `listings`의 의존성이 거짓이었다. `featured`/`featuredSet`/`adSet`을 `useMemo`로 감싸고 의존성을 `adSet`으로 교체 |
+
+### 데드코드
+
+`property.tsx` `showComingSoon()` / `property-register.tsx` `ToggleRow`·`PHOTOS_PER_ROW`·남은 스타일 2개 /
+`theme.ts` 미사용 `scaled()`·불필요한 `eslint-disable` 3줄 / 9개 파일의 미사용 import /
+`property-detail/[id].tsx`의 중복 `mockData` import 병합.
+
+### 오탐 1건
+
+`i18n/index.ts`의 `i18n.use(...).init(...)`은 i18next 공식 초기화 방식이다.
+`import/no-named-as-default-member`가 "`import {use}`를 쓰려던 것 아니냐"고 묻는 것이라 사유를 적고 지시문으로 껐다.
+
+**주의**: 이 경고는 `.use` 줄이 아니라 **`i18n` 식별자 줄**에 붙는다.
+`.use` 위에 지시문을 두면 원래 경고가 그대로 남고 "Unused eslint-disable directive" 경고가 하나 더 늘어난다.

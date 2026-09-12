@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
 import { listManagedConversations, type ManagedConversation } from "@/services/chat";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { canRegisterProperty } from "@/services/roles";

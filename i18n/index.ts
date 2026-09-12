@@ -107,6 +107,11 @@ export function initI18n(): Promise<typeof i18n> {
   // 읽은 뒤에 init해야 "영어로 잠깐 보였다가 한국어로 바뀌는" 깜빡임이 없다.
   initPromise = resolveInitialLanguage()
     .then((lng) =>
+      // i18next 공식 초기화 방식이다(i18n.use(...).init(...)). 이 규칙은 default
+      // import에 named export와 같은 이름의 속성이 있으면 "import {use}를 쓰려던 것
+      // 아니냐"고 묻는데, 여기서는 인스턴스 메서드를 부르는 것이 맞다.
+      // 경고는 `.use`가 아니라 **`i18n` 식별자 줄**에 붙으므로 지시문도 그 바로 위에 둔다.
+      // eslint-disable-next-line import/no-named-as-default-member
       i18n
         .use(initReactI18next)
         .init({

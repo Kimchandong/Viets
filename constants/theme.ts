@@ -149,10 +149,6 @@ export function scaleFont(base: number, factor: number = FONT_FACTOR.SMALL): num
   return moderateScale(base, factor);
 }
 
-function scaled(base: number, scale: number): number {
-  return Math.round(base * scale);
-}
-
 export type ColorScheme = keyof typeof colors;
 /**
  * light/dark 색상 객체의 "형태(shape)"만 나타내는 타입 — 각 색상값을 `as const`가 만드는
@@ -331,7 +327,6 @@ export function refreshTypography(width: number): boolean {
  * 통과하는데 여기서는 135개 타입 오류가 났다). 제네릭을 StyleSheet.create와 똑같이
  * 쓰면 추론도 똑같아진다.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };
 
 type MutableStyleSheet = Record<string, Record<string, unknown>>;
@@ -349,11 +344,9 @@ const scaledStyleRegistry: Registered[] = [];
  */
 // 제네릭은 react-native의 StyleSheet.create와 **글자 그대로 같아야 한다**.
 // any를 never로 바꾸면 추론이 무너져 styles.xxx가 전부 "존재하지 않는 속성"이 된다.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export function createScaledStyles<T extends NamedStyles<T> | NamedStyles<any>>(
   factory: () => T & NamedStyles<any>,
 ): T {
-  /* eslint-enable @typescript-eslint/no-explicit-any */
   const target = factory();
   scaledStyleRegistry.push({
     factory: factory as unknown as () => MutableStyleSheet,

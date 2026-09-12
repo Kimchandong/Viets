@@ -27,7 +27,6 @@ import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
 import { colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
-import type { ThemeColors } from "@/constants/theme";
 import { findMockProperty } from "@/constants/mockData";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import {

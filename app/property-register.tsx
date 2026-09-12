@@ -75,9 +75,6 @@ type DbCategory = (typeof DB_CATEGORIES)[number];
  *  화면에는 가로 3칸 × 2줄로 항상 6칸을 그려 두고, 빈 칸은 카메라 아이콘으로 보여준다. */
 const MAX_PHOTOS = 6;
 
-/** 사진 그리드 한 줄에 놓는 칸 수. MAX_PHOTOS / PHOTOS_PER_ROW = 줄 수(2줄). */
-const PHOTOS_PER_ROW = 3;
-
 export default function PropertyRegisterScreen() {
   const theme = colors.light;
   const { t, i18n } = useTranslation();
@@ -938,43 +935,6 @@ export default function PropertyRegisterScreen() {
 }
 
 
-function ToggleRow({
-  label,
-  description,
-  value,
-  onToggle,
-}: {
-  label: string;
-  description: string;
-  value: boolean;
-  onToggle: () => void;
-}) {
-  const theme = colors.light;
-  return (
-    <Pressable
-      onPress={onToggle}
-      accessibilityRole="switch"
-      accessibilityState={{ checked: value }}
-      style={({ pressed }) => [
-        styles.toggleRow,
-        { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
-      ]}
-    >
-      {/* [2026-09-11 사용자 지시] 원형 체크를 이름 **앞**에 둔다. 오른쪽 끝에 있을
-          때보다 "무엇이 켜져 있는지"가 이름과 함께 한 번에 읽힌다. */}
-      <Ionicons
-        name={value ? "checkmark-circle" : "ellipse-outline"}
-        size={22}
-        color={value ? theme.accent : theme.secondaryText}
-      />
-      <View style={styles.toggleTexts}>
-        <Text style={[textStyles.body, { color: theme.text, fontWeight: typography.weight.medium }]}>{label}</Text>
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>{description}</Text>
-      </View>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   // 지역 슬라이드 — 칩 사이 간격만 두고 좌우 여백은 content가 이미 갖고 있다.
   regionSection: {
@@ -1017,18 +977,6 @@ const styles = StyleSheet.create({
   multiline: {
     minHeight: 96,
     textAlignVertical: "top",
-  },
-  toggleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radius.sm,
-    padding: spacing.md,
-  },
-  toggleTexts: {
-    flex: 1,
-    gap: 2,
   },
   deleteOption: {
     gap: 2,

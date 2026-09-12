@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip } from "@/components/Chip";
@@ -10,7 +9,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
-import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, FONT_FACTOR, scaleFont } from "@/constants/theme";
+import { createScaledStyles, colors, radius, spacing, textStyles, typography, FONT_FACTOR, scaleFont } from "@/constants/theme";
 import {
   fetchTranslationUsage,
   fetchTranslationUsageMonthly,

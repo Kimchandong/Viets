@@ -28,16 +28,7 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import {
-  colors,
-  opacity,
-  radius,
-  shadow,
-  spacing,
-  textStyles,
-  ThemeColors,
-  typography,
-} from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, shadow, spacing, textStyles, ThemeColors, typography, scaleFont } from "@/constants/theme";
 import {
   findSimilarPropertiesByArea,
   findSimilarPropertiesByPrice,
@@ -654,7 +645,7 @@ function MetaChip({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -716,12 +707,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addressText: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
     fontWeight: typography.weight.regular,
     flexShrink: 1,
   },
   optionText: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
     fontWeight: typography.weight.regular,
   },
   metaChips: {
@@ -800,7 +791,7 @@ const styles = StyleSheet.create({
   },
   yieldUnit: {
     fontWeight: typography.weight.regular,
-    fontSize: 11,
+    fontSize: scaleFont(11),
     marginTop: -2,
   },
   yieldLabels: {
@@ -869,4 +860,4 @@ const styles = StyleSheet.create({
   footerButton: {
     width: "100%",
   },
-});
+}));

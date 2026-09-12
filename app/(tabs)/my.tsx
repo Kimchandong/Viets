@@ -17,7 +17,7 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StatTile } from "@/components/StatTile";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, ThemeColors, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, ThemeColors, typography, FONT_FACTOR, scaleFont } from "@/constants/theme";
 import { GOOGLE_ICON_URI } from "@/constants/icons";
 import { type MockInvestmentProduct, type MockProperty } from "@/constants/mockData";
 import { getPropertiesByIds, listManagedProperties } from "@/services/properties";
@@ -1046,7 +1046,7 @@ function SettingsRow({ icon, label, valueLabel, onPress, theme, last }: Settings
 const AVATAR_SIZE = 62;
 const AVATAR_ICON_SIZE = 31;
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -1161,19 +1161,19 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   balanceAvailable: {
-    fontSize: 24,
+    fontSize: scaleFont(24, FONT_FACTOR.TITLE),
     fontWeight: typography.weight.bold,
   },
   // 24px의 60% — 굵기는 상속되지 않도록 명시적으로 되돌린다.
   balanceUnit: {
-    fontSize: 14,
+    fontSize: scaleFont(14, FONT_FACTOR.BODY),
     fontWeight: typography.weight.regular,
   },
   balanceTotal: {
-    fontSize: 12,
+    fontSize: scaleFont(12),
   },
   balanceEmail: {
-    fontSize: 12,
+    fontSize: scaleFont(12),
   },
   signOutButton: {
     alignSelf: "flex-end",
@@ -1225,7 +1225,7 @@ const styles = StyleSheet.create({
   // [STEP: 2026-09-09] 사용자 요청 — "나의 활동" 숫자 20px
   // [2026-09-11 사용자 지시] 나의 활동 숫자 30px(이전 xl).
   activityValue: {
-    fontSize: 30,
+    fontSize: scaleFont(30, FONT_FACTOR.TITLE),
   },
   favoritesStack: {
     gap: spacing.md,
@@ -1259,4 +1259,4 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-});
+}));

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, Text, View, ViewStyle } from "react-native";
 
-import { colors, opacity, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, spacing, textStyles } from "@/constants/theme";
 
 export type SectionHeaderProps = {
   title: string;
@@ -32,7 +32,7 @@ export function SectionHeader({ title, icon, actionLabel, onAction, style }: Sec
           아이콘만 왼쪽 끝, 제목이 가운데로 벌어진다. */}
       <View style={styles.titleGroup}>
         {icon ? <Ionicons name={icon} size={18} color={theme.accent} /> : null}
-        <Text style={[textStyles.sectionTitle, styles.title, { color: theme.accent }]}>{title}</Text>
+        <Text style={[textStyles.sectionTitle, { color: theme.accent }]}>{title}</Text>
       </View>
       {actionLabel && onAction ? (
         <Pressable
@@ -57,7 +57,7 @@ export function SectionHeader({ title, icon, actionLabel, onAction, style }: Sec
 /** 섹션 제목 위 여백(2026-09-11 사용자 지정 10px). 화면 상단 제목(Header)은 0이다. */
 const TITLE_TOP_SPACE = 10;
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -75,8 +75,4 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  title: {
-    // textStyles.sectionTitle(md tier)보다 한 단계 위(lg tier).
-    fontSize: typography.size.lg,
-  },
-});
+}));

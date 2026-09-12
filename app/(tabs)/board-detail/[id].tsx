@@ -13,7 +13,7 @@ import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, FONT_FACTOR, scaleFont } from "@/constants/theme";
 import {
   answerQuestion,
   deleteBoardPost,
@@ -343,7 +343,7 @@ function NavRow({
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   // [2026-09-11 사용자 지시] 제목 15px. sectionTitle 토큰은 moderateScale이 걸려
   // 기기 폭에 따라 값이 흔들리므로 여기만 고정한다.
   postTitle: {
-    fontSize: 15,
+    fontSize: scaleFont(15, FONT_FACTOR.TITLE),
   },
   divider: {
     height: StyleSheet.hairlineWidth,
@@ -409,4 +409,4 @@ const styles = StyleSheet.create({
     minHeight: 120,
     textAlignVertical: "top",
   },
-});
+}));

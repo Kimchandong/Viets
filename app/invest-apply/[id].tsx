@@ -27,7 +27,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
-import { colors, opacity, radius, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
+import { colors, opacity, radius, spacing, textStyles, typography, ThemeColors, scaleFont } from "@/constants/theme";
 import { type MockInvestmentProduct } from "@/constants/mockData";
 import { createInvestmentOrder, getInvestmentProductById } from "@/services/investments";
 import { VIETNAM_BANKS } from "@/constants/vietnamBanks";
@@ -453,7 +453,7 @@ export default function InvestApplyScreen() {
                   tone="accent"
                   // [STEP: 2026-09-09-8] 사용자 요청 — "최소금액/최소금액x2/..." 라벨이
                   // 칩 폭보다 길어 잘려 보이는 문제 — 글자크기를 11px로 축소.
-                  textStyle={{ fontSize: 11 }}
+                  textStyle={{ fontSize: scaleFont(11) }}
                 />
               ))}
             </View>
@@ -674,7 +674,7 @@ function AgreementRow({
         color={checked ? theme.accent : theme.secondaryText}
       />
       {/* [STEP: 2026-09-09-8] 사용자 요청 — 약관 동의 3개 항목 글자 크기 11px */}
-      <Text style={[textStyles.bodySmall, { color: theme.text, flex: 1, fontSize: 11 }]}>{label}</Text>
+      <Text style={[textStyles.bodySmall, { color: theme.text, flex: 1, fontSize: scaleFont(11) }]}>{label}</Text>
     </Pressable>
   );
 }

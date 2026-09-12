@@ -61,6 +61,16 @@
           "color": "#2F3C7E"
         }
       ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "음성으로 매물을 검색하기 위해 마이크를 사용합니다.",
+          "speechRecognitionPermission": "말한 내용을 검색어로 바꾸기 위해 음성 인식을 사용합니다.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
       "expo-video"
     ],
     "experiments": {

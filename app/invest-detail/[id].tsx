@@ -29,7 +29,7 @@ import { LoginPromptModal } from "@/components/LoginPromptModal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { usePulsingColor } from "@/hooks/usePulsingColor";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, ThemeColors, scaleFont } from "@/constants/theme";
 import {
   findSimilarInvestmentsByMinAmount,
   findSimilarInvestmentsByPeriod,
@@ -474,7 +474,7 @@ function MetricTile({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addressText: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
     fontWeight: typography.weight.regular,
     flexShrink: 1,
   },
@@ -635,4 +635,4 @@ const styles = StyleSheet.create({
   footerButton: {
     width: "100%",
   },
-});
+}));

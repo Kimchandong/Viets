@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import { isAdmin } from "@/services/roles";
 import {
   listPropertyReports,
@@ -171,7 +171,7 @@ export default function AdminReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: scaleFont(10),
     fontWeight: typography.weight.medium,
   },
   titleRow: {
@@ -210,4 +210,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
   },
-});
+}));

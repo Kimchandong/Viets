@@ -15,7 +15,7 @@ import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StatTile } from "@/components/StatTile";
-import { colors, layout, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, layout, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import { MOCK_INVEST_OVERVIEW, type MockInvestmentProduct } from "@/constants/mockData";
 import { listInvestmentProducts } from "@/services/investments";
 import { markRead } from "@/services/notifications";
@@ -305,7 +305,7 @@ export default function InvestScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   // [STEP: 2026-09-09-6] 사용자 요청 — 누적모집/진행중/평균수 라벨 글자크기 11px
   overviewLabel: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
   },
   overviewRow: {
     flexDirection: "row",
@@ -413,4 +413,4 @@ const styles = StyleSheet.create({
   infoCard: {
     borderRadius: radius.md,
   },
-});
+}));

@@ -10,7 +10,7 @@
  * 중립 placeholder 값을 사용한다. 브랜드 색상이 확정되면 이 값만 교체하면 되도록
  * 모든 색상은 이 파일 한 곳에서만 정의한다(하드코딩 금지).
  */
-import { Dimensions } from "react-native";
+import { Dimensions, type ImageStyle, type TextStyle, type ViewStyle } from "react-native";
 
 export const colors = {
   light: {
@@ -97,7 +97,19 @@ const RAW_WIDTH_RATIO = SCREEN_WIDTH / BASELINE_WIDTH;
 // 멈춘다(태블릿에서 글자가 지나치게 커지는 것을 방지).
 const MIN_WIDTH_RATIO = 0.75;
 const MAX_WIDTH_RATIO = 1.4;
-const CLAMPED_WIDTH_RATIO = Math.min(MAX_WIDTH_RATIO, Math.max(MIN_WIDTH_RATIO, RAW_WIDTH_RATIO));
+
+function clampRatio(raw: number): number {
+  return Math.min(MAX_WIDTH_RATIO, Math.max(MIN_WIDTH_RATIO, raw));
+}
+
+/**
+ * [2026-09-12 사용자 지시] 폭 비율을 **가변**으로 바꾼다.
+ *
+ * 예전에는 const였다 — 앱이 처음 뜰 때의 폭으로 영원히 고정되어, 폴더블을 접었다 펴도
+ * 앱을 완전히 종료했다 다시 켜기 전까지 글자가 그대로였다. 이제 refreshTypography()가
+ * 이 값을 바꾸고 textStyles를 제자리에서 갱신한다.
+ */
+let widthRatio = clampRatio(RAW_WIDTH_RATIO);
 
 /**
  * 화면 폭 비율(CLAMPED_WIDTH_RATIO)을 `factor` 비율만큼만 크기에 반영하는 완만한
@@ -112,8 +124,29 @@ const CLAMPED_WIDTH_RATIO = Math.min(MAX_WIDTH_RATIO, Math.max(MIN_WIDTH_RATIO, 
  *   지키기 위해 BODY보다도 더 소폭만 반응한다.
  */
 function moderateScale(base: number, factor: number): number {
-  const scaled = base * (1 + (CLAMPED_WIDTH_RATIO - 1) * factor);
+  const scaled = base * (1 + (widthRatio - 1) * factor);
   return Math.round(scaled);
+}
+
+/**
+ * 계층별 감쇠 계수 — 화면 안에서 직접 크기를 정해야 할 때 쓴다(배지 숫자처럼
+ * textStyles의 어느 계층에도 맞지 않는 것).
+ *
+ * 하드코딩한 `fontSize: 10` 대신 `scaleFont(10, FONT_FACTOR.SMALL)`을 쓰면 그 숫자도
+ * 화면 폭을 따라간다. 예전에는 앱 곳곳에 28개의 맨 숫자가 흩어져 있었고, 그것들만
+ * 어떤 기기에서든 같은 크기로 남아 있었다.
+ */
+export const FONT_FACTOR = {
+  /** 제목·큰 숫자 */
+  TITLE: 0.5,
+  /** 본문·카드제목·버튼·가격 */
+  BODY: 0.22,
+  /** 캡션·배지 숫자 */
+  SMALL: 0.18,
+} as const;
+
+export function scaleFont(base: number, factor: number = FONT_FACTOR.SMALL): number {
+  return moderateScale(base, factor);
 }
 
 function scaled(base: number, scale: number): number {
@@ -180,10 +213,6 @@ export const typography = {
   },
 } as const;
 
-// caption 전용 배율 — xs tier 자체(navLabel)는 보호하고, caption에만 SMALL factor를
-// 별도로 적용한다(위 typography.size.xs 주석 참고).
-const CAPTION_SIZE = moderateScale(11, 0.18);
-
 /**
  * 의미 기반 타이포그래피 계층 — STEP 4-9B(전체 UX/UI 레이아웃 기반).
  * 화면마다 개별적으로 fontSize/fontWeight를 고르지 않고, 모든 화면(Home/Property/
@@ -197,40 +226,157 @@ const CAPTION_SIZE = moderateScale(11, 0.18);
  * 역전되므로, 크기는 공유하고 fontWeight만 bold로 구분하는 기존 패턴을 그대로
  * 따른다).
  */
-export const textStyles = {
-  /** 화면 최상단 제목 (예: Header 타이틀과 별개로 화면 안에서 쓰는 큰 타이틀) */
-  screenTitle: { fontSize: typography.size.xl, fontWeight: typography.weight.bold },
-  /** 화면 내 섹션 구분 제목 (예: "추천 매물", "인기 투자상품") */
-  // [STEP: 2026-09-08] 사용자 요청 — 섹션 타이틀류(추천 투자/투자 전체/추천 매물/
-  // 주변·최근 매물/상세 설명/옵션·편의시설 등) 글자 크기를 17px→15px로 축소.
-  // typography.size.lg(17)는 Button(large)/EmptyState/ErrorState/Header 등
-  // 다른 곳에서도 공용으로 쓰이므로 그 값 자체는 건드리지 않고, sectionTitle만
-  // 별도 base로 moderateScale() 처리해 분리한다 — 화면 폭 반응(TITLE factor)은
-  // 다른 제목류와 동일하게 적용된다. STEP 4-16-2(2026-09-08) 사용자 요청 — 기준값을
-  // 15→14로 축소(body/cardTitle/price 등과 동일한 14px 그룹으로 통일).
-  sectionTitle: { fontSize: moderateScale(14, 0.5), fontWeight: typography.weight.semibold },
-  /** Card 내부 제목 (매물명, 상품명 등) */
-  cardTitle: { fontSize: typography.size.md, fontWeight: typography.weight.semibold },
-  /** 본문 텍스트 */
-  body: { fontSize: typography.size.md, fontWeight: typography.weight.regular },
-  /** 보조/작은 본문 텍스트 (위치, 설명 등) */
-  bodySmall: { fontSize: typography.size.sm, fontWeight: typography.weight.regular },
-  /** 캡션 (타임스탬프, 태그, 안내문구 등 가장 낮은 위계) */
-  caption: { fontSize: CAPTION_SIZE, fontWeight: typography.weight.regular },
-  /** 버튼 라벨 — Button 컴포넌트는 자체 스타일을 쓰므로, 버튼과 유사한 커스텀 Pressable에서 사용 */
-  buttonLabel: { fontSize: typography.size.md, fontWeight: typography.weight.semibold },
-  /** 하단 탭 라벨 — 5개 탭 라벨이 고정폭 탭 바 안에 들어가야 해서 화면 폭과
-   *  무관하게 의도적으로 스케일을 적용하지 않는다(typography.size.xs 그대로) */
-  navLabel: { fontSize: typography.size.xs, fontWeight: typography.weight.medium },
-  /** 큰 숫자 강조 (수익률, 총자산 등 — 아직 실제 데이터 없음) */
-  statValue: { fontSize: typography.size.display, fontWeight: typography.weight.bold },
-  /** 매물 가격 / 투자상품 예상 수익률 — body와 동일 크기, bold로만 구분 */
-  price: { fontSize: typography.size.md, fontWeight: typography.weight.bold },
-  /** STEP 4-16 신규 — 매물상세/투자상세 hero 숫자(가격/예상수익률) 전용. 기존에
-   *  statValue(display, 34) 위에 화면마다 제각각 fontSize:28을 인라인으로 덮어쓰던
-   *  것을 이 토큰 하나로 통일한다(§ typography.size.heroValue). */
-  heroValue: { fontSize: typography.size.heroValue, fontWeight: typography.weight.bold },
+/**
+ * 각 계층의 **기준값과 감쇠 계수**. textStyles는 이 표에서 만들어지고,
+ * refreshTypography()도 이 표를 다시 읽어 크기를 고쳐 쓴다.
+ *
+ * 예전에는 textStyles가 typography.size.*(이미 계산이 끝난 상수)를 조합해 만들어졌다.
+ * 그래서 화면 폭이 바뀌어도 다시 계산할 방법이 없었다 — 기준값이 어디에도 남아 있지
+ * 않았기 때문이다. 기준값을 표로 남겨 두면 몇 번이고 다시 계산할 수 있다.
+ */
+const TYPE_SCALE = {
+  screenTitle: { base: 18, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
+  // [2026-09-12 사용자 지시] 섹션 타이틀 한 치수 축소(16 → 15).
+  //
+  // 그동안 이 값을 고쳐도 화면이 바뀌지 않았던 이유: components/SectionHeader.tsx가
+  // `fontSize: typography.size.lg`(17)로 이 토큰을 **덮어쓰고** 있었다. 그 덮어쓰기를
+  // 없애고 기준값을 17 → 16으로 내린다(사용자가 본 화면에서 16px → 15px).
+  sectionTitle: { base: 16, factor: FONT_FACTOR.TITLE, weight: typography.weight.semibold },
+  cardTitle: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
+  body: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
+  bodySmall: { base: 13, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
+  caption: { base: 11, factor: FONT_FACTOR.SMALL, weight: typography.weight.regular },
+  buttonLabel: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
+  // 하단 탭 라벨 — 5개 라벨이 고정폭 탭 바 안에 들어가야 해서 폭에 반응시키지 않는다.
+  navLabel: { base: 11, factor: 0, weight: typography.weight.medium },
+  statValue: { base: 30, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
+  // price는 body와 같은 크기, bold로만 구분한다(크기까지 줄이면 위계가 역전된다).
+  price: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.bold },
+  heroValue: { base: 24, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
 } as const;
+
+type TypeKey = keyof typeof TYPE_SCALE;
+
+/**
+ * 의미 기반 타이포그래피 계층 — 화면마다 fontSize/fontWeight를 고르지 않고 모든
+ * 화면이 이 스케일만 쓴다.
+ *
+ * 이 객체는 **제자리에서 갱신된다**(refreshTypography). 화면들이 대부분
+ * `style={[textStyles.body, { ... }]}` 처럼 인라인 배열로 읽기 때문에, 값이 바뀌고
+ * 다시 그려지면 새 크기가 그대로 반영된다.
+ */
+export const textStyles = Object.fromEntries(
+  (Object.keys(TYPE_SCALE) as TypeKey[]).map((key) => [
+    key,
+    {
+      fontSize: moderateScale(TYPE_SCALE[key].base, TYPE_SCALE[key].factor),
+      fontWeight: TYPE_SCALE[key].weight,
+    },
+  ]),
+) as { [K in TypeKey]: { fontSize: number; fontWeight: (typeof TYPE_SCALE)[K]["weight"] } };
+
+/**
+ * 화면 폭이 바뀌었을 때 부른다(app/_layout.tsx가 useWindowDimensions로 감시한다).
+ *
+ * 실제로 비율이 달라졌을 때만 true를 돌려준다 — 호출한 쪽은 그때만 화면을 다시
+ * 그리면 된다. 키보드가 올라오는 등의 이유로 폭이 아닌 높이만 바뀌는 일이 잦은데,
+ * 그때마다 전체를 다시 그리면 입력 중인 화면이 눈에 띄게 끊긴다.
+ *
+ * 한계: StyleSheet.create()로 만든 스타일 안에 박아 둔 크기는 모듈이 처음 읽힐 때
+ * 복사되므로 여기서 바꿀 수 없다. 그래서 화면들의 하드코딩된 fontSize를 걷어내
+ * scaleFont()/textStyles로 옮겼다 — 남아 있으면 그 글자만 옛 크기로 굳는다.
+ */
+export function refreshTypography(width: number): boolean {
+  const next = clampRatio(width / BASELINE_WIDTH);
+  if (Math.abs(next - widthRatio) < 0.001) return false;
+
+  widthRatio = next;
+  for (const key of Object.keys(TYPE_SCALE) as TypeKey[]) {
+    textStyles[key].fontSize = moderateScale(TYPE_SCALE[key].base, TYPE_SCALE[key].factor);
+  }
+  refreshLayout(width);
+  rebuildScaledStyles();
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// 화면 스타일시트 재생성
+// ---------------------------------------------------------------------------
+//
+// [2026-09-12 사용자 지시] 폭이 바뀌면 **화면 스타일까지** 새 크기를 쓰게 한다.
+//
+// 문제: StyleSheet.create()는 모듈이 처음 읽힐 때 딱 한 번 실행되고, 그때의 숫자를
+// 그대로 복사해 둔다. 그래서 textStyles를 아무리 고쳐도 `const styles =
+// StyleSheet.create({ rankText: { fontSize: scaleFont(12) } })` 같은 값은 앱이 처음
+// 뜰 때의 폭에 영원히 묶인다 — 폴더블을 펴도 그 글자만 옛 크기로 남는다.
+//
+// 대안으로 화면마다 useMemo(() => StyleSheet.create(...), [폭])로 바꾸는 방법이
+// 있지만, 그러려면 모든 화면의 스타일 정의를 컴포넌트 안으로 옮겨야 한다(수십 개
+// 파일의 구조 변경 = 그만큼의 회귀 위험).
+//
+// 여기서는 **만드는 방법(팩토리)을 기억해 둔다**. 폭이 바뀌면 팩토리를 다시 돌려
+// 새 숫자를 얻고, 원래 객체에 덮어쓴다. 객체의 정체(참조)는 그대로이므로 화면 쪽
+// 코드는 한 글자도 몰라도 된다 — 호출부는 StyleSheet.create를 createScaledStyles로
+// 바꾸는 한 줄이 전부다.
+//
+// 반환값에 StyleSheet.create를 씌우지 않는 이유: RN은 평범한 객체도 style로 그대로
+// 받고(등록은 선택), __DEV__에서는 create()가 결과를 얼려 버려 덮어쓸 수 없게 된다.
+
+/**
+ * StyleSheet.create가 받는 것과 같은 모양.
+ *
+ * 이 타입을 그대로 따라가는 것이 중요하다. 처음에는 제약을 Record<string, unknown>으로
+ * 뒀는데, 그러면 `flexDirection: "row"` 같은 값이 리터럴 "row"가 아니라 넓은 string으로
+ * 추론되어 RN의 ViewStyle에 들어가지 못한다(같은 스타일이 StyleSheet.create에서는
+ * 통과하는데 여기서는 135개 타입 오류가 났다). 제네릭을 StyleSheet.create와 똑같이
+ * 쓰면 추론도 똑같아진다.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };
+
+type MutableStyleSheet = Record<string, Record<string, unknown>>;
+
+type Registered = { factory: () => MutableStyleSheet; target: MutableStyleSheet };
+
+const scaledStyleRegistry: Registered[] = [];
+
+/**
+ * 폭에 반응해야 하는 화면 스타일은 StyleSheet.create 대신 이걸로 만든다.
+ *
+ *   const styles = createScaledStyles(() => ({ title: { fontSize: scaleFont(15) } }));
+ *
+ * 쓰는 쪽은 평소와 똑같이 styles.title을 넘기면 된다.
+ */
+// 제네릭은 react-native의 StyleSheet.create와 **글자 그대로 같아야 한다**.
+// any를 never로 바꾸면 추론이 무너져 styles.xxx가 전부 "존재하지 않는 속성"이 된다.
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function createScaledStyles<T extends NamedStyles<T> | NamedStyles<any>>(
+  factory: () => T & NamedStyles<any>,
+): T {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  const target = factory();
+  scaledStyleRegistry.push({
+    factory: factory as unknown as () => MutableStyleSheet,
+    target: target as unknown as MutableStyleSheet,
+  });
+  return target;
+}
+
+function rebuildScaledStyles(): void {
+  for (const { factory, target } of scaledStyleRegistry) {
+    const fresh = factory();
+    for (const key of Object.keys(fresh)) {
+      const current = target[key];
+      if (!current) {
+        target[key] = fresh[key];
+        continue;
+      }
+      // 제자리에서 덮어쓴다 — 참조가 바뀌면 이미 그 객체를 들고 있는 화면이 옛 값을 본다.
+      for (const prop of Object.keys(current)) delete current[prop];
+      Object.assign(current, fresh[key]);
+    }
+  }
+}
 
 /**
  * STEP 4-16-2(2026-09-08) 사용자 요청 — 홈 화면 "추천 매물"/"추천 투자" 가로
@@ -242,6 +388,13 @@ export const textStyles = {
  * 유도하는 표준적인 캐러셀 형태가 되고, 기기 폭이 달라져도 항상 동일한 비율을
  * 유지한다.
  */
+/**
+ * 화면 폭에서 직접 나오는 치수.
+ *
+ * [2026-09-12] 글자와 같은 이유로 **가변**이다. 카드 폭이 처음 폭에 묶여 있으면
+ * 폴더블을 접었을 때 캐러셀 카드가 화면 밖으로 삐져나간다 — 글자만 줄어들고 카드가
+ * 그대로면 오히려 더 어색하다.
+ */
 export const layout = {
   featuredCardWidth: Math.round(SCREEN_WIDTH * 0.95),
   // [STEP: 2026-09-09-6] 사용자 요청 — 캐러셀(추천매물/추천투자) 첫 카드를 화면
@@ -249,7 +402,12 @@ export const layout = {
   // 5%를 좌우 절반씩 나눈 값 — 캐러셀 contentContainerStyle의 paddingHorizontal로
   // 쓰면 스크롤 맨 앞/맨 뒤에서 카드가 가운데에 오고 옆 카드가 살짝 peek되어 보인다.
   featuredCardSidePadding: Math.round((SCREEN_WIDTH - Math.round(SCREEN_WIDTH * 0.95)) / 2),
-} as const;
+};
+
+function refreshLayout(width: number): void {
+  layout.featuredCardWidth = Math.round(width * 0.95);
+  layout.featuredCardSidePadding = Math.round((width - Math.round(width * 0.95)) / 2);
+}
 
 export const spacing = {
   xs: 4,

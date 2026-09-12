@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Stack, usePathname, useRouter } from "expo-router";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
@@ -10,6 +10,7 @@ import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { registerPushToken, subscribeToNotificationTaps } from "@/services/push";
 import { useLocaleStore } from "@/store/useLocaleStore";
+import { refreshTypography } from "@/constants/theme";
 
 // STEP 03 범위: Navigation/Provider 골격만 구성한다. Supabase 클라이언트,
 // 인증 상태, 실제 화면 로직은 다음 단계(Phase 2 이후)에서 연결한다.
@@ -34,6 +35,26 @@ import { useLocaleStore } from "@/store/useLocaleStore";
 // 다뤘던 typed-routes segments 타입 문제도 함께 사라진다 — usePathname()의 순수
 // string 비교만 사용한다(as any/unknown 등 타입 우회 없음, 기존 getSession()/
 // onAuthStateChange/단일 auth 리스너 구조는 전혀 바꾸지 않았다).
+
+/**
+ * [2026-09-12 사용자 지시] **시스템 글꼴 배율을 앱에 적용하지 않는다.**
+ *
+ * 이것이 "해상도에 따라 글자가 조정되지 않는다"의 실제 원인이었다. React Native의
+ * Text는 기본적으로 기기 설정(설정 → 디스플레이 → 글꼴 크기)의 배율을 곱한다. 그래서
+ * 글꼴을 크게 써 온 기기에서는 앱이 화면 폭으로 계산한 크기 위에 그 배율이 다시
+ * 곱해져, 좁은 화면에서도 글자가 그대로 커 보였다 — 앱의 계산이 무력화된 것이다.
+ *
+ * 이 앱은 크기를 화면 폭 하나로만 정한다(constants/theme.ts). 두 개의 기준이 겹쳐
+ * 곱해지면 어느 쪽으로도 예측할 수 없으므로, 배율 쪽을 끈다.
+ *
+ * defaultProps는 함수형 컴포넌트에서 사라졌지만 Text/TextInput 같은 RN 내장
+ * 컴포넌트에서는 여전히 동작한다 — 화면마다 allowFontScaling={false}를 일일이
+ * 붙이는 것(빠뜨리면 그 글자만 배율을 타는)보다 이 한 곳이 확실하다.
+ */
+type FontScalable = { defaultProps?: { allowFontScaling?: boolean } };
+for (const component of [Text, TextInput] as unknown as FontScalable[]) {
+  component.defaultProps = { ...component.defaultProps, allowFontScaling: false };
+}
 
 const queryClient = new QueryClient();
 
@@ -122,6 +143,27 @@ export default function RootLayout() {
   useAuthGuard(session, sessionLoading);
 
   /**
+   * [2026-09-12 사용자 지시] 화면 폭이 바뀌면 글자 크기를 다시 계산한다.
+   *
+   * 예전에는 앱이 처음 뜰 때의 폭으로 영원히 고정됐다 — 폴더블을 펴거나 접어도,
+   * 화면을 돌려도 글자가 그대로였고 앱을 완전히 종료했다 켜야 반영됐다.
+   *
+   * typographyVersion을 Stack의 key로 주는 이유: refreshTypography()는 textStyles
+   * 객체를 제자리에서 고치는데, 그것만으로는 이미 그려진 화면이 다시 그려지지 않는다.
+   * key가 바뀌면 화면 트리가 새로 마운트되며 새 크기를 읽는다. 비율이 실제로 달라진
+   * 경우에만 올린다 — 키보드가 오르내리며 높이만 바뀔 때마다 다시 마운트하면
+   * 입력하던 내용이 날아간다.
+   */
+  const { width } = useWindowDimensions();
+  const [typographyVersion, setTypographyVersion] = useState(0);
+
+  useEffect(() => {
+    if (refreshTypography(width)) {
+      setTypographyVersion((current) => current + 1);
+    }
+  }, [width]);
+
+  /**
    * [2026-09-12 사용자 지시] 푸시 — 로그인한 뒤에 토큰을 등록하고, 알림을 누르면
    * MY로 보낸다.
    *
@@ -172,7 +214,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack key={typographyVersion} screenOptions={{ headerShown: false }} />
       </QueryClientProvider>
     </SafeAreaProvider>
   );

@@ -29,6 +29,12 @@ import type { PropertyImageCategory } from "@/constants/mockImages";
 import { listProperties } from "@/services/properties";
 import { chargeAdClick, listActiveAdSlots } from "@/services/ads";
 import {
+  applyPropertySort,
+  DEFAULT_PROPERTY_SORT,
+  PropertySortControls,
+  type PropertySortState,
+} from "@/components/PropertySortControls";
+import {
   distanceKm,
   formatDistance,
   getCurrentLocation,
@@ -46,6 +52,12 @@ const PROPERTY_CATEGORIES: PropertyImageCategory[] = [
   "land",
   "other",
 ];
+
+/** [2026-09-12 사용자 지시] TOP10은 유료 광고 자리 열 칸. 빈 칸은 채우지 않는다. */
+const TOP10_LIMIT = 10;
+
+/** [2026-09-12 사용자 지시] 일반 매물은 5개씩 끊어서 내려갈 때마다 붙인다. */
+const LISTINGS_PAGE_SIZE = 5;
 
 /** [2026-09-11 사용자 지시] 지역 칩 내부 여백 — 4px → 6px → 상하 6 / 좌우 8. */
 const REGION_CHIP_PADDING_Y = 6;
@@ -130,6 +142,24 @@ export default function PropertyScreen() {
   const [top10Ids, setTop10Ids] = useState<string[]>([]);
 
   /**
+   * [2026-09-12 사용자 지시] 일반 매물 목록의 정렬·조건 — 홈에서 옮겨 왔다.
+   *
+   * 홈의 TOP10이 유료 광고 10칸 고정이 되면서 그쪽에서는 칩이 의미를 잃었고,
+   * 고르는 행위가 실제로 필요한 곳은 광고가 아닌 이 목록이다.
+   */
+  const [sortState, setSortState] = useState<PropertySortState>(DEFAULT_PROPERTY_SORT);
+
+  /**
+   * 일반 매물은 5개만 먼저 보여 주고, 바닥에 닿으면 5개씩 더 붙인다(사용자 지시).
+   *
+   * 목록 전체를 한 번에 그리면 매물이 늘어날수록 탭을 열 때마다 수백 개의 행을 만든다.
+   * 화면 아래로 내려가는 사람만 그만큼 더 그리게 한다. 필터·정렬을 바꾸면 "다른 목록"이
+   * 되므로 다시 5개로 돌아간다 — 그러지 않으면 조건을 좁혔는데도 스크롤이 그대로 남아
+   * 엉뚱한 위치에서 시작한다.
+   */
+  const [visibleCount, setVisibleCount] = useState(LISTINGS_PAGE_SIZE);
+
+  /**
    * [2026-09-11 사용자 지시] 매물 행 우측 하단에 현위치로부터의 거리를 표시한다.
    *
    * 권한을 여기서 새로 요청하지는 않는다(requestPermission: false) — 목록 탭에
@@ -191,6 +221,22 @@ export default function PropertyScreen() {
     }, []),
   );
 
+  /**
+   * 거리순을 골랐는데 기준 위치가 없을 때 — 권한을 한 번 물어본다.
+   *
+   * 목록 탭에 들어오자마자 묻지 않는 것과 같은 이유로(무슨 기능인지 모른 채 거부하기
+   * 쉽다) 여기서만 묻는다: 사용자가 "거리순"을 직접 누른 순간이라 무엇에 쓰는지가 분명하다.
+   * 거부하면 안내만 남기고 목록은 원래 순서로 둔다.
+   */
+  async function showLocationHint() {
+    const result = await getCurrentLocation({ requestPermission: true });
+    setUserLocation(result);
+    if (!result.coords) {
+      setToast(t("property.locationNeeded"));
+      setTimeout(() => setToast(null), 2400);
+    }
+  }
+
   function showComingSoon() {
     setToast(t("common.comingSoon"));
     setTimeout(() => setToast(null), 1600);
@@ -225,18 +271,74 @@ export default function PropertyScreen() {
 
   const featuredSet = new Set(featured.map((property) => property.id));
 
-  // TOP10 자리를 산 매물 — 순위 그대로. 검색 중에는 광고를 얹지 않는다(검색은 찾는
-  // 행위라 광고가 끼어들면 결과를 못 믿게 된다).
-  const top10 = isSearching
-    ? []
-    : top10Ids
-        .map((id) => filtered.find((property) => property.id === id))
-        .filter((property): property is MockProperty => !!property && !featuredSet.has(property.id));
+  /**
+   * [2026-09-12 사용자 결정] TOP10 = **유료 광고 자리 10칸**. 순위는 DB가 정한 그대로다.
+   *
+   * 두 가지를 고쳤다.
+   *
+   * 하나, 목록을 filtered가 아니라 properties에서 뽑는다. 지역·카테고리 칩을 고르면
+   * filtered에서 빠지는 광고가 생기는데, 그러면 광고주가 산 자리가 사용자의 필터에 따라
+   * 사라진다 — 돈을 낸 자리는 이 화면에 있어야 한다.
+   *
+   * 둘, 추천 캐러셀에 이미 있는 매물을 빼지 않는다. 추천과 TOP10은 **따로 사는 자리**라
+   * 한 매물이 둘 다 살 수 있고, 그때 한쪽에서 지우면 산 것이 노출되지 않는다.
+   * (2026-09-12 실기기 테스트에서 TOP10 광고 매물이 어디에도 안 보인 원인이 이것이었다.)
+   *
+   * 검색 중에는 광고를 얹지 않는다 — 검색은 찾는 행위라 광고가 끼어들면 결과를 못 믿게 된다.
+   */
+  const top10 = useMemo(() => {
+    if (isSearching) return [];
+    const byId = new Map(properties.map((property) => [property.id, property]));
+    return top10Ids
+      .map((id) => byId.get(id))
+      .filter((property): property is MockProperty => !!property)
+      .slice(0, TOP10_LIMIT);
+  }, [properties, top10Ids, isSearching]);
 
   const adSet = new Set([...featuredSet, ...top10.map((property) => property.id)]);
-  const listings = isSearching
-    ? filtered
-    : filtered.filter((property) => !adSet.has(property.id));
+
+  /**
+   * 일반 매물 — 광고 자리를 뺀 나머지에 정렬·조건을 적용한다.
+   *
+   * 정렬은 필터(filtered)가 끝난 뒤에 건다. 순서가 반대면 "조건별"로 걸러 낸 결과에
+   * 다시 지역 칩이 적용되어, 사용자가 고른 두 조건 중 하나가 먼저 무시된다.
+   */
+  const listings = useMemo(() => {
+    const base = isSearching ? filtered : filtered.filter((property) => !adSet.has(property.id));
+    if (isSearching) return base;
+    return applyPropertySort(base, sortState, userLocation.coords);
+    // adSet은 featured/top10에서 파생되므로 의존성으로 top10을 둔다.
+  }, [filtered, isSearching, sortState, userLocation.coords, top10, featured]);
+
+  /** 지금 화면에 그릴 일반 매물. 바닥에 닿을 때마다 5개씩 늘어난다. */
+  const visibleListings = isSearching ? listings : listings.slice(0, visibleCount);
+
+  // 목록의 성격이 바뀌면(필터·정렬·검색) 다시 5개부터 — 아래 참고.
+  useEffect(() => {
+    setVisibleCount(LISTINGS_PAGE_SIZE);
+  }, [region, status, category, sort, normalizedSearch, sortState]);
+
+  /**
+   * 바닥 근처에 닿으면 5개 더. `onEndReached`가 없는 ScrollView라 직접 잰다.
+   *
+   * 여유(360px)를 두는 이유: 정확히 바닥에 닿은 뒤에 붙이면 사용자가 잠깐 빈 끝을 보고
+   * 나서야 다음 항목이 나타난다. 스크롤이 끝에 가까워질 때 미리 붙이면 이어서 읽힌다.
+   */
+  function handleScroll(event: {
+    nativeEvent: {
+      layoutMeasurement: { height: number };
+      contentOffset: { y: number };
+      contentSize: { height: number };
+    };
+  }) {
+    if (isSearching) return;
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const distanceToEnd = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+    if (distanceToEnd > 360) return;
+    setVisibleCount((current) =>
+      current >= listings.length ? current : current + LISTINGS_PAGE_SIZE,
+    );
+  }
 
   function goToDetail(property: MockProperty) {
     router.push(`/property-detail/${property.id}`);
@@ -274,7 +376,12 @@ export default function PropertyScreen() {
         subtitle={category ? t("home.categoryTabs.property") : undefined}
         bordered={false}
       />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={200}
+      >
         {/* [STEP: 2026-09-09-6] 사용자 요청 — 검색창 우측에 검색 버튼 추가,
             내부 placeholder(미리보기) 텍스트는 삭제(아이콘으로 대체). */}
         <View style={[styles.searchBar, { borderColor: theme.border, backgroundColor: theme.background }]}>
@@ -540,7 +647,24 @@ export default function PropertyScreen() {
             ) : null}
 
             <View style={[styles.section, styles.lastSection]}>
-              <SectionHeader title={t("property.listingsTitle")} />
+              {/* [2026-09-12 사용자 지시] 타이틀 우측에 정렬 칩(거리순/조건별/금액별).
+                  홈에서 옮겨 온 것이다 — 홈 TOP10은 유료 광고 고정이라 정렬이 무의미해졌고,
+                  고르는 행위가 실제로 필요한 곳은 광고가 아닌 이 목록이다. */}
+              <View style={styles.listingsHeader}>
+                <View style={styles.listingsHeaderTitle}>
+                  <SectionHeader title={t("property.listingsTitle")} />
+                </View>
+                {isSearching ? null : (
+                  <PropertySortControls
+                    value={sortState}
+                    onChange={setSortState}
+                    theme={theme}
+                    hasLocation={!!userLocation.coords}
+                    onNeedLocation={showLocationHint}
+                  />
+                )}
+              </View>
+
               {listings.length === 0 && featured.length === 0 && top10.length === 0 ? (
                 <EmptyState
                   title={t("property.emptyTitle")}
@@ -548,9 +672,9 @@ export default function PropertyScreen() {
                 />
               ) : (
                 <View style={styles.propertyList}>
-                  {/* [2026-09-11 사용자 지시] 최신 매물은 홈과 같은 가로형 행 디자인을 쓴다.
+                  {/* [2026-09-11 사용자 지시] 일반 매물은 홈과 같은 가로형 행 디자인을 쓴다.
                       (추천 매물 캐러셀은 기존 PropertyCard 그대로.) */}
-                  {listings.map((property, index) => (
+                  {visibleListings.map((property, index) => (
                     <PropertyListRow
                       key={property.id}
                       property={property}
@@ -734,6 +858,16 @@ const styles = StyleSheet.create({
     marginHorizontal: -spacing.screenPaddingX,
   },
   // paddingHorizontal(좌우 peek 여백)은 HorizontalCardCarousel이 직접 적용한다.
+  // [2026-09-12] 일반 매물 제목과 정렬 칩을 한 줄에. 칩이 길어지면 제목이 먼저 줄어든다.
+  listingsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  listingsHeaderTitle: {
+    flexShrink: 1,
+  },
   featuredRow: {
     gap: spacing.md,
   },

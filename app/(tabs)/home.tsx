@@ -7,7 +7,6 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   Animated,
   Image,
-  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -18,7 +17,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { FadeInText } from "@/components/FadeInText";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
@@ -28,7 +26,7 @@ import { PROPERTY_CARD_IMAGE_HEIGHT, PropertyCard } from "@/components/PropertyC
 import { PropertyListRow } from "@/components/PropertyListRow";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { colors, layout, opacity, radius, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
+import { createScaledStyles, colors, FONT_FACTOR, layout, opacity, radius, scaleFont, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
 import {
   HOME_CATEGORIES,
   HOME_INVEST_CATEGORIES,
@@ -38,9 +36,14 @@ import {
 import { listProperties } from "@/services/properties";
 import { listInvestmentProducts } from "@/services/investments";
 import { listBoardPosts, type BoardPost } from "@/services/boards";
-import { formatVndAmount } from "@/utils/format";
 import { getNewInvestmentCount, getUnreadChatCount } from "@/services/notifications";
 import { chargeAdClick, listActiveAdSlots } from "@/services/ads";
+import {
+  applyPropertySort,
+  DEFAULT_PROPERTY_SORT,
+  PropertySortControls,
+  type PropertySortState,
+} from "@/components/PropertySortControls";
 import {
   distanceKm,
   formatDistance,
@@ -57,12 +60,6 @@ import {
 // "추천 투자상품"(MOCK_INVESTMENT_PRODUCTS 기반) 섹션을 추가해 Home에서도 Invest
 // 상세로 바로 진입할 수 있게 했다(§7 요구사항 — Home 최소 구성에 추천 투자상품 포함).
 // 위치/알림/시장 소식은 아직 실제 기능이 없으므로 기존처럼 showComingSoon으로 남긴다.
-
-/** [2026-09-11 사용자 지시] 최신매물 정렬 방식. 기본은 거리순. */
-type NearbySort = "distance" | "condition" | "price";
-
-/** 금액 필터 상한 — 사용자 지시 "0~100억동". */
-const PRICE_MAX_VND = 10_000_000_000;
 
 export default function HomeScreen() {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지, 비로그인 공개 화면)
@@ -127,6 +124,14 @@ export default function HomeScreen() {
   // 있어 내용이 고정이었고, 번역도 되지 않았다(베트남어 원문 그대로).
   const [notices, setNotices] = useState<BoardPost[]>([]);
   const [faqs, setFaqs] = useState<BoardPost[]>([]);
+  /**
+   * [2026-09-12 사용자 지시] FAQ는 눌러서 그 자리에서 펼친다.
+   *
+   * 예전에는 어느 줄을 눌러도 게시판 목록으로 나갔다 — 질문 하나가 궁금한 사람이
+   * 화면을 떠나 다시 그 질문을 찾아야 했다. 한 번에 하나만 열어 둔다(열려 있던 것은
+   * 닫힌다) — 홈 맨 아래 섹션이라 여러 개가 동시에 펼쳐지면 페이지가 길어진다.
+   */
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
   // [2026-09-11 사용자 지시] 상단 우측 알림 두 개 — 부동산(상담 미읽음) / 투자(신규 상품).
   // 숫자는 DB 함수가 센다(services/notifications.ts 주석 참고).
   const [unreadChats, setUnreadChats] = useState(0);
@@ -146,15 +151,16 @@ export default function HomeScreen() {
    * 열 자리가 다 차지 않으면 아래에서 최신 매물로 채운다.
    */
   const [top10Ids, setTop10Ids] = useState<string[]>([]);
+
+  /**
+   * [2026-09-12 사용자 지시] TOP10 우측의 정렬·조건 칩.
+   *
+   * 적용 범위가 중요하다: **광고 열 칸을 먼저 뽑고, 그 안에서** 조건에 맞는 것만 남긴다.
+   * 전체 매물에 조건을 걸고 나서 광고를 얹으면 광고를 사지 않은 매물이 TOP10에 섞인다.
+   */
+  const [sortState, setSortState] = useState<PropertySortState>(DEFAULT_PROPERTY_SORT);
   /** 추천 캐러셀의 노출 순서 — 역시 광고비 순위다(금액 높은 매물이 앞). */
   const [featuredIds, setFeaturedIds] = useState<string[]>([]);
-
-  // 최신매물 정렬 — 거리순(기본) / 조건별(방·욕실) / 금액별.
-  const [sortMode, setSortMode] = useState<NearbySort>("distance");
-  const [sortSheet, setSortSheet] = useState<NearbySort | null>(null);
-  const [minBedrooms, setMinBedrooms] = useState(0);
-  const [minBathrooms, setMinBathrooms] = useState(0);
-  const [priceMax, setPriceMax] = useState(PRICE_MAX_VND);
 
   // [2026-09-11 사용자 지시] 화면에 들어올 때마다 다시 조회한다.
   // 이전에는 useEffect(..., [])로 **마운트 시 1회만** 불러왔다. Expo Router는 탭
@@ -245,71 +251,28 @@ export default function HomeScreen() {
     // 광고가 하나도 없을 때만 관리자가 수동으로 켜 둔 featured를 보여 준다.
     return properties.filter((property) => property.featured);
   }, [properties, featuredIds]);
-  // [2026-09-11 사용자 지시] 최신매물 — 거리순(기본) / 조건별 / 금액별.
-  //
-  // 정렬은 화면에서 한다. 거리 기준점이 기기마다 다르고 사용자가 즉시 바꾸므로,
-  // 서버에 맡기면 바꿀 때마다 다시 조회해야 한다. 매물 수가 한 화면 분량이라
-  // 클라이언트 계산으로 충분하다.
-  const nearby = useMemo(() => {
-    const base = properties.filter((property) => !property.featured);
-
-    if (sortMode === "condition") {
-      return base.filter(
-        (property) =>
-          (property.bedrooms ?? 0) >= minBedrooms && (property.bathrooms ?? 0) >= minBathrooms,
-      );
-    }
-
-    if (sortMode === "price") {
-      return base
-        .filter((property) => property.priceValueVnd <= priceMax)
-        .sort((a, b) => a.priceValueVnd - b.priceValueVnd);
-    }
-
-    // 거리순 — 기준점이 없거나 좌표가 없는 매물은 뒤로 보낸다(최신순 유지).
-    if (!userLocation.coords) return base;
-    const origin = userLocation.coords;
-    return base
-      .map((property) => ({
-        property,
-        km:
-          property.latitude !== undefined && property.longitude !== undefined
-            ? distanceKm(origin, { latitude: property.latitude, longitude: property.longitude })
-            : Number.POSITIVE_INFINITY,
-      }))
-      .sort((a, b) => a.km - b.km)
-      .map((entry) => entry.property);
-  }, [properties, sortMode, minBedrooms, minBathrooms, priceMax, userLocation.coords]);
 
   /**
-   * [2026-09-12 사용자 지시] 홈에 노출할 "최근 TOP10" 10건.
+   * [2026-09-12 사용자 결정] 홈의 TOP10은 **유료 광고 자리 10칸**이다.
    *
-   * 기본 상태(거리순)에서만 광고 순위를 얹는다 — 사용자가 조건별/금액별을 직접
-   * 고른 순간에는 그 조건이 우선이고, 그 위에 광고를 끼워 넣으면 고른 조건과
-   * 맞지 않는 매물이 맨 위에 남는다(검색 결과와 광고의 관계와 같다).
+   * 예전에는 광고가 열을 못 채우면 남는 자리를 최신 매물로 채웠다. 그런데 그렇게 하면
+   * 광고를 산 매물과 그냥 올라온 매물이 같은 줄에 섞여, 사용자에게는 둘이 구분되지
+   * 않고 광고주에게는 "돈을 낸 자리"가 무엇인지 흐려진다. 빈 칸은 비워 둔다 — 파는
+   * 자리가 열 칸이라는 사실이 화면에 그대로 보이는 편이 정직하다.
    *
-   * 광고 자리가 열을 못 채우면 나머지는 같은 목록의 다음 매물로 채운다. 빈 자리를
-   * 비워 두면 운영 초기에 섹션이 거의 비어 보인다.
+   * 목록은 properties에서 직접 뽑는다. 예전에는 nearby(= featured 플래그를 뺀 목록)에서
+   * 뽑았는데, 관리자가 추천으로 켜 둔 매물이 TOP10 광고를 사면 그 매물이 두 목록 모두에서
+   * 빠져 **어디에도 보이지 않는 일**이 있었다(2026-09-12 실기기 테스트).
    */
   const top10 = useMemo(() => {
-    // [2026-09-12 사용자 결정] 정렬과 **무관하게** 광고를 위로 올린다.
-    //
-    // 예전에는 기본 상태(거리순)에서만 광고 순위를 얹었다 — "사용자가 고른 조건이
-    // 우선"이라는 판단이었는데, 실기기 테스트에서 TOP10 광고를 산 매물이 어디에도
-    // 보이지 않는 것으로 드러났다. 돈을 낸 자리가 정렬 하나로 사라지면 광고가 아니다.
-    // 조건별·금액별로 바꿔도 광고 매물이 먼저 오고, 그 아래를 고른 조건이 채운다.
-    if (top10Ids.length === 0) {
-      return nearby.slice(0, HOME_LIST_LIMIT);
-    }
-    const byId = new Map(nearby.map((property) => [property.id, property]));
-    const ranked = top10Ids
+    const byId = new Map(properties.map((property) => [property.id, property]));
+    const paid = top10Ids
       .map((id) => byId.get(id))
-      .filter((property): property is MockProperty => !!property);
-
-    const rankedIds = new Set(ranked.map((property) => property.id));
-    const rest = nearby.filter((property) => !rankedIds.has(property.id));
-    return [...ranked, ...rest].slice(0, HOME_LIST_LIMIT);
-  }, [nearby, top10Ids]);
+      .filter((property): property is MockProperty => !!property)
+      .slice(0, HOME_LIST_LIMIT);
+    // 열 칸을 먼저 정하고 그 안에서만 고른다 — 순서가 반대면 광고가 아닌 매물이 올라온다.
+    return applyPropertySort(paid, sortState, userLocation.coords);
+  }, [properties, top10Ids, sortState, userLocation.coords]);
 
   /**
    * [2026-09-12 사용자 지시] 광고로 노출된 매물을 누르면 그 매물의 클릭 단가가
@@ -449,7 +412,7 @@ export default function HomeScreen() {
               // 글씨를 px로 고정한다 (공용 caption 토큰은 디바이스별로 moderateScale이
               // 적용돼 값이 흔들릴 수 있어, 이 입력창만 명시적으로 고정).
               // [2026-09-11 사용자 지시] 한 치수 크게 — 12 → 13.
-              style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: 13 }]}
+              style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: scaleFont(13, FONT_FACTOR.BODY) }]}
             />
             {/* [2026-09-11 사용자 지시] 음성검색 아이콘 크게(18 → 22). */}
             <Pressable onPress={showComingSoon} accessibilityRole="button" hitSlop={8}>
@@ -619,48 +582,19 @@ export default function HomeScreen() {
 
         {categoryTab === "property" ? (
           <View testID="home-section-property-nearby" style={styles.section}>
-            {/* [2026-09-12 사용자 지시] 타이틀 "주변·최근" → "최근 TOP10". */}
-            <SectionHeader title={t("home.top10Title")} />
-
-            {/* [2026-09-11 사용자 지시] 제목 아래 우측 정렬 버튼 3개.
-                고른 것만 파란 테두리로 남고, 조건별·금액별은 누르면 팝업이 열린다.
-                거리순은 팝업 없이 바로 적용되지만, 기준 위치가 없으면 먼저 위치를
-                정하게 한다 — 기준 없는 "가까운 순"은 거짓말이다. */}
-            <View style={styles.sortRow}>
-              {(["distance", "condition", "price"] as NearbySort[]).map((mode) => {
-                const active = sortMode === mode;
-                return (
-                  <Pressable
-                    key={mode}
-                    onPress={() => {
-                      if (mode === "distance") {
-                        setSortMode("distance");
-                        if (!userLocation.coords) void resolveLocation();
-                        return;
-                      }
-                      setSortSheet(mode);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    style={({ pressed }) => [
-                      styles.sortChip,
-                      {
-                        borderColor: active ? theme.accent : theme.border,
-                        opacity: pressed ? opacity.pressed : 1,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        textStyles.caption,
-                        { color: active ? theme.accent : theme.secondaryText },
-                      ]}
-                    >
-                      {t(`home.sort.${mode}`)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            {/* [2026-09-12 사용자 지시] 타이틀 우측에 정렬 칩. 조건은 광고 열 칸
+                안에서만 적용된다(위 top10 참고). */}
+            <View style={styles.top10Header}>
+              <View style={styles.top10HeaderTitle}>
+                <SectionHeader title={t("home.top10Title")} />
+              </View>
+              <PropertySortControls
+                value={sortState}
+                onChange={setSortState}
+                theme={theme}
+                hasLocation={!!userLocation.coords}
+                onNeedLocation={resolveLocation}
+              />
             </View>
 
             {/* [STEP 04] 실DB 전환 후에는 등록된 매물이 0건일 수 있어(초기 운영
@@ -698,18 +632,23 @@ export default function HomeScreen() {
           {notices.length === 0 ? (
             <EmptyState title={t("home.noticeEmpty")} />
           ) : (
-            <View style={styles.stack}>
+            /* [2026-09-12 사용자 지시] 줄마다 두르던 상자(테두리+회색 배경)를 없애고,
+               줄과 줄 사이에만 점선을 둔다. 상자는 각 공지를 따로 떨어진 카드로 보이게
+               하는데, 공지는 위에서 아래로 훑는 목록이라 구분선 하나면 충분하다.
+               맨 윗줄에는 선이 없다(위에 섹션 제목이 이미 경계를 만든다). */
+            <View style={styles.noticeList}>
               {/* [2026-09-11 사용자 지시] 썸네일 형식 — 좌측 이미지, 우측 제목(2줄까지),
                   제목 아래 작성일. 첨부가 없는 공지도 같은 자리를 차지해야 줄들이
                   들쭉날쭉해지지 않으므로, 이미지가 없으면 같은 크기의 자리표시를 둔다. */}
-              {notices.map((notice) => (
+              {notices.map((notice, index) => (
                 <Pressable
                   key={notice.id}
                   onPress={() => router.push(`/board-detail/${notice.id}`)}
                   accessibilityRole="button"
                   style={({ pressed }) => [
-                    styles.noticeCard,
-                    { backgroundColor: theme.card, borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                    styles.noticeRow,
+                    index > 0 ? styles.noticeRowDivided : null,
+                    { opacity: pressed ? opacity.pressed : 1 },
                   ]}
                 >
                   {notice.images.length > 0 ? (
@@ -748,89 +687,66 @@ export default function HomeScreen() {
           {faqs.length === 0 ? (
             <EmptyState title={t("home.faqEmpty")} />
           ) : (
-            <View style={styles.stack}>
-              {faqs.map((faq) => (
-                <Pressable
-                  key={faq.id}
-                  onPress={() => router.push({ pathname: "/boards", params: { kind: "faq" } })}
-                  accessibilityRole="button"
-                  style={({ pressed }) => [
-                    styles.insightCard,
-                    { backgroundColor: theme.card, borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
-                  ]}
-                >
-                  <View style={[styles.insightTag, { backgroundColor: theme.background }]}>
-                    <Text style={[textStyles.caption, { color: theme.accent }]}>Q</Text>
+            /* [2026-09-12 사용자 지시] 목록 줄에는 배경도 테두리도 없다.
+               상자가 줄마다 있으면 다섯 줄이 다섯 개의 덩어리로 보여 "훑어보는 목록"이
+               아니라 카드 모음이 된다. 상자는 펼친 답변에만 남긴다 — 그래야 지금 열려
+               있는 것이 어디까지인지 한눈에 들어온다. */
+            <View style={styles.faqList}>
+              {faqs.map((faq) => {
+                const open = openFaqId === faq.id;
+                return (
+                  <View key={faq.id}>
+                    <Pressable
+                      onPress={() => setOpenFaqId(open ? null : faq.id)}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: open }}
+                      style={({ pressed }) => [
+                        styles.faqRow,
+                        { opacity: pressed ? opacity.pressed : 1 },
+                      ]}
+                    >
+                      {/* [2026-09-12 사용자 지시] Q는 주황색. theme.warning이 이 앱의
+                          주황이다(#F2994A) — 새 색을 하드코딩하면 다크 테마에서 대비가
+                          깨지므로 토큰을 쓴다. */}
+                      <Text style={[styles.faqMark, { color: theme.warning }]}>Q</Text>
+                      <Text
+                        style={[
+                          textStyles.bodySmall,
+                          styles.faqTitle,
+                          { color: theme.text, fontWeight: open ? "700" : "400" },
+                        ]}
+                        numberOfLines={open ? undefined : 2}
+                      >
+                        {faq.title}
+                      </Text>
+                      <Ionicons
+                        name={open ? "chevron-up" : "chevron-down"}
+                        size={16}
+                        color={theme.secondaryText}
+                      />
+                    </Pressable>
+
+                    {open ? (
+                      <View
+                        style={[
+                          styles.faqAnswer,
+                          { backgroundColor: theme.card, borderColor: theme.border },
+                        ]}
+                      >
+                        <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
+                          {faq.body}
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
-                  <Text style={[textStyles.bodySmall, { color: theme.text }]} numberOfLines={2}>
-                    {faq.title}
-                  </Text>
-                </Pressable>
-              ))}
+                );
+              })}
             </View>
           )}
         </View>
         </View>
         </View>
       </ScrollView>
-      {/* [2026-09-11 사용자 지시] 조건별 — 방수/화장실수 최소값을 고른다. */}
-      <Modal visible={sortSheet === "condition"} onClose={() => setSortSheet(null)}>
-        <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{t("home.sort.condition")}</Text>
-        <CountPicker
-          label={t("home.sort.bedrooms")}
-          value={minBedrooms}
-          onChange={setMinBedrooms}
-          theme={theme}
-        />
-        <CountPicker
-          label={t("home.sort.bathrooms")}
-          value={minBathrooms}
-          onChange={setMinBathrooms}
-          theme={theme}
-        />
-        <View style={styles.sheetActions}>
-          <Button
-            variant="outline"
-            title={t("common.cancel")}
-            onPress={() => setSortSheet(null)}
-            style={styles.sheetButton}
-          />
-          <Button
-            title={t("common.confirm")}
-            onPress={() => {
-              setSortMode("condition");
-              setSortSheet(null);
-            }}
-            style={styles.sheetButton}
-          />
-        </View>
-      </Modal>
-
-      {/* 금액별 — 0원부터 고른 값까지. 막대를 끌어 상한을 정한다. */}
-      <Modal visible={sortSheet === "price"} onClose={() => setSortSheet(null)}>
-        <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{t("home.sort.price")}</Text>
-        <Text style={[textStyles.caption, { color: theme.secondaryText, marginTop: spacing.xs }]}>
-          {t("home.sort.priceRange", { max: formatVndAmount(priceMax) })}
-        </Text>
-        <PriceSlider value={priceMax} onChange={setPriceMax} theme={theme} />
-        <View style={styles.sheetActions}>
-          <Button
-            variant="outline"
-            title={t("common.cancel")}
-            onPress={() => setSortSheet(null)}
-            style={styles.sheetButton}
-          />
-          <Button
-            title={t("common.confirm")}
-            onPress={() => {
-              setSortMode("price");
-              setSortSheet(null);
-            }}
-            style={styles.sheetButton}
-          />
-        </View>
-      </Modal>
-
       {/* 위치 권한이 없을 때 — 기준 지역을 직접 고르게 한다(사용자 결정). */}
       <Modal visible={regionPickerOpen} onClose={() => setRegionPickerOpen(false)}>
         <Text style={[textStyles.sectionTitle, { color: theme.text }]}>{t("home.regionPickerTitle")}</Text>
@@ -903,133 +819,6 @@ const IDLE_BORDER = "rgba(255,255,255,0.3)";
 const ICON_BUTTON_BG = "rgba(0,0,0,0.3)";
 /** [2026-09-11 사용자 지시] 알림 아이콘 글리프 크기 — 20의 10% 축소. */
 const ALERT_ICON_SIZE = 18;
-
-/** 조건별 팝업의 "N개 이상" 선택 — 0(무관)부터 4까지. */
-function CountPicker({
-  label,
-  value,
-  onChange,
-  theme,
-}: {
-  label: string;
-  value: number;
-  onChange: (next: number) => void;
-  theme: ThemeColors;
-}) {
-  const { t } = useTranslation();
-  return (
-    <View style={styles.countBlock}>
-      <Text style={[textStyles.caption, { color: theme.secondaryText }]}>{label}</Text>
-      <View style={styles.countRow}>
-        {[0, 1, 2, 3, 4].map((n) => {
-          const active = value === n;
-          return (
-            <Pressable
-              key={n}
-              onPress={() => onChange(n)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={({ pressed }) => [
-                styles.countChip,
-                {
-                  borderColor: active ? theme.accent : theme.border,
-                  backgroundColor: active ? theme.accent : "transparent",
-                  opacity: pressed ? opacity.pressed : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  textStyles.caption,
-                  { color: active ? theme.onAccent : theme.secondaryText },
-                ]}
-              >
-                {n === 0 ? t("home.sort.any") : `${n}+`}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-/**
- * [2026-09-11 사용자 지시] 금액 막대 — 0 ~ 100억동.
- *
- * 슬라이더 라이브러리를 추가하지 않고 PanResponder로 직접 만든다(사용자 결정).
- * 새 의존성이 없고, 막대 모양과 색을 앱의 다른 요소와 맞출 수 있다.
- *
- * 폭을 onLayout으로 재는 이유: 퍼센트만으로는 손가락 x좌표를 값으로 바꿀 수 없다.
- * 폭을 재기 전(0)에는 나누기를 하지 않는다 — 0으로 나누면 NaN이 되어 막대가 사라진다.
- */
-function PriceSlider({
-  value,
-  onChange,
-  theme,
-}: {
-  value: number;
-  onChange: (next: number) => void;
-  theme: ThemeColors;
-}) {
-  const [width, setWidth] = useState(0);
-  // PanResponder는 처음 만들어진 클로저를 계속 쓰므로, 최신 폭을 ref로 읽는다.
-  const widthRef = useRef(0);
-  widthRef.current = width;
-
-  const responder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (event) => {
-        const w = widthRef.current;
-        if (w > 0) onChange(clampToStep((event.nativeEvent.locationX / w) * PRICE_MAX_VND));
-      },
-      onPanResponderMove: (event, gesture) => {
-        const w = widthRef.current;
-        if (w <= 0) return;
-        // moveX는 화면 기준이라 막대 시작점을 빼야 하는데, 시작점을 따로 재지 않으려고
-        // grant 시점의 locationX에 이동량을 더하는 대신 gesture.moveX를 쓰지 않고
-        // locationX를 그대로 쓴다(막대 안에서만 반응하므로 충분하다).
-        void gesture;
-        onChange(clampToStep((event.nativeEvent.locationX / w) * PRICE_MAX_VND));
-      },
-    }),
-  ).current;
-
-  const ratio = width > 0 ? Math.min(1, Math.max(0, value / PRICE_MAX_VND)) : 0;
-
-  return (
-    <View style={styles.sliderBlock}>
-      <View
-        onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
-        {...responder.panHandlers}
-        style={[styles.sliderTrack, { backgroundColor: theme.border }]}
-      >
-        <View style={[styles.sliderFill, { width: `${ratio * 100}%`, backgroundColor: theme.accent }]} />
-        <View
-          style={[
-            styles.sliderKnob,
-            { left: `${ratio * 100}%`, backgroundColor: theme.accent, borderColor: theme.onAccent },
-          ]}
-        />
-      </View>
-      <View style={styles.sliderScale}>
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>0</Text>
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-          {formatVndAmount(PRICE_MAX_VND)}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-/** 1억동 단위로 끊는다 — 1원 단위로 움직이면 값이 읽히지 않는다. */
-function clampToStep(raw: number): number {
-  const step = 100_000_000;
-  const clamped = Math.min(PRICE_MAX_VND, Math.max(0, raw));
-  return Math.round(clamped / step) * step;
-}
 
 function AlertIconButton({
   icon,
@@ -1237,7 +1026,7 @@ function CategoryIconButton({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -1251,76 +1040,14 @@ const styles = StyleSheet.create({
   // 하고(bleedScroll과 동일 원칙), 내부에는 다시 동일한 좌우 padding을 줘 topBar/
   // searchBar가 기존과 같은 위치에 보이도록 한다.
   // [2026-09-11 사용자 지시] 최신매물 정렬 버튼 — 제목 아래 우측.
-  sortRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: spacing.xs,
-    marginBottom: spacing.sm,
-  },
-  sortChip: {
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
 
   // 정렬 팝업.
-  sheetActions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  sheetButton: {
-    flex: 1,
-  },
-  countBlock: {
-    marginTop: spacing.md,
-    gap: spacing.xs,
-  },
-  countRow: {
-    flexDirection: "row",
-    gap: spacing.xs,
-  },
-  countChip: {
-    flex: 1,
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: radius.sm,
-    paddingVertical: 6,
-  },
   regionOption: {
     paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
 
   // 금액 막대.
-  sliderBlock: {
-    marginTop: spacing.lg,
-    gap: spacing.xs,
-  },
-  sliderTrack: {
-    height: 6,
-    borderRadius: radius.full,
-    justifyContent: "center",
-    // 손잡이가 막대 밖으로 나가므로 세로 여백을 둬 터치 영역을 넓힌다.
-    marginVertical: spacing.sm,
-  },
-  sliderFill: {
-    height: 6,
-    borderRadius: radius.full,
-  },
-  sliderKnob: {
-    position: "absolute",
-    width: 20,
-    height: 20,
-    borderRadius: radius.full,
-    borderWidth: 2,
-    marginLeft: -10,
-  },
-  sliderScale: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
 
   // [2026-09-11 사용자 지시] 상단 우측 알림 아이콘 두 개를 나란히.
   topIcons: {
@@ -1330,13 +1057,22 @@ const styles = StyleSheet.create({
   },
 
   // [2026-09-11 사용자 지시] 하단 공지 목록 — 썸네일 카드.
-  noticeCard: {
+  // [2026-09-12] 공지 목록 — 상자 없이 줄 사이 점선만.
+  noticeList: {
+    // gap을 두면 점선이 줄에서 떨어져 뜬다. 간격은 각 줄의 세로 여백으로 만든다.
+    gap: 0,
+  },
+  noticeRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    padding: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  /** 사용자 지시: 줄 사이 구분선은 점선 1px #ddd. 첫 줄에는 붙이지 않는다. */
+  noticeRowDivided: {
+    borderTopWidth: 1,
+    borderTopColor: "#DDDDDD",
+    borderStyle: "dashed",
   },
   noticeThumb: {
     width: 64,
@@ -1373,9 +1109,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tickerText: {
-    // [2026-09-11 사용자 지시] 롤링 글자 12px. caption 토큰은 기기 폭에 따라
-    // 11px 근처로 흔들리므로 검색창 placeholder와 같은 방식으로 여기만 고정한다.
-    fontSize: 12,
+    // [2026-09-11 사용자 지시] 롤링 글자 12px 기준.
+    // [2026-09-12] 고정값이던 것을 scaleFont로 바꾼다 — 기기 폭에 따라 조정되지 않는
+    // 글자가 화면마다 남아 있던 것이 "반응형이 일괄 적용되지 않았다"의 원인이었다.
+    fontSize: scaleFont(12),
     lineHeight: TICKER_LINE_HEIGHT,
   },
   heroBanner: {
@@ -1529,7 +1266,7 @@ const styles = StyleSheet.create({
   },
   notificationBadgeText: {
     color: "#FFFFFF",
-    fontSize: 8,
+    fontSize: scaleFont(8),
     fontWeight: typography.weight.bold,
     includeFontPadding: false,
     textAlignVertical: "center",
@@ -1627,16 +1364,39 @@ const styles = StyleSheet.create({
   propertyList: {
     gap: 0,
   },
-  insightCard: {
+  // [2026-09-12] TOP10 제목과 정렬 칩을 한 줄에. 칩이 길어지면 제목이 먼저 줄어든다.
+  top10Header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  top10HeaderTitle: {
+    flexShrink: 1,
+  },
+  // [2026-09-12] FAQ — 줄에는 상자가 없고, 펼친 답변에만 상자가 있다.
+  faqList: {
+    gap: spacing.sm,
+  },
+  faqRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  /** 사용자 지시: Q 글자는 20px, 굵게. 기준값 20에 제목 계수를 걸어 기기 폭을 따른다. */
+  faqMark: {
+    fontSize: scaleFont(20, FONT_FACTOR.TITLE),
+    fontWeight: "700",
+    lineHeight: scaleFont(24, FONT_FACTOR.TITLE),
+  },
+  faqTitle: {
+    flex: 1,
+  },
+  faqAnswer: {
     borderWidth: 1,
     borderRadius: radius.md,
     padding: spacing.md,
-    gap: spacing.xs,
+    marginTop: spacing.xs,
   },
-  insightTag: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-  },
-});
+}));

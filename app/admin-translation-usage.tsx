@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip } from "@/components/Chip";
@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, FONT_FACTOR, scaleFont } from "@/constants/theme";
 import {
   fetchTranslationUsage,
   fetchTranslationUsageMonthly,
@@ -264,7 +264,7 @@ function CostRow({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 2,
   },
   chartLabel: {
-    fontSize: 10,
+    fontSize: scaleFont(10),
   },
   chipRow: {
     flexDirection: "row",
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   heroValue: {
-    fontSize: 44,
+    fontSize: scaleFont(44, FONT_FACTOR.TITLE),
     fontWeight: typography.weight.bold,
   },
   heroUnit: {
@@ -345,4 +345,4 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.sm,
   },
-});
+}));

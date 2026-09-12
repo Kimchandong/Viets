@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { Image, StyleProp, Text, View, ViewStyle } from "react-native";
 
 import { Card } from "@/components/Card";
-import { colors, layout, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, layout, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
 import { splitYieldText } from "@/utils/format";
 
@@ -123,7 +123,7 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
 }
 
 /** [2026-09-11 사용자 지시] 면적/침실/욕실 행의 글자·아이콘 크기(px). */
-const META_SIZE = 12;
+const META_SIZE = scaleFont(12);
 
 /**
  * 썸네일 높이. 캐러셀 화살표를 "이미지 상하 가운데"에 놓으려면 바깥(화면)에서도
@@ -131,7 +131,7 @@ const META_SIZE = 12;
  */
 export const PROPERTY_CARD_IMAGE_HEIGHT = 180;
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   card: {
     gap: spacing.xs,
     width: "100%",
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addressText: {
-    fontSize: 9,
+    fontSize: scaleFont(9),
     fontWeight: typography.weight.regular,
     flexShrink: 1,
   },
@@ -239,4 +239,4 @@ const styles = StyleSheet.create({
   priceText: {
     flexShrink: 1,
   },
-});
+}));

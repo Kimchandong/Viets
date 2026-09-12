@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Animated, Image, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 
 import { Card } from "@/components/Card";
-import { colors, layout, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, layout, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { MockInvestmentProduct } from "@/constants/mockData";
 import { buildGradientSteps, splitYieldText } from "@/utils/format";
 import { usePulsingColor } from "@/hooks/usePulsingColor";
@@ -73,7 +73,7 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
 
       <View style={styles.headerRow}>
         {/* [2026-09-11 사용자 지시] 상품명 글자 한 치수 크게 — cardTitle(md) 위 단계인 lg. */}
-        <Text style={[textStyles.cardTitle, styles.titleText, { color: theme.text, flex: 1 }]} numberOfLines={2}>
+        <Text style={[textStyles.cardTitle, { color: theme.text, flex: 1 }]} numberOfLines={2}>
           {product.title}
         </Text>
       </View>
@@ -163,11 +163,7 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
  */
 export const INVESTMENT_CARD_IMAGE_HEIGHT = 165;
 
-const styles = StyleSheet.create({
-  // [2026-09-11 사용자 지시] 상품명만 한 단계 큰 크기(cardTitle md → lg).
-  titleText: {
-    fontSize: typography.size.lg,
-  },
+const styles = createScaledStyles(() => ({
   card: {
     gap: spacing.xs,
     width: "100%",
@@ -225,17 +221,17 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   addressText: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
     fontWeight: typography.weight.regular,
     color: colors.light.secondaryText,
   },
   metricLabel: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
     fontWeight: typography.weight.regular,
     color: colors.light.secondaryText,
   },
   metricValue: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
     fontWeight: typography.weight.semibold,
   },
   metricsRow: {
@@ -273,4 +269,4 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
   },
-});
+}));

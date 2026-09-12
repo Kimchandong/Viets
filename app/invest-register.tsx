@@ -15,7 +15,7 @@ import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { InvestImageCategory } from "@/constants/mockImages";
 import { MOCK_REGIONS } from "@/constants/mockData";
 import {
@@ -764,7 +764,7 @@ function riskColor(level: RiskLevel, theme: typeof colors.light): string {
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   smallLabel: {
-    fontSize: 11,
+    fontSize: scaleFont(11),
   },
   // 테두리 없음(사용자 지정) — 값 자체가 색으로 읽히므로 상자를 두르지 않는다.
   riskField: {
@@ -881,4 +881,4 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     textAlign: "center",
   },
-});
+}));

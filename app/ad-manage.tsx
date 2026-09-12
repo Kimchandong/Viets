@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { AdPlacement } from "@/services/ads";
 import { listManagedProperties, type ManagedProperty } from "@/services/properties";
 
@@ -185,7 +185,7 @@ export default function AdManageScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   adBadgeText: {
-    fontSize: 9,
+    fontSize: scaleFont(9),
     fontWeight: typography.weight.bold,
     lineHeight: 11,
   },
@@ -253,4 +253,4 @@ const styles = StyleSheet.create({
     minWidth: 0,
     gap: 2,
   },
-});
+}));

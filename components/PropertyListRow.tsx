@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
 import { splitYieldText } from "@/utils/format";
 
@@ -31,7 +31,7 @@ const THUMB_HEIGHT = 88;
 /** [2026-09-11 사용자 지시] 매물 이미지 가로 50% 확대. */
 const THUMB_WIDTH = Math.round(THUMB_HEIGHT * 1.5);
 /** 면적/방수/화장실/거리 행의 글자·아이콘 크기(components/PropertyCard.tsx와 동일). */
-const META_SIZE = 12;
+const META_SIZE = scaleFont(12);
 
 export function PropertyListRow({
   property,
@@ -131,7 +131,7 @@ export function PropertyListRow({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   // [2026-09-11 사용자 지시] 카드 배경색/테두리 없음 — 행 구분은 여백과 dashed 선으로.
   row: {
     flexDirection: "row",
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: scaleFont(10),
     fontWeight: typography.weight.semibold,
   },
   // [2026-09-11 사용자 지시] 매물명 굵기 600, 크기는 한 단계 위(bodySmall → body).
@@ -208,4 +208,4 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: META_SIZE,
   },
-});
+}));

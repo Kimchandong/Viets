@@ -13,7 +13,7 @@ import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import {
   AD_SLOT_CAPACITY,
   getMyBid,
@@ -454,7 +454,7 @@ export default function AdSlotsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rankText: {
-    fontSize: 12,
+    fontSize: scaleFont(12),
     fontWeight: typography.weight.bold,
   },
   rowTexts: {
@@ -538,4 +538,4 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
   },
-});
+}));

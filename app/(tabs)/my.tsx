@@ -569,7 +569,19 @@ export default function MyScreen() {
               {/* [2026-09-11] 아이디/비번 로그인.
                   소셜 로그인은 실제 사용자용이고, 이쪽은 역할이 다른 계정
                   (중개업소·고객·관리자)을 번갈아 쓰며 테스트하기 위한 경로다.
-                  웹 미리보기는 OAuth 콜백을 처리할 수 없어 이 경로로만 로그인된다. */}
+                  웹 미리보기는 OAuth 콜백을 처리할 수 없어 이 경로로만 로그인된다.
+
+                  [2026-09-12 사용자 지시] **배포되는 빌드에서는 감춘다.**
+                  실기기 테스트는 실제 소셜 계정으로만 해야 한다 — 아이디/비번으로
+                  들어간 세션과 OAuth 세션은 토큰 발급·재발급 경로가 달라, 이 경로로
+                  테스트하면 실사용에서만 나타나는 문제를 놓친다.
+
+                  코드를 지우지 않고 __DEV__로 막는 이유: 웹 미리보기(expo start)에서는
+                  여전히 이 경로가 유일한 로그인 수단이고, 실기기에서 문제가 나왔을 때
+                  웹으로 빠르게 되짚어 볼 수단이 사라지면 안 된다. __DEV__는
+                  preview/production 빌드에서 false이므로 배포본에는 나오지 않는다.
+                  출시 직전(production 프로필을 만들 때) 코드째 지운다. */}
+              {__DEV__ ? (
               <View style={[styles.passwordLogin, { borderTopColor: theme.border }]}>
                 <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
                   {t("my.passwordLogin.title")}
@@ -599,6 +611,7 @@ export default function MyScreen() {
                   disabled={passwordLoading || !!loadingProvider}
                 />
               </View>
+              ) : null}
             </View>
           )}
         </Card>

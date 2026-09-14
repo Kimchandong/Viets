@@ -302,7 +302,8 @@
       "language": "Language",
       "currency": "Currency",
       "support": "Customer Support",
-      "notices": "Notices"
+      "notices": "Notices",
+      "deleteAccount": "Delete account"
     },
     "languageModalTitle": "Select Language",
     "currencyModalTitle": "Select Currency",
@@ -1183,5 +1184,16 @@
         "body": "{{agency}} reported a {{amount}} VND deposit."
       }
     }
+  },
+  "deleteAccount": {
+    "title": "Delete your account?",
+    "body": "This cannot be undone. Your profile, favourites, notification settings and listings will all be removed, and signing up again with the same email will not restore them.",
+    "keeps": "Chats with agents stay on the agency record, shown as \"Deleted user\".",
+    "confirm": "Delete account",
+    "deleting": "Deleting…",
+    "done": "Your account has been deleted.",
+    "failedAdmin": "Administrator accounts cannot be deleted from the app.",
+    "failedBalance": "Your agency still has an unsettled advertising balance. Please settle it first.",
+    "failed": "Could not delete your account. Please try again shortly."
   }
 }

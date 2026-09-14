@@ -81,7 +81,7 @@ export default function AiScreen() {
 
   // [2026-09-11 사용자 지시] 홈 검색창의 AI 버튼에서 넘어올 때 적어 둔 말을 받는다 —
   // 홈에서 친 것을 여기서 다시 치게 만들 이유가 없다.
-  const { q } = useLocalSearchParams<{ q?: string }>();
+  const { q, run } = useLocalSearchParams<{ q?: string; run?: string }>();
 
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -118,14 +118,6 @@ export default function AiScreen() {
     setTimeout(() => setToast(null), 2200);
   }
 
-  // 넘어온 값으로 입력창을 채우기만 하고 보내지는 않는다 — 사용자가 문장을 다듬을
-  // 기회를 뺏지 않기 위해서다. AI 탭은 언마운트되지 않으므로 q가 바뀔 때마다 반영한다.
-  useEffect(() => {
-    if (typeof q === "string" && q.length > 0) {
-      setQuery(q);
-    }
-  }, [q]);
-
   const handleSend = useCallback(async (text?: string) => {
     const value = (text ?? query).trim();
     if (!value) return;
@@ -141,6 +133,26 @@ export default function AiScreen() {
       setLoading(false);
     }
   }, [query]);
+
+  /**
+   * 홈 검색창에서 넘어온 말을 받는다. AI 탭은 언마운트되지 않으므로 q가 바뀔 때마다 반영한다.
+   *
+   * 손으로 친 것(q만)은 채우기만 하고 보내지 않는다 — 문장을 다듬을 기회를 뺏지 않는다.
+   * [2026-09-14] 음성으로 말한 것(run="1")은 바로 찾는다. 이미 말을 마친 문장이라
+   * 여기서 전송을 또 누르게 할 이유가 없다. 같은 말을 다시 눌러도 찾도록 run 값이
+   * 아니라 q·run 조합이 바뀔 때마다 실행한다(홈에서 매번 새 params로 push한다).
+   */
+  const autoRunRef = useRef("");
+
+  useEffect(() => {
+    if (typeof q !== "string" || q.length === 0) return;
+    setQuery(q);
+    if (run !== "1") return;
+    const token = `${run}:${q}`;
+    if (autoRunRef.current === token) return;
+    autoRunRef.current = token;
+    void handleSend(q);
+  }, [q, run, handleSend]);
 
   // 인식된 말을 입력창에 그대로 흘려 넣는다(interimResults) — 말하는 동안 글자가 쌓이면
   // 제대로 알아듣고 있는지 눈으로 확인할 수 있다.

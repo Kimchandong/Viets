@@ -235,9 +235,12 @@ const TYPE_SCALE = {
   // [2026-09-12 사용자 지시] 섹션 타이틀 한 치수 축소(16 → 15).
   //
   // 그동안 이 값을 고쳐도 화면이 바뀌지 않았던 이유: components/SectionHeader.tsx가
-  // `fontSize: typography.size.lg`(17)로 이 토큰을 **덮어쓰고** 있었다. 그 덮어쓰기를
-  // 없애고 기준값을 17 → 16으로 내린다(사용자가 본 화면에서 16px → 15px).
-  sectionTitle: { base: 16, factor: FONT_FACTOR.TITLE, weight: typography.weight.semibold },
+  // `fontSize: typography.size.lg`(17)로 이 토큰을 **덮어쓰고** 있었다.
+  //
+  // [2026-09-14 웹 검증] 그 덮어쓰기를 없앤 뒤 실제로 재 보니 여전히 16px이었다.
+  // 덮어쓰기만 걷어내고 base는 16 그대로 두었던 것이다 — base가 곧 기준폭(375dp)에서
+  // 그려지는 픽셀 값이므로, 15px로 보이려면 base 자체가 15여야 한다.
+  sectionTitle: { base: 15, factor: FONT_FACTOR.TITLE, weight: typography.weight.semibold },
   cardTitle: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
   body: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
   bodySmall: { base: 13, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },

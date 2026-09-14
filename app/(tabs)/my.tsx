@@ -24,7 +24,7 @@ import { getPropertiesByIds, listManagedProperties } from "@/services/properties
 import { getInvestmentProductsByIds, listMyInvestmentOrders } from "@/services/investments";
 import { canManageInvestment, canRegisterProperty, isAdmin } from "@/services/roles";
 import { getMyAgency, renameMyAgency, type MyAgency } from "@/services/agencies";
-import { getMyAvatarUrl, uploadMyAvatar } from "@/services/profile";
+import { deleteMyAccount, getMyAvatarUrl, uploadMyAvatar } from "@/services/profile";
 import { listUnreadAdNotifications, markAdNotificationRead } from "@/services/ads";
 import { getUnreadNotificationCount } from "@/services/notifications";
 import {
@@ -114,6 +114,9 @@ export default function MyScreen() {
   const [signingOut, setSigningOut] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
+  // [2026-09-14] 계정 삭제 — 되돌릴 수 없으므로 반드시 한 번 더 묻는다.
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   /** [2026-09-11 사용자 지시] 프로필 사진 — 없으면 기존 사람 아이콘을 그대로 쓴다. */
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -431,6 +434,38 @@ export default function MyScreen() {
     setSigningOut(false);
     setToast(error ? t(mapAuthErrorToMessageKey(error)) : t("my.signedOut"));
     setTimeout(() => setToast(null), 1600);
+  }
+
+  /**
+   * [2026-09-14 사용자 결정] 계정 삭제.
+   *
+   * 거부 사유(관리자 / 업체 잔액)를 그대로 받아 각각 다른 문구로 안내한다 —
+   * "실패했습니다" 한 줄이면 사용자는 다음에 무엇을 해야 할지 알 수 없다.
+   *
+   * 성공하면 서버가 세션까지 끊었으므로(auth.sessions CASCADE) 곧바로 로그아웃
+   * 처리해 화면을 비로그인 상태로 되돌린다.
+   */
+  async function handleDeleteAccount() {
+    setDeletingAccount(true);
+    const result = await deleteMyAccount();
+    setDeletingAccount(false);
+    setDeleteModalVisible(false);
+
+    if (result.ok) {
+      await signOut();
+      setToast(t("deleteAccount.done"));
+      setTimeout(() => setToast(null), 2800);
+      return;
+    }
+
+    const messageKey =
+      result.reason === "admin"
+        ? "deleteAccount.failedAdmin"
+        : result.reason === "balance"
+          ? "deleteAccount.failedBalance"
+          : "deleteAccount.failed";
+    setToast(t(messageKey));
+    setTimeout(() => setToast(null), 3200);
   }
 
   const isLoggedIn = !!session;
@@ -916,8 +951,20 @@ export default function MyScreen() {
               label={t("my.rows.support")}
               onPress={() => router.push({ pathname: "/boards", params: { kind: "qa" } })}
               theme={theme}
-              last
+              last={!isLoggedIn || isAdminUser}
             />
+            {/* [2026-09-14] 계정 삭제 — Apple(2022-06~)·Google(2024~) 심사 필수.
+                로그인 상태에서만, 그리고 관리자에게는 보이지 않는다(서버도 거부하지만
+                누를 수 있는 자리에 두면 눌러 보게 된다). */}
+            {isLoggedIn && !isAdminUser ? (
+              <SettingsRow
+                icon="trash-outline"
+                label={t("my.rows.deleteAccount")}
+                onPress={() => setDeleteModalVisible(true)}
+                theme={theme}
+                last
+              />
+            ) : null}
           </Card>
         </View>
       </ScrollView>
@@ -947,6 +994,37 @@ export default function MyScreen() {
             {code === language ? <Ionicons name="checkmark" size={18} color={theme.accent} /> : null}
           </Pressable>
         ))}
+      </Modal>
+
+      {/* [2026-09-14] 계정 삭제 확인 — 되돌릴 수 없는 동작이므로 무엇이 사라지고
+          무엇이 남는지 먼저 보여 준다. 남는 것(상담 이력)을 함께 적는 이유: 대화가
+          통째로 사라지는 줄 알고 망설이는 것을 막기 위해서다. */}
+      <Modal
+        visible={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        accessibilityLabel={t("common.cancel")}
+      >
+        <Text style={[textStyles.sectionTitle, { color: theme.danger, marginBottom: spacing.sm }]}>
+          {t("deleteAccount.title")}
+        </Text>
+        <Text style={[textStyles.body, { color: theme.text, marginBottom: spacing.xs }]}>
+          {t("deleteAccount.body")}
+        </Text>
+        <Text style={[textStyles.bodySmall, { color: theme.secondaryText, marginBottom: spacing.md }]}>
+          {t("deleteAccount.keeps")}
+        </Text>
+        <Button
+          title={deletingAccount ? t("deleteAccount.deleting") : t("deleteAccount.confirm")}
+          onPress={handleDeleteAccount}
+          disabled={deletingAccount}
+          variant="danger"
+        />
+        <Button
+          title={t("common.cancel")}
+          onPress={() => setDeleteModalVisible(false)}
+          disabled={deletingAccount}
+          variant="ghost"
+        />
       </Modal>
 
       {/* [STEP: 2026-09-09] 사용자 요청 — 통화 선택 Modal(베트남 동/달러), 위 언어

@@ -302,7 +302,8 @@
       "language": "Ngôn ngữ",
       "currency": "Đơn vị tiền tệ",
       "support": "Hỗ trợ khách hàng",
-      "notices": "Thông báo"
+      "notices": "Thông báo",
+      "deleteAccount": "Xoá tài khoản"
     },
     "languageModalTitle": "Chọn ngôn ngữ",
     "currencyModalTitle": "Chọn đơn vị tiền tệ",
@@ -1183,5 +1184,16 @@
         "body": "{{agency}} đã báo nạp {{amount}} VND."
       }
     }
+  },
+  "deleteAccount": {
+    "title": "Xoá tài khoản?",
+    "body": "Không thể hoàn tác. Hồ sơ, danh sách yêu thích, cài đặt thông báo và tin đăng của bạn sẽ bị xoá; đăng ký lại bằng email cũ cũng không khôi phục được.",
+    "keeps": "Nội dung trao đổi với môi giới vẫn được lưu ở phía công ty và hiển thị là \"Người dùng đã xoá\".",
+    "confirm": "Xoá tài khoản",
+    "deleting": "Đang xoá…",
+    "done": "Tài khoản của bạn đã được xoá.",
+    "failedAdmin": "Không thể xoá tài khoản quản trị từ trong ứng dụng.",
+    "failedBalance": "Công ty của bạn vẫn còn phí quảng cáo chưa quyết toán nên chưa thể xoá. Vui lòng quyết toán trước.",
+    "failed": "Không xoá được tài khoản. Vui lòng thử lại sau."
   }
 }

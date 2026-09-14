@@ -80,3 +80,37 @@ export async function uploadMyAvatar(localUri: string): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * [2026-09-14 사용자 결정] 본인 계정 삭제 — 스토어 심사 필수 기능.
+ *
+ * 실제 삭제는 DB 함수 delete_my_account()가 한다(20260917000000). 클라이언트가
+ * 표를 하나씩 지우지 않는 이유: 지우는 순서를 틀리면 외래키에 막혀 중간에서 멈추고,
+ * 그러면 "반쯤 지워진 계정"이 남는다. 서버 함수 하나가 트랜잭션으로 처리한다.
+ *
+ * 거부 사유를 그대로 돌려주는 이유: 화면이 "관리자라서"인지 "잔액이 남아서"인지
+ * 구분해 안내해야 사용자가 다음에 무엇을 할지 안다.
+ */
+export type DeleteAccountResult =
+  | { ok: true }
+  | { ok: false; reason: "admin" | "balance" | "not_signed_in" | "failed" };
+
+export async function deleteMyAccount(): Promise<DeleteAccountResult> {
+  if (!supabase) return { ok: false, reason: "failed" };
+
+  const { data, error } = await supabase.rpc("delete_my_account");
+
+  if (error) {
+    console.warn("[services/profile] deleteMyAccount failed:", error.message);
+    return { ok: false, reason: "failed" };
+  }
+
+  const row = data as { ok?: boolean; reason?: string } | null;
+  if (row?.ok) return { ok: true };
+
+  const reason = row?.reason;
+  if (reason === "admin" || reason === "balance" || reason === "not_signed_in") {
+    return { ok: false, reason };
+  }
+  return { ok: false, reason: "failed" };
+}

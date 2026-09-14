@@ -302,7 +302,8 @@
       "language": "语言",
       "currency": "货币",
       "support": "客户支持",
-      "notices": "公告"
+      "notices": "公告",
+      "deleteAccount": "删除账号"
     },
     "languageModalTitle": "选择语言",
     "currencyModalTitle": "选择货币",
@@ -1183,5 +1184,16 @@
         "body": "{{agency}} 申报了 {{amount}} VND 的充值。"
       }
     }
+  },
+  "deleteAccount": {
+    "title": "要删除账号吗？",
+    "body": "此操作无法撤销。个人资料、收藏、通知设置和已发布的房源都将被删除，使用相同邮箱重新注册也无法恢复。",
+    "keeps": "与中介的咨询记录将保留在中介方，显示为“已删除的用户”。",
+    "confirm": "删除账号",
+    "deleting": "正在删除…",
+    "done": "账号已删除。",
+    "failedAdmin": "管理员账号无法在应用内删除。",
+    "failedBalance": "所属中介尚有未结算的广告费，无法删除。请结算后再试。",
+    "failed": "未能删除账号，请稍后再试。"
   }
 }

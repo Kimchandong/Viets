@@ -3,7 +3,7 @@
     "name": "Viet's",
     "slug": "viets-app",
     "scheme": "viets",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -18,7 +18,10 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.viets.app"
+      "bundleIdentifier": "com.viets.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

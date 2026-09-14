@@ -4,6 +4,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -237,6 +238,20 @@ export default function PropertyScreen() {
     }
   }
 
+  /**
+   * [2026-09-14] 돋보기 버튼과 키보드의 검색 키.
+   *
+   * 예전에는 둘 다 `() => {}` 빈 함수였다. 이 화면의 목록은 입력할 때마다 이미
+   * 걸러지므로(아래 normalizedSearch → filtered) "검색을 실행"할 것이 남아 있지
+   * 않은데, 그렇다고 아무 반응이 없으면 사용자는 버튼이 고장 난 줄 안다.
+   *
+   * 실제로 필요한 동작은 **키보드를 내리는 것**이다. 입력 중에는 키보드가 화면
+   * 절반을 덮고 있어 걸러진 결과가 보이지 않는다.
+   */
+  function submitSearch() {
+    Keyboard.dismiss();
+  }
+
   const normalizedSearch = search.trim().toLowerCase();
   const isSearching = normalizedSearch.length > 0;
 
@@ -385,7 +400,7 @@ export default function PropertyScreen() {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            onSubmitEditing={() => {}}
+            onSubmitEditing={submitSearch}
             returnKeyType="search"
             autoCorrect={false}
             // [STEP: 2026-09-09-15] 사용자 제보(목표 디자인 이미지) — placeholder
@@ -399,7 +414,7 @@ export default function PropertyScreen() {
             style={[textStyles.body, styles.searchInput, { color: theme.text }]}
           />
           <Pressable
-            onPress={() => {}}
+            onPress={submitSearch}
             accessibilityRole="button"
             accessibilityLabel={t("property.searchPlaceholder")}
             hitSlop={8}

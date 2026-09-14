@@ -16,6 +16,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
 
 import { EmptyState } from "@/components/EmptyState";
 import { FadeInText } from "@/components/FadeInText";
@@ -59,7 +63,20 @@ import {
 // [FULL-DEV] 매물 카드 press를 app/property-detail/[id].tsx로 연결했고, 기존에 없던
 // "추천 투자상품"(MOCK_INVESTMENT_PRODUCTS 기반) 섹션을 추가해 Home에서도 Invest
 // 상세로 바로 진입할 수 있게 했다(§7 요구사항 — Home 최소 구성에 추천 투자상품 포함).
-// 위치/알림/시장 소식은 아직 실제 기능이 없으므로 기존처럼 showComingSoon으로 남긴다.
+// 위치/알림/시장 소식은 아직 실제 기능이 없다.
+
+/**
+ * 앱 언어 → 음성 인식에 넘길 BCP-47 태그. AI 탭(app/(tabs)/ai.tsx)과 같은 표를 쓴다 —
+ * 두 곳이 다른 언어로 들으면 같은 말을 해도 결과가 달라진다.
+ */
+const SPEECH_LOCALES: Record<string, string> = {
+  ko: "ko-KR",
+  en: "en-US",
+  vi: "vi-VN",
+  ja: "ja-JP",
+  zh: "zh-CN",
+  th: "th-TH",
+};
 
 export default function HomeScreen() {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지, 비로그인 공개 화면)
@@ -227,10 +244,83 @@ export default function HomeScreen() {
     router.push({ pathname: "/property", params: query ? { search: query } : {} });
   }
 
-  function showComingSoon() {
-    setToast(t("common.comingSoon"));
-    setTimeout(() => setToast(null), 1600);
+  /**
+   * [2026-09-14] 음성 검색 — 예전에는 "준비 중" 토스트만 띄우던 자리다.
+   *
+   * 받아 적은 말은 /property가 아니라 **AI 탭으로** 넘긴다. 말로 하는 검색은
+   * "하노이 20억 이하 아파트 3룸"처럼 문장으로 나오는데, /property의 검색은
+   * 제목·주소 부분 일치라 그런 문장으로는 한 건도 못 찾는다. 문장을 조건으로
+   * 푸는 것은 services/aiSearch.ts가 하는 일이므로 그쪽으로 보낸다
+   * (검색창 안내문도 "부동산 Ai, 음성검색"이다).
+   */
+  const [listening, setListening] = useState(false);
+  const [speechAvailable, setSpeechAvailable] = useState(false);
+  const spokenRef = useRef("");
+
+  useEffect(() => {
+    try {
+      setSpeechAvailable(ExpoSpeechRecognitionModule.isRecognitionAvailable());
+    } catch {
+      // 네이티브 모듈이 없는 빌드(Expo Go·웹)에서도 화면은 떠야 한다.
+      setSpeechAvailable(false);
+    }
+  }, []);
+
+  function showVoiceToast(message: string) {
+    setToast(message);
+    setTimeout(() => setToast(null), 2200);
   }
+
+  // 말하는 동안 검색창에 글자가 쌓이게 해 제대로 알아듣고 있는지 눈으로 보이게 한다.
+  useSpeechRecognitionEvent("result", (event) => {
+    const transcript = event.results[0]?.transcript ?? "";
+    spokenRef.current = transcript;
+    setHomeSearch(transcript);
+  });
+
+  useSpeechRecognitionEvent("end", () => {
+    setListening(false);
+    const spoken = spokenRef.current.trim();
+    if (spoken.length === 0) return;
+    // run:"1" — 문장이 이미 완성돼 있으므로 AI 탭에서 바로 찾는다. 손으로 친 검색어를
+    // 넘길 때(q만)는 고칠 기회를 주려고 자동으로 찾지 않는다.
+    router.push({ pathname: "/ai", params: { q: spoken, run: "1" } });
+  });
+
+  useSpeechRecognitionEvent("error", (event) => {
+    setListening(false);
+    // "아무 말도 못 들었다"는 오류가 아니라 흔한 일이다 — 조용히 넘긴다.
+    if (event.error === "no-speech" || event.error === "aborted") return;
+    showVoiceToast(event.error === "not-allowed" ? t("ai.voiceDenied") : t("ai.voiceFailed"));
+  });
+
+  const handleVoicePress = useCallback(async () => {
+    if (listening) {
+      ExpoSpeechRecognitionModule.stop();
+      return;
+    }
+
+    try {
+      // 권한은 누를 때 묻는다 — 화면에 들어오자마자 물으면 무엇에 쓰는지 모른 채 거부하기 쉽다.
+      const permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!permission.granted) {
+        showVoiceToast(t("ai.voiceDenied"));
+        return;
+      }
+
+      spokenRef.current = "";
+      setHomeSearch("");
+      setListening(true);
+      ExpoSpeechRecognitionModule.start({
+        lang: SPEECH_LOCALES[i18n.language] ?? SPEECH_LOCALES.en,
+        interimResults: true,
+        continuous: false,
+      });
+    } catch {
+      setListening(false);
+      showVoiceToast(t("ai.voiceFailed"));
+    }
+  }, [listening, t, i18n.language]);
 
   // [STEP 04] 홈의 매물 섹션(추천/주변·최근)도 Mock(MOCK_PROPERTIES) 대신 실제
   // Supabase properties 테이블을 읽는다 — app/(tabs)/property.tsx와 동일하게
@@ -386,9 +476,9 @@ export default function HomeScreen() {
 
           {/* 사용자 요청(2026-09-08): 실제 입력 가능한 검색창으로 교체 — 검색 아이콘/
               돋보기를 누르거나 키보드 검색(enter)을 누르면 /property로 검색어와 함께
-              이동한다(property.tsx가 search 쿼리 param을 초기값으로 읽는다). 마이크
-              아이콘은 이 앱에 아직 음성 인식 기능이 없어 다른 미구현 버튼과 동일하게
-              showComingSoon 토스트로 응답한다(눌렀을 때 반응은 하도록). */}
+              이동한다(property.tsx가 search 쿼리 param을 초기값으로 읽는다).
+              [2026-09-14] 마이크는 실제 음성 인식에 연결됐고, 받아 적은 문장은
+              AI 탭으로 넘긴다(위 handleVoicePress 주석 참고). */}
           <View
             testID="home-search-bar"
             style={[
@@ -414,10 +504,24 @@ export default function HomeScreen() {
               // [2026-09-11 사용자 지시] 한 치수 크게 — 12 → 13.
               style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: scaleFont(13, FONT_FACTOR.BODY) }]}
             />
-            {/* [2026-09-11 사용자 지시] 음성검색 아이콘 크게(18 → 22). */}
-            <Pressable onPress={showComingSoon} accessibilityRole="button" hitSlop={8}>
-              <Ionicons name="mic-outline" size={22} color={theme.secondaryText} />
-            </Pressable>
+            {/* [2026-09-11 사용자 지시] 음성검색 아이콘 크게(18 → 22).
+                [2026-09-14] 인식기가 없는 기기에서는 버튼을 그리지 않는다 — 눌러도
+                안 되는 버튼을 남겨 두는 것이 예전 "준비 중" 버튼과 같은 실수다. */}
+            {speechAvailable ? (
+              <Pressable
+                onPress={handleVoicePress}
+                accessibilityRole="button"
+                accessibilityState={{ selected: listening }}
+                accessibilityLabel={listening ? t("ai.voiceStop") : t("ai.voiceHint")}
+                hitSlop={8}
+              >
+                <Ionicons
+                  name={listening ? "stop-circle" : "mic-outline"}
+                  size={22}
+                  color={listening ? theme.danger : theme.secondaryText}
+                />
+              </Pressable>
+            ) : null}
           </View>
 
           {/* [2026-09-11 사용자 지시] 검색창과 흰 콘텐츠 영역 사이에 공지 5건을

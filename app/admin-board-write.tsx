@@ -47,7 +47,12 @@ export default function AdminBoardWriteScreen() {
   const params = useLocalSearchParams<{ kind?: string; id?: string }>();
 
   const kind: BoardKind =
-    params.kind === "faq" || params.kind === "qa" ? (params.kind as BoardKind) : "notice";
+    params.kind === "faq" ||
+    params.kind === "qa" ||
+    params.kind === "terms" ||
+    params.kind === "privacy"
+      ? (params.kind as BoardKind)
+      : "notice";
   const postId = typeof params.id === "string" && params.id.length > 0 ? params.id : null;
 
   const [allowed, setAllowed] = useState<boolean | null>(null);

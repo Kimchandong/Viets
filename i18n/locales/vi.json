@@ -303,7 +303,9 @@
       "currency": "Đơn vị tiền tệ",
       "support": "Hỗ trợ khách hàng",
       "notices": "Thông báo",
-      "deleteAccount": "Xoá tài khoản"
+      "deleteAccount": "Xoá tài khoản",
+      "terms": "Điều khoản dịch vụ",
+      "privacy": "Chính sách bảo mật"
     },
     "languageModalTitle": "Chọn ngôn ngữ",
     "currencyModalTitle": "Chọn đơn vị tiền tệ",
@@ -1015,7 +1017,9 @@
     "kind": {
       "notice": "Thông báo",
       "qa": "Hỏi đáp",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "terms": "Điều khoản dịch vụ",
+      "privacy": "Chính sách bảo mật"
     },
     "empty": "Chưa có bài viết.",
     "ask": "Đặt câu hỏi",
@@ -1195,5 +1199,10 @@
     "failedAdmin": "Không thể xoá tài khoản quản trị từ trong ứng dụng.",
     "failedBalance": "Công ty của bạn vẫn còn phí quảng cáo chưa quyết toán nên chưa thể xoá. Vui lòng quyết toán trước.",
     "failed": "Không xoá được tài khoản. Vui lòng thử lại sau."
+  },
+  "legal": {
+    "emptyTitle": "Chưa được đăng",
+    "emptyBody": "Tài liệu sẽ hiển thị tại đây khi sẵn sàng.",
+    "effectiveDate": "Hiệu lực {{date}}"
   }
 }

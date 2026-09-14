@@ -303,7 +303,9 @@
       "currency": "통화",
       "support": "고객센터",
       "notices": "공지사항",
-      "deleteAccount": "계정 삭제"
+      "deleteAccount": "계정 삭제",
+      "terms": "이용약관",
+      "privacy": "개인정보처리방침"
     },
     "languageModalTitle": "언어 선택",
     "currencyModalTitle": "통화 선택",
@@ -1015,7 +1017,9 @@
     "kind": {
       "notice": "공지사항",
       "qa": "QA",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "terms": "이용약관",
+      "privacy": "개인정보처리방침"
     },
     "empty": "등록된 글이 없습니다.",
     "ask": "질문하기",
@@ -1195,5 +1199,10 @@
     "failedAdmin": "관리자 계정은 앱에서 삭제할 수 없습니다.",
     "failedBalance": "소속 업체에 정산되지 않은 광고비가 남아 있어 삭제할 수 없습니다. 정산 후 다시 시도해 주세요.",
     "failed": "계정을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요."
+  },
+  "legal": {
+    "emptyTitle": "아직 등록되지 않았습니다",
+    "emptyBody": "문서가 준비되는 대로 여기에 표시됩니다.",
+    "effectiveDate": "시행일 {{date}}"
   }
 }

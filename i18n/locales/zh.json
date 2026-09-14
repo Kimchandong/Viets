@@ -303,7 +303,9 @@
       "currency": "货币",
       "support": "客户支持",
       "notices": "公告",
-      "deleteAccount": "删除账号"
+      "deleteAccount": "删除账号",
+      "terms": "服务条款",
+      "privacy": "隐私政策"
     },
     "languageModalTitle": "选择语言",
     "currencyModalTitle": "选择货币",
@@ -1015,7 +1017,9 @@
     "kind": {
       "notice": "公告",
       "qa": "问答",
-      "faq": "常见问题"
+      "faq": "常见问题",
+      "terms": "服务条款",
+      "privacy": "隐私政策"
     },
     "empty": "暂无内容。",
     "ask": "我要提问",
@@ -1195,5 +1199,10 @@
     "failedAdmin": "管理员账号无法在应用内删除。",
     "failedBalance": "所属中介尚有未结算的广告费，无法删除。请结算后再试。",
     "failed": "未能删除账号，请稍后再试。"
+  },
+  "legal": {
+    "emptyTitle": "尚未发布",
+    "emptyBody": "文件准备就绪后将显示在此处。",
+    "effectiveDate": "生效日期 {{date}}"
   }
 }

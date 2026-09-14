@@ -20,7 +20,23 @@ import { supabase } from "./supabase";
  * 이 글들도 같이 잡혀야 한다.
  */
 
-export type BoardKind = "notice" | "qa" | "faq";
+/**
+ * [2026-09-14 사용자 결정] terms·privacy 추가.
+ *
+ * 약관과 개인정보처리방침을 i18n에 문구로 박지 않고 게시판 글로 두는 이유:
+ * 원문이 베트남 법무법인에서 **출시 직전에** 온다. 코드에 박아 두면 그때 재빌드와
+ * 재심사를 해야 하지만, 글로 두면 관리자 화면에서 붙여넣는 것으로 끝난다.
+ * 기존 자동 번역 파이프라인(6개 언어)도 그대로 탄다.
+ *
+ * 목록으로 훑어보는 글이 아니므로 공개 게시판 탭(app/(tabs)/boards.tsx)에는 넣지
+ * 않는다 — MY 설정에서 각각 전용 화면으로 연다.
+ */
+export type BoardKind = "notice" | "qa" | "faq" | "terms" | "privacy";
+
+/** 법적 고지 문서. 종류당 "현재 시행 중인 것" 한 건만 화면에 보여 준다. */
+export type LegalKind = "terms" | "privacy";
+
+export const LEGAL_KINDS: LegalKind[] = ["terms", "privacy"];
 
 export type BoardPost = {
   id: string;
@@ -148,6 +164,34 @@ export async function getBoardPost(id: string, lang: string): Promise<BoardPost 
 
   if (error || !data) {
     if (error) console.warn("[services/boards] getBoardPost failed:", error.message);
+    return null;
+  }
+  return mapPost(data as unknown as PostRow, lang);
+}
+
+/**
+ * 지금 시행 중인 약관 / 개인정보처리방침 한 건.
+ *
+ * 공개된 것 중 가장 최근 글을 쓴다 — 개정하면 새 글을 올리고 이전 글은 내려두는
+ * 방식이라, 개정 이력이 board_posts에 그대로 남는다.
+ */
+export async function getLegalDocument(
+  kind: LegalKind,
+  lang: string,
+): Promise<BoardPost | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("board_posts")
+    .select(POST_COLUMNS)
+    .eq("kind", kind)
+    .eq("published", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.warn("[services/boards] getLegalDocument failed:", error.message);
     return null;
   }
   return mapPost(data as unknown as PostRow, lang);

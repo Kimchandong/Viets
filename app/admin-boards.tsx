@@ -29,7 +29,9 @@ import { isAdmin } from "@/services/roles";
  * 그 아래 작성일) — 같은 글이 화면마다 다르게 보일 이유가 없다.
  */
 
-const KIND_ORDER: BoardKind[] = ["notice", "qa", "faq"];
+// [2026-09-14] 약관·개인정보처리방침도 여기서 쓴다. 공개 게시판 탭에는 넣지 않는다 —
+// 목록으로 훑는 글이 아니라 MY 설정에서 각각 전용 화면으로 여는 문서다.
+const KIND_ORDER: BoardKind[] = ["notice", "qa", "faq", "terms", "privacy"];
 
 export default function AdminBoardsScreen() {
   const theme = colors.light;

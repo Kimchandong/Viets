@@ -303,7 +303,9 @@
       "currency": "Currency",
       "support": "Customer Support",
       "notices": "Notices",
-      "deleteAccount": "Delete account"
+      "deleteAccount": "Delete account",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy"
     },
     "languageModalTitle": "Select Language",
     "currencyModalTitle": "Select Currency",
@@ -1015,7 +1017,9 @@
     "kind": {
       "notice": "Notices",
       "qa": "Q&A",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy"
     },
     "empty": "No posts yet.",
     "ask": "Ask a question",
@@ -1195,5 +1199,10 @@
     "failedAdmin": "Administrator accounts cannot be deleted from the app.",
     "failedBalance": "Your agency still has an unsettled advertising balance. Please settle it first.",
     "failed": "Could not delete your account. Please try again shortly."
+  },
+  "legal": {
+    "emptyTitle": "Not published yet",
+    "emptyBody": "This document will appear here once it is ready.",
+    "effectiveDate": "Effective {{date}}"
   }
 }

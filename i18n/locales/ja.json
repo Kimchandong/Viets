@@ -303,7 +303,9 @@
       "currency": "通貨",
       "support": "カスタマーサポート",
       "notices": "お知らせ",
-      "deleteAccount": "アカウント削除"
+      "deleteAccount": "アカウント削除",
+      "terms": "利用規約",
+      "privacy": "プライバシーポリシー"
     },
     "languageModalTitle": "言語を選択",
     "currencyModalTitle": "通貨を選択",
@@ -1015,7 +1017,9 @@
     "kind": {
       "notice": "お知らせ",
       "qa": "QA",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "terms": "利用規約",
+      "privacy": "プライバシーポリシー"
     },
     "empty": "投稿がありません。",
     "ask": "質問する",
@@ -1195,5 +1199,10 @@
     "failedAdmin": "管理者アカウントはアプリから削除できません。",
     "failedBalance": "所属業者に未精算の広告費が残っているため削除できません。精算後にお試しください。",
     "failed": "アカウントを削除できませんでした。しばらくしてからお試しください。"
+  },
+  "legal": {
+    "emptyTitle": "まだ登録されていません",
+    "emptyBody": "文書が用意され次第ここに表示されます。",
+    "effectiveDate": "施行日 {{date}}"
   }
 }

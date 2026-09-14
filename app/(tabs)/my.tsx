@@ -951,6 +951,21 @@ export default function MyScreen() {
               label={t("my.rows.support")}
               onPress={() => router.push({ pathname: "/boards", params: { kind: "qa" } })}
               theme={theme}
+            />
+            {/* [2026-09-14] 이용약관·개인정보처리방침 — 본문은 DB(board_posts)에 있다.
+                법무법인 원문이 출시 직전에 오므로, 코드에 박아 두면 그때 재빌드해야
+                한다. 비로그인 사용자도 읽을 수 있어야 한다(가입 전에 보는 문서다). */}
+            <SettingsRow
+              icon="document-text-outline"
+              label={t("my.rows.terms")}
+              onPress={() => router.push({ pathname: "/legal/[kind]", params: { kind: "terms" } })}
+              theme={theme}
+            />
+            <SettingsRow
+              icon="shield-checkmark-outline"
+              label={t("my.rows.privacy")}
+              onPress={() => router.push({ pathname: "/legal/[kind]", params: { kind: "privacy" } })}
+              theme={theme}
               last={!isLoggedIn || isAdminUser}
             />
             {/* [2026-09-14] 계정 삭제 — Apple(2022-06~)·Google(2024~) 심사 필수.

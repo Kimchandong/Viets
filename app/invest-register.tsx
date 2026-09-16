@@ -64,6 +64,45 @@ type ProductType = (typeof PRODUCT_TYPES)[number];
 type RiskLevel = (typeof RISK_LEVELS)[number];
 type DividendFrequency = (typeof DIVIDEND_FREQUENCIES)[number];
 
+/**
+ * [2026-09-16 확정-결정사항 5] 모집 기간 입력 — YYYY-MM-DD ↔ ISO 변환.
+ *
+ * 세 함수가 한 규칙을 공유한다: **종료일은 그날 23:59:59.999까지**다. 관리자가
+ * 종료일에 9월 30일을 넣으면 9월 30일 하루가 통째로 모집 기간에 들어가야 한다 —
+ * 9월 30일 00:00로 저장하면 그날 아침에 이미 마감이라 관리자가 놀란다.
+ *
+ * 시간대: 기기의 지역 시간으로 만든 Date를 ISO(UTC)로 저장한다. 베트남 현지
+ * 담당자가 넣은 "9월 30일"이 현지 기준 하루가 된다.
+ */
+const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function isoToDateInput(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** 빈 문자열이면 null(제한 없음), 형식이 틀리면 undefined(입력 오류). */
+function dateInputToIso(value: string, endOfDay: boolean): string | null | undefined {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return null;
+  if (!DATE_INPUT_PATTERN.test(trimmed)) return undefined;
+
+  const [year, month, day] = trimmed.split("-").map(Number);
+  const date = endOfDay
+    ? new Date(year, month - 1, day, 23, 59, 59, 999)
+    : new Date(year, month - 1, day, 0, 0, 0, 0);
+
+  // "2026-02-31"처럼 달력에 없는 날은 Date가 조용히 3월로 굴린다. 되돌려 비교해
+  // 입력한 날과 다르면 오류로 본다.
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return undefined;
+  }
+  return date.toISOString();
+}
+
 export default function InvestRegisterScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
@@ -91,6 +130,13 @@ export default function InvestRegisterScreen() {
   const [targetAmount, setTargetAmount] = useState("");
   const [minimumInvestment, setMinimumInvestment] = useState("");
   const [raisedAmount, setRaisedAmount] = useState("0");
+  // [2026-09-16 확정-결정사항 5] 모집 기간. YYYY-MM-DD 문자열로 받는다.
+  //
+  // 날짜 선택기를 쓰지 않은 이유: @react-native-community/datetimepicker는 네이티브
+  // 모듈이라 지금 넣으면 **새 네이티브 빌드**가 필요하다. 지금은 빌드 횟수를 줄이려는
+  // 단계이고, 이 화면은 관리자 전용이라 텍스트 입력으로 충분하다.
+  const [startAt, setStartAt] = useState("");
+  const [endAt, setEndAt] = useState("");
   const [expectedReturn, setExpectedReturn] = useState("");
   const [periodMonths, setPeriodMonths] = useState("");
   const [publishNow, setPublishNow] = useState(true);
@@ -106,7 +152,13 @@ export default function InvestRegisterScreen() {
 
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{ title?: string; target?: string; minimum?: string }>({});
+  const [errors, setErrors] = useState<{
+    title?: string;
+    target?: string;
+    minimum?: string;
+    startAt?: string;
+    endAt?: string;
+  }>({});
 
   function showToast(message: string) {
     setToast(message);
@@ -150,6 +202,8 @@ export default function InvestRegisterScreen() {
       setTargetAmount(String(existing.target_amount));
       setMinimumInvestment(String(existing.minimum_investment));
       setRaisedAmount(String(existing.raised_amount ?? 0));
+      setStartAt(isoToDateInput(existing.start_at));
+      setEndAt(isoToDateInput(existing.end_at));
       setExpectedReturn(existing.expected_return !== null ? String(existing.expected_return) : "");
       setPeriodMonths(
         existing.investment_period_months !== null ? String(existing.investment_period_months) : "",
@@ -201,7 +255,13 @@ export default function InvestRegisterScreen() {
   }
 
   async function handleSubmit() {
-    const nextErrors: { title?: string; target?: string; minimum?: string } = {};
+    const nextErrors: {
+      title?: string;
+      target?: string;
+      minimum?: string;
+      startAt?: string;
+      endAt?: string;
+    } = {};
     if (title.trim().length === 0) {
       nextErrors.title = t("investRegister.errorTitleRequired");
     }
@@ -215,6 +275,19 @@ export default function InvestRegisterScreen() {
     } else if (targetValue !== null && minimumValue > targetValue) {
       nextErrors.minimum = t("investRegister.errorMinimumTooLarge");
     }
+    // [2026-09-16 확정 5] 모집 기간 — 둘 다 비워도 된다(제한 없음).
+    const startIso = dateInputToIso(startAt, false);
+    const endIso = dateInputToIso(endAt, true);
+    if (startIso === undefined) {
+      nextErrors.startAt = t("investRegister.errorDateFormat");
+    }
+    if (endIso === undefined) {
+      nextErrors.endAt = t("investRegister.errorDateFormat");
+    }
+    if (startIso && endIso && new Date(startIso) > new Date(endIso)) {
+      nextErrors.endAt = t("investRegister.errorEndBeforeStart");
+    }
+
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -232,6 +305,9 @@ export default function InvestRegisterScreen() {
       region,
       property_id: linkedProperty?.id ?? null,
       raised_amount: parseNumber(raisedAmount) ?? 0,
+      // 위 검증을 통과했으므로 undefined일 수 없다 — null(제한 없음)이거나 ISO다.
+      start_at: startIso ?? null,
+      end_at: endIso ?? null,
       status: publishNow ? "open" : "draft",
     };
 
@@ -449,6 +525,39 @@ export default function InvestRegisterScreen() {
             keyboardType="numeric"
             helperText={t("investRegister.raisedAmountHelper")}
           />
+        </View>
+
+        {/* [2026-09-16 확정-결정사항 5] 모집 기간.
+            비워 두면 제한이 없다 — 기간 열이 생기기 전에 등록된 상품과 같은 동작이다.
+            종료일이 지나면 투자 탭 목록에서 사라지지만, 이미 투자한 사람은 MY의
+            내 투자에서 계속 볼 수 있다(사용자 결정). */}
+        <View style={styles.section}>
+          <SectionHeader title={t("investRegister.periodSection")} />
+          <Text style={styles.sectionHint}>{t("investRegister.periodHelper")}</Text>
+          <View style={styles.row}>
+            <Input
+              label={t("investRegister.startAtLabel")}
+              value={startAt}
+              onChangeText={(next) => {
+                setStartAt(next);
+                if (errors.startAt) setErrors((prev) => ({ ...prev, startAt: undefined }));
+              }}
+              placeholder="2026-09-30"
+              error={errors.startAt}
+              containerStyle={styles.rowItem}
+            />
+            <Input
+              label={t("investRegister.endAtLabel")}
+              value={endAt}
+              onChangeText={(next) => {
+                setEndAt(next);
+                if (errors.endAt) setErrors((prev) => ({ ...prev, endAt: undefined }));
+              }}
+              placeholder="2026-12-31"
+              error={errors.endAt}
+              containerStyle={styles.rowItem}
+            />
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -840,6 +949,13 @@ const styles = createScaledStyles(() => ({
   },
   rowItem: {
     flex: 1,
+  },
+  // [2026-09-16 확정 5] 모집 기간 섹션 제목 아래 한 줄 — 비워도 된다는 안내.
+  // SectionHeader에 부제 자리가 없어 여기서 그린다(매물 등록 화면과 같은 방식).
+  sectionHint: {
+    ...textStyles.caption,
+    color: colors.light.secondaryText,
+    marginTop: -spacing.xs,
   },
   multiline: {
     minHeight: 96,

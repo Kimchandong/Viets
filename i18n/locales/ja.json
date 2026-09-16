@@ -168,7 +168,9 @@
     "aiInvestmentsTitle": "AI投資",
     "tabAmount": "投資金額",
     "tabPeriod": "期間",
-    "tabTarget": "目標額"
+    "tabTarget": "目標額",
+    "fundraisingPeriodLabel": "募集期間",
+    "applyClosed": "募集終了"
   },
   "investApply": {
     "headerTitle": "投資申込み",
@@ -232,7 +234,9 @@
     "goToInvestList": "投資商品一覧へ",
     "confirmBeforeApplyTitle": "投資申込み前に必ずご確認ください",
     "confirmBeforeApplyBody": "本商品は不動産および関連資産に投資する商品であり、投資元本の全部または一部が損失する可能性があり、投資収益は保証されません。\n投資前に以下の事項を必ずご確認ください。\n* ご自身の投資目的と投資期間を十分にご検討ください。\n* 投資金額がご自身の財政状況に無理のない範囲かご確認ください。\n* 生活費、緊急資金、ローン返済などに必要な資金を投資に使用しないでください。\n* 不動産市場および当該投資商品の状況により、予想より低い収益が発生したり、損失が発生する場合があります。\n* 投資金の回収または売却には一定期間を要する場合があり、希望する時にすぐに現金化できない場合があります。\n* 投資収益率および予想配当金は確定した収益を意味するものではありません。\n* 投資前に商品の投資構造、対象不動産、予想収益、リスク要因、手数料およびその他関連情報を十分にご確認ください。\n投資はご自身の判断と責任において行われます。\n十分に理解し、慎重にご判断の上、投資申込みを進めてください。",
-    "submitting": "送信中..."
+    "submitting": "送信中...",
+    "closedTitle": "募集は終了しました",
+    "closedDescription": "この商品は新規申込を受け付けていません。すでに投資済みの場合は MY › マイ投資 でご確認ください。"
   },
   "chat": {
     "headerTitle": "不動産相談",
@@ -595,7 +599,13 @@
     "permissionNoResults": "該当するアカウントがありません。",
     "permissionAdminBadge": "管理者",
     "permissionOn": "権限あり",
-    "permissionOff": "権限なし"
+    "permissionOff": "権限なし",
+    "periodSection": "募集期間",
+    "periodHelper": "空欄なら期間制限なし。終了日を過ぎると一覧から非表示になります。",
+    "startAtLabel": "開始日",
+    "endAtLabel": "終了日",
+    "errorDateFormat": "YYYY-MM-DD の形式で入力してください。",
+    "errorEndBeforeStart": "終了日が開始日より前です。"
   },
   "adminPermissions": {
     "title": "アカウント権限管理",
@@ -1225,5 +1235,15 @@
     "emptyTitle": "まだ登録されていません",
     "emptyBody": "文書が用意され次第ここに表示されます。",
     "effectiveDate": "施行日 {{date}}"
+  },
+  "myInvestments": {
+    "title": "マイ投資",
+    "myAmountLabel": "投資額",
+    "orderCount": "{{count}}件",
+    "closedNote": "募集が終了したため、投資一覧には表示されません。",
+    "emptyTitle": "まだ投資はありません",
+    "emptyDescription": "投資タブで募集中の商品をご覧ください。",
+    "signedOutTitle": "ログインが必要です",
+    "signedOutDescription": "ログインすると投資履歴を確認できます。"
   }
 }

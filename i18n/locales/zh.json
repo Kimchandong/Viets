@@ -168,7 +168,9 @@
     "aiInvestmentsTitle": "AI投资",
     "tabAmount": "投资金额",
     "tabPeriod": "期限",
-    "tabTarget": "目标金额"
+    "tabTarget": "目标金额",
+    "fundraisingPeriodLabel": "募集期间",
+    "applyClosed": "募集已结束"
   },
   "investApply": {
     "headerTitle": "投资申请",
@@ -232,7 +234,9 @@
     "goToInvestList": "前往投资列表",
     "confirmBeforeApplyTitle": "投资申请前请务必确认",
     "confirmBeforeApplyBody": "本产品为投资不动产及相关资产的产品，投资本金可能部分或全部损失，投资收益不作保证。\n投资前请务必确认以下事项。\n* 请充分考虑本人的投资目的和投资期限。\n* 请确认投资金额是否会对本人的财务状况造成负担。\n* 请勿将生活费、应急资金、贷款偿还等所需资金用于投资。\n* 根据房地产市场及该投资产品的状况，可能出现低于预期的收益或发生亏损。\n* 投资款的回收或转让可能需要一定时间，可能无法在您需要时立即变现。\n* 投资收益率及预期分红并不代表已确定的收益。\n* 投资前请充分确认产品的投资结构、标的不动产、预期收益、风险因素、费用及其他相关信息。\n投资由本人自行判断并自行承担责任。\n请在充分理解并审慎判断后再进行投资申请。",
-    "submitting": "提交中..."
+    "submitting": "提交中...",
+    "closedTitle": "募集已结束",
+    "closedDescription": "该产品不再接受申请。如您已投资，可在「我的 › 我的投资」中查看。"
   },
   "chat": {
     "headerTitle": "房产咨询",
@@ -595,7 +599,13 @@
     "permissionNoResults": "没有匹配的账户。",
     "permissionAdminBadge": "管理员",
     "permissionOn": "有权限",
-    "permissionOff": "无权限"
+    "permissionOff": "无权限",
+    "periodSection": "募集期间",
+    "periodHelper": "留空表示不限期。结束日期过后将从列表中隐藏。",
+    "startAtLabel": "开始日期",
+    "endAtLabel": "结束日期",
+    "errorDateFormat": "请按 YYYY-MM-DD 格式输入。",
+    "errorEndBeforeStart": "结束日期早于开始日期。"
   },
   "adminPermissions": {
     "title": "账户权限管理",
@@ -1225,5 +1235,15 @@
     "emptyTitle": "尚未发布",
     "emptyBody": "文件准备就绪后将显示在此处。",
     "effectiveDate": "生效日期 {{date}}"
+  },
+  "myInvestments": {
+    "title": "我的投资",
+    "myAmountLabel": "我的投资额",
+    "orderCount": "{{count}} 笔",
+    "closedNote": "募集已结束，因此不再显示在投资列表中。",
+    "emptyTitle": "尚无投资",
+    "emptyDescription": "请在投资标签中浏览募集中的产品。",
+    "signedOutTitle": "需要登录",
+    "signedOutDescription": "登录后可查看您的投资记录。"
   }
 }

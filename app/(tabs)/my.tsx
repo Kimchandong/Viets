@@ -738,7 +738,10 @@ export default function MyScreen() {
             <StatTile
               label={t("my.stats.myInvestments")}
               value={String(myOrderCount)}
-              onPress={() => router.push("/invest")}
+              // [2026-09-16 확정-결정사항 5] 예전에는 투자 탭으로 보냈다. 모집 기간
+              // 필터가 붙은 뒤로는 그 목록에 내 상품이 없을 수 있어(마감되면 숨는다)
+              // 내 투자 전용 화면으로 돌린다.
+              onPress={() => router.push("/my-investments")}
               valueStyle={styles.activityValue}
             />
             <StatTile

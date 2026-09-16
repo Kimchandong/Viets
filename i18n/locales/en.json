@@ -168,7 +168,9 @@
     "aiInvestmentsTitle": "AI Investments",
     "tabAmount": "Investment amount",
     "tabPeriod": "Period",
-    "tabTarget": "Target amount"
+    "tabTarget": "Target amount",
+    "fundraisingPeriodLabel": "Fundraising period",
+    "applyClosed": "Fundraising closed"
   },
   "investApply": {
     "headerTitle": "Investment Application",
@@ -232,7 +234,9 @@
     "goToInvestList": "Go to investment list",
     "confirmBeforeApplyTitle": "Important Notice Before Applying to Invest",
     "confirmBeforeApplyBody": "This product invests in real estate and related assets, and part or all of your invested principal may be lost; investment returns are not guaranteed.\nPlease be sure to check the following before investing.\n* Carefully consider your investment purpose and investment period.\n* Make sure the investment amount does not strain your financial situation.\n* Do not use funds needed for living expenses, emergency funds, loan repayments, etc. for investment.\n* Depending on the real estate market and the status of this investment product, returns may be lower than expected or losses may occur.\n* Recovering or selling your investment may take a certain amount of time, and it may not be converted to cash immediately when you want.\n* The investment return rate and expected dividends do not represent a guaranteed return.\n* Before investing, please thoroughly review the product's investment structure, underlying property, expected returns, risk factors, fees, and other related information.\nInvestments are made based on your own judgment and responsibility.\nPlease proceed with your investment application only after fully understanding and carefully considering the above.",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "closedTitle": "Fundraising has closed",
+    "closedDescription": "This product is no longer accepting applications. If you already invested, see MY › My investments."
   },
   "chat": {
     "headerTitle": "Property Consultation",
@@ -595,7 +599,13 @@
     "permissionNoResults": "No matching account.",
     "permissionAdminBadge": "Admin",
     "permissionOn": "Allowed",
-    "permissionOff": "Not allowed"
+    "permissionOff": "Not allowed",
+    "periodSection": "Fundraising period",
+    "periodHelper": "Leave blank for no limit. After the end date the product is hidden from the list.",
+    "startAtLabel": "Start date",
+    "endAtLabel": "End date",
+    "errorDateFormat": "Enter the date as YYYY-MM-DD.",
+    "errorEndBeforeStart": "The end date is before the start date."
   },
   "adminPermissions": {
     "title": "Account permissions",
@@ -1225,5 +1235,15 @@
     "emptyTitle": "Not published yet",
     "emptyBody": "This document will appear here once it is ready.",
     "effectiveDate": "Effective {{date}}"
+  },
+  "myInvestments": {
+    "title": "My investments",
+    "myAmountLabel": "My amount",
+    "orderCount": "{{count}} orders",
+    "closedNote": "Fundraising has closed, so this product no longer appears in the invest list.",
+    "emptyTitle": "No investments yet",
+    "emptyDescription": "Browse products open for fundraising in the Invest tab.",
+    "signedOutTitle": "Sign in required",
+    "signedOutDescription": "Sign in to see your investments."
   }
 }

@@ -197,6 +197,23 @@ export default function InvestApplyScreen() {
     );
   }
 
+  // [2026-09-16 확정-결정사항 5] 모집이 끝난 상품은 신청을 받지 않는다.
+  //
+  // 상세 화면(I1)에서 버튼을 잠그지만, 이 화면은 URL로 직접 열 수 있고 상세를 열어
+  // 둔 채 기간이 지날 수도 있다. 폼을 다 채운 뒤 저장에서 튕기는 것보다 들어올 때
+  // 막는 편이 낫다.
+  if (product.status !== "fundraising") {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+        <Header title={t("investApply.headerTitle")} leftAction={<BackButton fallback="/invest" />} />
+        <EmptyState
+          title={t("investApply.closedTitle")}
+          description={t("investApply.closedDescription")}
+        />
+      </SafeAreaView>
+    );
+  }
+
   const minAmountVnd = product.minInvestmentValueVnd;
   const amountNumber = Number(amount || "0");
   const expectedReturnParts = splitYieldText(product.expectedReturn);

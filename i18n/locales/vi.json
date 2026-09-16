@@ -168,7 +168,9 @@
     "aiInvestmentsTitle": "Đầu tư AI",
     "tabAmount": "Số tiền đầu tư",
     "tabPeriod": "Kỳ hạn",
-    "tabTarget": "Số tiền mục tiêu"
+    "tabTarget": "Số tiền mục tiêu",
+    "fundraisingPeriodLabel": "Thời gian huy động",
+    "applyClosed": "Đã kết thúc huy động"
   },
   "investApply": {
     "headerTitle": "Đăng ký đầu tư",
@@ -232,7 +234,9 @@
     "goToInvestList": "Đến danh sách đầu tư",
     "confirmBeforeApplyTitle": "Lưu ý quan trọng trước khi đăng ký đầu tư",
     "confirmBeforeApplyBody": "Sản phẩm này là sản phẩm đầu tư vào bất động sản và các tài sản liên quan, có thể mất một phần hoặc toàn bộ vốn gốc đầu tư, và lợi nhuận đầu tư không được đảm bảo.\nVui lòng chắc chắn xác nhận các nội dung dưới đây trước khi đầu tư.\n* Hãy cân nhắc kỹ mục đích đầu tư và thời gian đầu tư của bản thân.\n* Hãy kiểm tra xem số tiền đầu tư có phù hợp với tình hình tài chính của bạn hay không.\n* Không sử dụng tiền sinh hoạt phí, quỹ khẩn cấp, tiền trả nợ vay... để đầu tư.\n* Tùy theo tình hình thị trường bất động sản và sản phẩm đầu tư, lợi nhuận thực tế có thể thấp hơn dự kiến hoặc có thể phát sinh thua lỗ.\n* Việc thu hồi hoặc chuyển nhượng khoản đầu tư có thể mất một khoảng thời gian nhất định và có thể không được chuyển đổi thành tiền mặt ngay khi bạn muốn.\n* Tỷ suất lợi nhuận đầu tư và cổ tức dự kiến không có nghĩa là lợi nhuận đã được xác định.\n* Trước khi đầu tư, vui lòng kiểm tra kỹ cấu trúc đầu tư, bất động sản mục tiêu, lợi nhuận dự kiến, các yếu tố rủi ro, phí và các thông tin liên quan khác của sản phẩm.\nViệc đầu tư được thực hiện theo phán đoán và trách nhiệm của chính bạn.\nVui lòng tiến hành đăng ký đầu tư sau khi đã hiểu rõ và cân nhắc thận trọng.",
-    "submitting": "Đang gửi..."
+    "submitting": "Đang gửi...",
+    "closedTitle": "Đợt huy động đã kết thúc",
+    "closedDescription": "Sản phẩm này không còn nhận đăng ký. Nếu bạn đã đầu tư, xem tại MY › Khoản đầu tư của tôi."
   },
   "chat": {
     "headerTitle": "Tư vấn bất động sản",
@@ -595,7 +599,13 @@
     "permissionNoResults": "Không có tài khoản phù hợp.",
     "permissionAdminBadge": "Quản trị viên",
     "permissionOn": "Có quyền",
-    "permissionOff": "Không có quyền"
+    "permissionOff": "Không có quyền",
+    "periodSection": "Thời gian huy động",
+    "periodHelper": "Để trống nếu không giới hạn. Sau ngày kết thúc, sản phẩm sẽ bị ẩn khỏi danh sách.",
+    "startAtLabel": "Ngày bắt đầu",
+    "endAtLabel": "Ngày kết thúc",
+    "errorDateFormat": "Nhập ngày theo định dạng YYYY-MM-DD.",
+    "errorEndBeforeStart": "Ngày kết thúc sớm hơn ngày bắt đầu."
   },
   "adminPermissions": {
     "title": "Quyền tài khoản",
@@ -1225,5 +1235,15 @@
     "emptyTitle": "Chưa được đăng",
     "emptyBody": "Tài liệu sẽ hiển thị tại đây khi sẵn sàng.",
     "effectiveDate": "Hiệu lực {{date}}"
+  },
+  "myInvestments": {
+    "title": "Khoản đầu tư của tôi",
+    "myAmountLabel": "Số tiền của tôi",
+    "orderCount": "{{count}} lệnh",
+    "closedNote": "Đợt huy động đã kết thúc nên sản phẩm này không còn trong danh sách đầu tư.",
+    "emptyTitle": "Chưa có khoản đầu tư nào",
+    "emptyDescription": "Xem các sản phẩm đang huy động trong tab Đầu tư.",
+    "signedOutTitle": "Cần đăng nhập",
+    "signedOutDescription": "Đăng nhập để xem các khoản đầu tư của bạn."
   }
 }

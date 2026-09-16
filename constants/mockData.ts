@@ -402,6 +402,11 @@ export type MockInvestmentProduct = {
   targetAmountVnd: number;
   raisedAmountVnd: number;
   dividendFrequency: "monthly" | "quarterly" | "yearly";
+  /** [2026-09-16 확정-결정사항 5] 모집 기간(ISO 문자열). undefined면 그 방향으로
+   * 제한이 없다 — 시작일이 없으면 이미 시작, 종료일이 없으면 무기한. 기간 열이
+   * 생기기 전에 등록된 상품과 mock 상품은 둘 다 없다. */
+  fundraisingStartAt?: string;
+  fundraisingEndAt?: string;
   /** [STEP: 2026-09-09-6] 다국어 상세설명 — 언어코드 → 번역문 맵(utils/format.ts localizedText 참고). */
   description: Partial<Record<string, string>>;
   images: (typeof MOCK_INVEST_IMAGES)[MockInvestmentCategory];

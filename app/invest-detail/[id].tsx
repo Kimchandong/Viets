@@ -196,6 +196,23 @@ export default function InvestDetailScreen() {
     );
   }
 
+  /**
+   * [2026-09-16 확정-결정사항 5] 모집 기간 한 줄.
+   *
+   * 한쪽만 있는 경우가 실제로 생긴다 — 종료일만 정하고 바로 모집을 시작하는 상품이
+   * 그렇다. 그래서 "~ 9월 30일" / "9월 1일 ~" / "9월 1일 ~ 9월 30일" 세 모양을
+   * 모두 만든다. 날짜 표기는 기기 지역 설정을 따른다(i18n 언어와 별개로, 사용자가
+   * 자기 기기에서 늘 보던 형식이 가장 덜 헷갈린다).
+   */
+  const fundraisingPeriodText = (() => {
+    const format = (iso?: string) =>
+      iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium" }) : "";
+    const start = format(product.fundraisingStartAt);
+    const end = format(product.fundraisingEndAt);
+    if (!start && !end) return "";
+    return `${start} ~ ${end}`;
+  })();
+
   const riskColor =
     product.riskLevel === "low" ? theme.success : product.riskLevel === "high" ? theme.danger : theme.accent;
 
@@ -334,6 +351,13 @@ export default function InvestDetailScreen() {
             <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
               {t("invest.progressLabel")} {product.fundedPercent}% · {formatVndAmount(product.raisedAmountVnd)} / {formatVndAmount(product.targetAmountVnd)}
             </Text>
+            {/* [2026-09-16 확정-결정사항 5] 모집 기간. 둘 다 없으면(기간 제한 없는
+                상품, 또는 이 열이 생기기 전에 등록된 상품) 줄 자체를 그리지 않는다. */}
+            {fundraisingPeriodText ? (
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                {t("investDetail.fundraisingPeriodLabel")} {fundraisingPeriodText}
+              </Text>
+            ) : null}
           </View>
 
           <View style={styles.metricsGrid}>
@@ -425,8 +449,18 @@ export default function InvestDetailScreen() {
           확인 Modal 대신, 신청에 필요한 정보를 입력받는 전용 화면(app/invest-apply/
           [id].tsx)으로 이동한다. */}
       <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.border }]}>
+        {/* [2026-09-16 확정-결정사항 5] 모집이 끝났으면 신청을 막는다.
+            이 화면은 모집이 끝나도 열린다 — MY의 내 투자에서 들어오기 때문이다
+            (목록에서만 가리고 상세는 열어 둔다는 결정). 그래서 버튼만 잠근다.
+            서버에도 같은 제한이 필요한지는 4단계에서 "신청까지만 테스트"로 정해
+            이번 빌드 범위 밖이다 — 지금은 화면 가드다. */}
         <Button
-          title={t("investDetail.applyButton")}
+          title={
+            product.status === "fundraising"
+              ? t("investDetail.applyButton")
+              : t("investDetail.applyClosed")
+          }
+          disabled={product.status !== "fundraising"}
           onPress={() => {
             if (!session) {
               setLoginPromptVisible(true);

@@ -53,11 +53,45 @@ type InvestmentProductRow = {
   risk_level: "low" | "medium" | "high";
   status: string;
   raised_amount: number;
+  /** [2026-09-16 확정-결정사항 5] 모집 기간. 2026-09-10에 열만 만들어 두고 아무도
+   * 쓰지 않던 값(불일치-목록 3③). NULL이면 그 방향으로 제한이 없다. */
+  start_at: string | null;
+  end_at: string | null;
   properties: { address: string | null } | null;
 };
 
 const PRODUCT_SELECT =
-  "id,title,description,description_i18n,description_lang,property_id,category,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,status,raised_amount,properties(address)";
+  "id,title,description,description_i18n,description_lang,property_id,category,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,status,raised_amount,start_at,end_at,properties(address)";
+
+/**
+ * [2026-09-16 확정-결정사항 5] 지금 모집 기간 안인가.
+ *
+ * NULL은 "제한 없음"이다 — 시작일이 없으면 이미 시작했고, 종료일이 없으면 무기한이다.
+ * 모집 기간 열이 생기기 전에 등록된 상품은 둘 다 NULL이라 지금까지와 똑같이 동작한다.
+ * 이 규칙은 아래 목록 조회의 서버 필터와 **같은 식**이어야 한다 — 한쪽만 고치면
+ * 목록에는 보이는데 열면 마감인 상품이 생긴다.
+ */
+function isFundraisingWindowOpen(
+  startAt: string | null,
+  endAt: string | null,
+  now: Date = new Date(),
+): boolean {
+  if (startAt && new Date(startAt) > now) return false;
+  if (endAt && new Date(endAt) < now) return false;
+  return true;
+}
+
+/** 화면용 — 이미 매핑된 상품이 모집 기간 안인지. 상세·신청 화면이 쓴다. */
+export function isFundraisingOpen(
+  product: Pick<MockInvestmentProduct, "fundraisingStartAt" | "fundraisingEndAt">,
+  now: Date = new Date(),
+): boolean {
+  return isFundraisingWindowOpen(
+    product.fundraisingStartAt ?? null,
+    product.fundraisingEndAt ?? null,
+    now,
+  );
+}
 
 function resolveImages(category: InvestImageCategory): ImageSourcePropType[] {
   // 투자상품 사진 테이블은 아직 없다(DATABASE.md §3 investment_product_documents는
@@ -79,11 +113,20 @@ function mapRow(row: InvestmentProductRow): MockInvestmentProduct {
     minInvestment: formatVndAmount(row.minimum_investment),
     period: row.investment_period_months !== null ? `${row.investment_period_months} tháng` : "",
     riskLevel: row.risk_level,
-    status: DB_STATUS_TO_UI[row.status] ?? "closed",
+    // [2026-09-16 확정 5] DB status가 'open'이어도 모집 기간 밖이면 화면에서는
+    // 마감이다. 상태를 DB에 다시 쓰지 않는 이유: 기간이 지났다고 배치로 status를
+    // 바꾸면 관리자가 종료일을 미루었을 때 되돌릴 방법이 없다. 기간은 기간대로 두고
+    // 표시할 때 계산한다.
+    status: isFundraisingWindowOpen(row.start_at, row.end_at)
+      ? (DB_STATUS_TO_UI[row.status] ?? "closed")
+      : "closed",
     fundedPercent,
     // DB에는 "추천" 컬럼이 없다 — 투자상품은 매물(properties.featured)과 달리
     // 큐레이션 필드를 아직 설계하지 않았다. 모집중 상품을 추천으로 노출한다.
-    featured: row.status === "open",
+    // 기간이 끝난 상품이 홈 추천에 남으면 안 되므로 기간도 함께 본다.
+    featured: row.status === "open" && isFundraisingWindowOpen(row.start_at, row.end_at),
+    fundraisingStartAt: row.start_at ?? undefined,
+    fundraisingEndAt: row.end_at ?? undefined,
     category,
     relatedPropertyId: row.property_id ?? undefined,
     minInvestmentValueVnd: row.minimum_investment,
@@ -102,10 +145,36 @@ export async function listInvestmentProducts(): Promise<MockInvestmentProduct[]>
     return [];
   }
 
+  // [2026-09-16 확정-결정사항 5] 모집 기간이 지난 상품은 목록에서 숨긴다.
+  //
+  // 이 필터를 **RLS가 아니라 조회 쿼리에** 두는 이유: RLS로 막으면 이미 투자한
+  // 사람이 MY에서 자기 상품을 열 수 없게 된다(사용자 결정 — "투자자는 자신의
+  // 투자상품 목록을 볼 수 있도록"). 목록에서만 가리고, id로 직접 여는 길은 열어 둔다.
+  //
+  // NULL은 제한 없음이다. 쓰고 싶은 조건은 이것이다:
+  //
+  //   (start_at is null or start_at <= now) and (end_at is null or end_at >= now)
+  //
+  // 그런데 `.or()`를 두 번 부르면 PostgREST에 `or=` 파라미터가 둘 생긴다. 같은
+  // 레벨의 중복 키가 어떻게 합쳐지는지는 보장돼 있지 않아, **한 번의 or 안에서
+  // and(...) 묶음 네 개**로 편다(선언형 논리곱의 전개 — 각 묶음이 위 조건의 한
+  // 경우다). 이 형태는 PostgREST가 문서로 보장하는 문법이다.
+  //
+  // 위 mapRow의 isFundraisingWindowOpen과 같은 규칙이어야 한다 — 한쪽만 고치면
+  // 목록에는 보이는데 열면 마감인 상품이 생긴다.
+  const nowIso = new Date().toISOString();
+  const withinWindow = [
+    `and(start_at.is.null,end_at.is.null)`,
+    `and(start_at.is.null,end_at.gte.${nowIso})`,
+    `and(start_at.lte.${nowIso},end_at.is.null)`,
+    `and(start_at.lte.${nowIso},end_at.gte.${nowIso})`,
+  ].join(",");
+
   const { data, error } = await supabase
     .from("investment_products")
     .select(PRODUCT_SELECT)
     .in("status", ["open", "completed"])
+    .or(withinWindow)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -170,6 +239,13 @@ export type NewInvestmentProductInput = {
   property_id: string | null;
   /** 모집 금액. D10 범위에서는 실제 입금이 없어 관리자가 직접 관리하는 값이다. */
   raised_amount: number;
+  /**
+   * [2026-09-16 확정-결정사항 5] 모집 기간. ISO 문자열이거나 null(제한 없음).
+   * 등록 화면은 YYYY-MM-DD로 받아 여기 넣기 전에 ISO로 바꾼다 — 종료일은 그날
+   * 23:59:59까지를 의미한다(하루를 통째로 주는 편이 관리자가 기대하는 동작이다).
+   */
+  start_at: string | null;
+  end_at: string | null;
   /** 'open'이면 공개 모집중, 'draft'면 비공개 저장. */
   status: "open" | "draft" | "closed" | "completed";
 };
@@ -298,7 +374,7 @@ export async function getInvestmentProductForEdit(
   const { data, error } = await supabase
     .from("investment_products")
     .select(
-      "title,description,category,product_type,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,region,property_id,raised_amount,status",
+      "title,description,category,product_type,target_amount,minimum_investment,expected_return,investment_period_months,dividend_frequency,risk_level,region,property_id,raised_amount,status,start_at,end_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -388,6 +464,52 @@ export async function listMyInvestmentOrders(): Promise<MyInvestmentOrder[]> {
     return [];
   }
   return (data ?? []) as MyInvestmentOrder[];
+}
+
+/** 내 투자 한 건 — 상품과 내가 넣은 금액을 함께 들고 있다. */
+export type MyInvestment = {
+  product: MockInvestmentProduct;
+  /** 같은 상품에 여러 번 신청했으면 합계. */
+  totalAmount: number;
+  orders: MyInvestmentOrder[];
+};
+
+/**
+ * [2026-09-16 확정-결정사항 5] 내가 투자한 상품 목록.
+ *
+ * 모집이 끝난 상품은 T3 목록에서 사라진다. 그런데 이미 투자한 사람에게는 그 상품이
+ * 여전히 자기 자산이므로 볼 수 있어야 한다(사용자 결정). 그래서 이 함수는
+ * **모집 기간을 보지 않는다** — 내 주문에 있는 상품은 무조건 가져온다.
+ *
+ * getInvestmentProductsByIds도 기간을 보지 않으므로 그대로 쓴다. 그쪽에 기간 필터를
+ * 넣으면 이 화면이 조용히 비어 버린다.
+ */
+export async function listMyInvestments(): Promise<MyInvestment[]> {
+  const orders = await listMyInvestmentOrders();
+  if (orders.length === 0) return [];
+
+  const productIds = [...new Set(orders.map((order) => order.product_id))];
+  const products = await getInvestmentProductsByIds(productIds);
+  const byId = new Map(products.map((product) => [product.id, product]));
+
+  // 주문은 최신순으로 돌아온다 — 그 순서를 상품 순서로 그대로 쓴다.
+  const seen = new Set<string>();
+  const result: MyInvestment[] = [];
+  for (const order of orders) {
+    if (seen.has(order.product_id)) continue;
+    const product = byId.get(order.product_id);
+    // 상품이 지워졌거나 RLS에 걸려 안 돌아오면 그 줄은 그릴 수 없다. 주문만 남은
+    // 상태를 빈 카드로 보여 주는 것보다 빼는 편이 낫다.
+    if (!product) continue;
+    seen.add(order.product_id);
+    const mine = orders.filter((row) => row.product_id === order.product_id);
+    result.push({
+      product,
+      totalAmount: mine.reduce((sum, row) => sum + Number(row.amount ?? 0), 0),
+      orders: mine,
+    });
+  }
+  return result;
 }
 
 /**

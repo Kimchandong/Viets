@@ -1116,7 +1116,6 @@
     "emptyDescription": "Bạn có thể chiếm hạng 1 với giá tối thiểu.",
     "purchaseTitle": "Chiếm hạng {{rank}}",
     "purchaseHint": "Tối thiểu {{amount}}. Số tiền này bị trừ mỗi lần nhấp.",
-    "tooLow": "Hãy nhập tối thiểu {{amount}}.",
     "failed": "Không thể đăng quảng cáo.",
     "needProperty": "Hãy lưu tin trước.",
     "minBidNotSet": "Quản trị viên chưa đặt giá tối thiểu.",
@@ -1132,7 +1131,9 @@
     "changeTarget": "Đổi",
     "pickTargetTitle": "Chọn tin để quảng cáo",
     "changeBid": "Đổi giá của tôi",
-    "lowerWarning": "Giảm giá sẽ hạ thứ hạng; nếu rớt khỏi vị trí hiển thị, quảng cáo sẽ ngừng."
+    "lowerWarning": "Giảm giá sẽ hạ thứ hạng; nếu rớt khỏi vị trí hiển thị, quảng cáo sẽ ngừng.",
+    "belowMin": "Mức giá tối thiểu là {{amount}}.",
+    "outbid": "Thứ hạng đã thay đổi. Vị trí này hiện cần tối thiểu {{amount}}."
   },
   "adManage": {
     "title": "Quảng cáo trả phí",

@@ -1116,7 +1116,6 @@
     "emptyDescription": "최소 광고비로 1위에 들어갈 수 있습니다.",
     "purchaseTitle": "{{rank}}위로 진입",
     "purchaseHint": "{{amount}} 이상이어야 합니다. 이 금액이 클릭 1회당 차감됩니다.",
-    "tooLow": "{{amount}} 이상을 입력해 주세요.",
     "failed": "광고 등록에 실패했습니다.",
     "needProperty": "매물을 저장한 뒤 설정할 수 있습니다.",
     "minBidNotSet": "관리자가 최소 진입금액을 아직 설정하지 않았습니다.",
@@ -1132,7 +1131,9 @@
     "changeTarget": "변경",
     "pickTargetTitle": "광고할 매물 선택",
     "changeBid": "내 광고비 변경",
-    "lowerWarning": "금액을 낮추면 순위가 내려가고, 노출 자리 밖으로 밀리면 노출이 중단됩니다."
+    "lowerWarning": "금액을 낮추면 순위가 내려가고, 노출 자리 밖으로 밀리면 노출이 중단됩니다.",
+    "belowMin": "최소 광고비는 {{amount}}입니다.",
+    "outbid": "그 사이 순위가 바뀌었습니다. 이 자리는 이제 {{amount}} 이상이어야 합니다."
   },
   "adManage": {
     "title": "유료 노출광고",

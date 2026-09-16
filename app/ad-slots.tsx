@@ -167,16 +167,31 @@ export default function AdSlotsScreen() {
     if (!target || submitting) return;
 
     const amount = Number(amountDraft.replace(/[^0-9]/g, ""));
-    if (!Number.isFinite(amount) || amount < target.required) {
-      showToast(t("adSlots.tooLow", { amount: formatMoneyAmount(target.required, currency) }));
+    // [2026-09-16 확정 7] 화면에서 미리 막는 것은 **최소금액**까지만이다.
+    //
+    // 예전에는 target.required(= 누른 줄 금액 + 1)로 막았는데, 그 값은 목록을 읽은
+    // 시점의 것이라 그 사이 그 업체가 금액을 내리면 서버라면 통과했을 입찰을 화면이
+    // 거절했다(불일치-목록 4①). 최소금액은 관리자 설정값이라 그런 경쟁이 없다.
+    // 순위 판정은 서버가 한다 — 서버만이 지금 순간의 판을 안다.
+    if (!Number.isFinite(amount) || amount < minBid) {
+      showToast(t("adSlots.belowMin", { amount: formatMoneyAmount(minBid, currency) }), 3000);
       return;
     }
 
     setSubmitting(true);
-    const result = await setAdBid(propertyId, placement, amount);
+    // [2026-09-16 확정-결정사항 6] 목표 순위를 함께 보낸다 — 서버가 "N위를 산다"는
+    // 약속을 검사한다. 내 줄을 눌러 금액만 바꾸는 경우는 순위 약속이 아니므로
+    // null을 보낸다(서버도 자리를 가진 매물은 순위를 검사하지 않는다).
+    const isMyRow = myBid > 0 && slots.some((slot) => slot.propertyId === propertyId);
+    const { code, requiredAmount } = await setAdBid(
+      propertyId,
+      placement,
+      amount,
+      isMyRow ? null : target.rank,
+    );
     setSubmitting(false);
 
-    if (result === "ok") {
+    if (code === "ok") {
       setTarget(null);
       showToast(t("adSlots.saved"));
       // [2026-09-12 실기기 테스트에서 발견] 저장 뒤에도 이 화면에 남아 있으면,
@@ -189,21 +204,45 @@ export default function AdSlotsScreen() {
       }, 900);
       return;
     }
-    if (result === "too-low") {
-      showToast(t("adSlots.tooLow", { amount: formatMoneyAmount(target.required, currency) }));
+    // [2026-09-16 확정 7] 안내 금액은 **서버가 준 값**을 쓴다. 화면이 계산한
+    // target.required는 목록을 읽은 시점의 값이라, 그 사이 다른 업체가 금액을 바꾸면
+    // 틀린 숫자를 안내하게 된다.
+    const requiredText = formatMoneyAmount(requiredAmount ?? target.required, currency);
+
+    if (code === "below-min") {
+      showToast(t("adSlots.belowMin", { amount: requiredText }), 3000);
       return;
     }
-    if (result === "no-balance") {
+    // [확정 6] 그 순위를 다른 업체가 먼저 채웠다. 사용자 결정에 따라 자동으로 아래
+    // 순위에 넣지 않고 거절한 뒤, **자리 목록을 다시 읽어** 현재 판을 보여 준다.
+    // 모달은 열어 둔다 — 새 금액으로 바로 다시 시도할 수 있어야 한다.
+    if (code === "outbid") {
+      showToast(t("adSlots.outbid", { amount: requiredText }), 3500);
+      if (requiredAmount != null) {
+        setTarget({ rank: target.rank, required: requiredAmount });
+        setAmountDraft(String(requiredAmount));
+      }
+      await load().catch(() => undefined);
+      return;
+    }
+    if (code === "no-balance") {
       showToast(t("adSlots.noBalance"));
       return;
     }
-    if (result === "no-agency") {
+    if (code === "no-agency") {
       showToast(t("adSlots.noAgency"), 3000);
       return;
     }
     // 거래완료·보류로 바꾼 매물 — 광고를 걸어도 고객 화면에 나오지 않는다.
-    if (result === "not-active") {
+    if (code === "not-active") {
       showToast(t("adSlots.notActive"), 3000);
+      return;
+    }
+    // 자리 수를 넘는 순위 — 화면에서는 고를 수 없는 값이라 여기 오면 목록이
+    // 오래된 것이다. 다시 읽어 맞춘다.
+    if (code === "rank-invalid") {
+      showToast(t("adSlots.failed"));
+      await load().catch(() => undefined);
       return;
     }
     showToast(t("adSlots.failed"));

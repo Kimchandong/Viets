@@ -110,13 +110,44 @@ export async function getMyBid(propertyId: string, placement: AdPlacement): Prom
  * `not-active`: 거래완료·보류 매물은 고객 화면에 나오지 않으므로 광고 자리를 살 수 없다
  * (서버가 막는다 — 화면에서 목록을 걸러도 RPC를 직접 부르는 길이 남기 때문).
  */
-export type SetAdBidResult =
+/**
+ * [2026-09-16 확정-결정사항 7] `too-low` 하나를 둘로 나눴다.
+ *
+ * 예전에는 "최소금액 미달"과 "다른 업체 금액을 못 넘김"이 같은 코드로 와서, 화면이
+ * 둘을 구분하지 못하고 **자기가 계산한 값**을 안내 문구에 넣었다. 그 값은 그 사이
+ * 다른 업체가 금액을 바꾸면 틀린다.
+ */
+export type SetAdBidCode =
   | "ok"
-  | "too-low"
+  /** 관리자가 정한 최소금액보다 낮다. */
+  | "below-min"
+  /** 그 순위에 있는 다른 업체 금액을 넘지 못했다. */
+  | "outbid"
   | "no-balance"
   | "no-agency"
   | "not-active"
+  /** 자리 수를 넘는 순위를 요청했다 — 정상 화면에서는 오지 않는다. */
+  | "rank-invalid"
   | "failed";
+
+export type SetAdBidResult = {
+  code: SetAdBidCode;
+  /**
+   * below-min / outbid 일 때 서버가 알려 주는 필요 금액. 화면은 이 값을 그대로
+   * 보여 준다. 그 외의 결과에서는 null이다.
+   */
+  requiredAmount: number | null;
+};
+
+const SET_AD_BID_CODES: SetAdBidCode[] = [
+  "ok",
+  "below-min",
+  "outbid",
+  "no-balance",
+  "no-agency",
+  "not-active",
+  "rank-invalid",
+];
 
 /**
  * 클릭 단가 설정/변경. 이 시점에는 차감되지 않는다.
@@ -129,25 +160,32 @@ export async function setAdBid(
   propertyId: string,
   placement: AdPlacement,
   amount: number,
+  /**
+   * [2026-09-16 확정 6] 목표 순위(1부터). 화면이 "N위를 산다"로 동작하므로 그 N을
+   * 서버가 검사한다. 넘기지 않으면 예전 규칙(맨 아래 자리만 넘으면 통과)으로 돈다.
+   */
+  rank?: number | null,
 ): Promise<SetAdBidResult> {
-  if (!supabase) return "failed";
+  if (!supabase) return { code: "failed", requiredAmount: null };
 
   const { data, error } = await supabase.functions.invoke("ad-bid", {
-    body: { propertyId, placement, amount },
+    body: { propertyId, placement, amount, rank: rank ?? null },
   });
 
   if (error) {
     console.warn("[services/ads] setAdBid failed:", error.message);
-    return "failed";
+    return { code: "failed", requiredAmount: null };
   }
-  const result = String((data as { result?: string } | null)?.result ?? "");
-  return result === "ok" ||
-    result === "too-low" ||
-    result === "no-balance" ||
-    result === "no-agency" ||
-    result === "not-active"
-    ? result
-    : "failed";
+
+  const payload = data as { result?: string; requiredAmount?: number | null } | null;
+  const raw = String(payload?.result ?? "");
+  const code = (SET_AD_BID_CODES as string[]).includes(raw) ? (raw as SetAdBidCode) : "failed";
+  const required = payload?.requiredAmount;
+
+  return {
+    code,
+    requiredAmount: typeof required === "number" && Number.isFinite(required) ? required : null,
+  };
 }
 
 /**

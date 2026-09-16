@@ -1116,7 +1116,6 @@
     "emptyDescription": "最低クリック単価で1位に入れます。",
     "purchaseTitle": "{{rank}}位に入る",
     "purchaseHint": "{{amount}} 以上が必要です。この金額が1クリックごとに差し引かれます。",
-    "tooLow": "{{amount}} 以上を入力してください。",
     "failed": "広告の登録に失敗しました。",
     "needProperty": "物件を保存してから設定できます。",
     "minBidNotSet": "管理者が最低入札額をまだ設定していません。",
@@ -1132,7 +1131,9 @@
     "changeTarget": "変更",
     "pickTargetTitle": "広告する物件を選択",
     "changeBid": "自分の広告費を変更",
-    "lowerWarning": "金額を下げると順位が下がり、掲載枠から外れると表示が止まります。"
+    "lowerWarning": "金額を下げると順位が下がり、掲載枠から外れると表示が止まります。",
+    "belowMin": "最低広告費は {{amount}} です。",
+    "outbid": "その間に順位が変わりました。この枠は {{amount}} 以上が必要です。"
   },
   "adManage": {
     "title": "有料掲載広告",

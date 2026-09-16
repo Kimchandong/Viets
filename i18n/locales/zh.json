@@ -1116,7 +1116,6 @@
     "emptyDescription": "可用最低点击单价占据第1名。",
     "purchaseTitle": "进入第{{rank}}名",
     "purchaseHint": "需不低于 {{amount}}，该金额按每次点击扣除。",
-    "tooLow": "请输入不低于 {{amount}} 的金额。",
     "failed": "广告登记失败。",
     "needProperty": "请先保存房源。",
     "minBidNotSet": "管理员尚未设置最低出价。",
@@ -1132,7 +1131,9 @@
     "changeTarget": "更改",
     "pickTargetTitle": "选择要投放的房源",
     "changeBid": "修改我的出价",
-    "lowerWarning": "降低金额会下调排名；若跌出展示位，广告将停止展示。"
+    "lowerWarning": "降低金额会下调排名；若跌出展示位，广告将停止展示。",
+    "belowMin": "最低广告费为 {{amount}}。",
+    "outbid": "排名已发生变化。该位置现在至少需要 {{amount}}。"
   },
   "adManage": {
     "title": "付费展示广告",

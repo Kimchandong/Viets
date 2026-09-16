@@ -1116,7 +1116,6 @@
     "emptyDescription": "You can take 1st place at the minimum cost per click.",
     "purchaseTitle": "Take rank {{rank}}",
     "purchaseHint": "Must be at least {{amount}}. This is charged per click.",
-    "tooLow": "Enter at least {{amount}}.",
     "failed": "Could not register the ad.",
     "needProperty": "Save the listing first.",
     "minBidNotSet": "The admin has not set a minimum bid yet.",
@@ -1132,7 +1131,9 @@
     "changeTarget": "Change",
     "pickTargetTitle": "Choose a listing",
     "changeBid": "Change my bid",
-    "lowerWarning": "Lowering the amount drops your rank; if you fall out of the visible slots, your ad stops showing."
+    "lowerWarning": "Lowering the amount drops your rank; if you fall out of the visible slots, your ad stops showing.",
+    "belowMin": "The minimum bid is {{amount}}.",
+    "outbid": "The ranking changed. This slot now needs at least {{amount}}."
   },
   "adManage": {
     "title": "Paid ads",

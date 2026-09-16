@@ -18,6 +18,11 @@ type AdBidRequest = {
   propertyId: string;
   placement: "featured" | "top10";
   amount: number;
+  /**
+   * [2026-09-16 확정-결정사항 6] 목표 순위(1부터). 화면이 "N위를 산다"로 동작하므로
+   * 그 N을 서버가 검사한다. 없으면 예전 규칙(맨 아래 자리만 넘으면 통과)으로 돈다.
+   */
+  rank?: number | null;
 };
 
 const CORS_HEADERS = {
@@ -106,10 +111,18 @@ Deno.serve(async (req: Request) => {
     global: { headers: { Authorization: authHeader } },
   });
 
+  // [2026-09-16 확정 6] 순위는 정수여야 한다. 화면이 보내는 값이지만 이 함수는
+  // 공개 엔드포인트라 형식을 여기서도 본다(DB가 다시 범위를 검사한다).
+  const rank =
+    typeof body.rank === "number" && Number.isInteger(body.rank) && body.rank > 0
+      ? body.rank
+      : null;
+
   const { data, error } = await userClient.rpc("set_ad_bid", {
     p_property_id: body.propertyId,
     p_placement: body.placement,
     p_amount: body.amount,
+    p_rank: rank,
   });
 
   if (error) {
@@ -120,6 +133,10 @@ Deno.serve(async (req: Request) => {
   const row = Array.isArray(data) ? data[0] : data;
   const result = String(row?.result ?? "failed");
   const droppedOwner: string | null = row?.dropped_owner ?? null;
+  // [2026-09-16 확정 7] 거절 이유별 필요 금액. 화면이 스스로 계산한 값 대신 이 값을
+  // 보여 준다 — 화면의 계산은 그 사이 다른 업체가 금액을 바꾸면 틀린다.
+  const requiredAmount: number | null =
+    row?.required_amount != null ? Number(row.required_amount) : null;
 
   // 밀려난 업체 대표에게 푸시. 설정 자체는 이미 끝났으므로 발송이 실패해도 결과는 ok다.
   if (result === "ok" && droppedOwner) {
@@ -150,5 +167,5 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return json({ result });
+  return json({ result, requiredAmount });
 });

@@ -106,7 +106,17 @@
     "expectedYieldLabel2": "AI予想収益率は売買物件にのみ適用されます。\n（投資参考用）",
     "locationTitle": "所在地",
     "editButton": "物件を編集",
-    "linkedInvestmentsTitle": "この物件の投資商品"
+    "linkedInvestmentsTitle": "この物件の投資商品",
+    "buildingTitle": "建物情報",
+    "buildingAreaLabel": "建物面積",
+    "landAreaLabel": "土地面積",
+    "floorsLabel": "階数",
+    "floorsValue": "{{count}}階",
+    "yearBuiltLabel": "竣工年",
+    "occupancyRateLabel": "空室率",
+    "rentalIncomeLabel": "月額賃料収入",
+    "rentalIncomeValue": "{{amount}}/月",
+    "developerLabel": "デベロッパー"
   },
   "invest": {
     "title": "投資",
@@ -505,7 +515,18 @@
     "listingTypeLabel": "取引形態",
     "amenitiesLegacyGroup": "その他（以前に入力された項目）",
     "savedAsDraftNoBalance": "残高不足のため非公開で保存しました",
-    "regionLabel": "地域を選択"
+    "regionLabel": "地域を選択",
+    "buildingSection": "建物情報",
+    "buildingHelper": "すべて任意です。わかる項目だけ入力してください。",
+    "buildingAreaLabel": "建物面積 (m²)",
+    "landAreaLabel": "土地面積 (m²)",
+    "floorsLabel": "階数",
+    "yearBuiltLabel": "竣工年",
+    "occupancyRateLabel": "空室率 (%)",
+    "rentalIncomeLabel": "月額賃料収入 (VND)",
+    "developerLabel": "デベロッパー",
+    "developerPlaceholder": "デベロッパー名",
+    "developerHelper": "登録済みの名前は下から選べます。新しい名前は保存時に登録されます。"
   },
   "investRegister": {
     "title": "投資商品登録",

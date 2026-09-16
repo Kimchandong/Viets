@@ -106,7 +106,17 @@
     "expectedYieldLabel2": "AI-estimated expected yield applies only to for-sale properties.\n(For investment reference only)",
     "locationTitle": "Location",
     "editButton": "Edit listing",
-    "linkedInvestmentsTitle": "Investments for this property"
+    "linkedInvestmentsTitle": "Investments for this property",
+    "buildingTitle": "Building details",
+    "buildingAreaLabel": "Building area",
+    "landAreaLabel": "Land area",
+    "floorsLabel": "Floors",
+    "floorsValue": "{{count}} floors",
+    "yearBuiltLabel": "Year built",
+    "occupancyRateLabel": "Vacancy rate",
+    "rentalIncomeLabel": "Monthly rental income",
+    "rentalIncomeValue": "{{amount}}/mo",
+    "developerLabel": "Developer"
   },
   "invest": {
     "title": "Invest",
@@ -505,7 +515,18 @@
     "listingTypeLabel": "Listing type",
     "amenitiesLegacyGroup": "Other (previously entered)",
     "savedAsDraftNoBalance": "Saved as hidden — not enough balance",
-    "regionLabel": "Choose a region"
+    "regionLabel": "Choose a region",
+    "buildingSection": "Building details",
+    "buildingHelper": "All optional — fill in only what you know.",
+    "buildingAreaLabel": "Building area (m²)",
+    "landAreaLabel": "Land area (m²)",
+    "floorsLabel": "Floors",
+    "yearBuiltLabel": "Year built",
+    "occupancyRateLabel": "Vacancy rate (%)",
+    "rentalIncomeLabel": "Monthly rental income (VND)",
+    "developerLabel": "Developer",
+    "developerPlaceholder": "Developer name",
+    "developerHelper": "Pick an existing name below. A new name is registered when you save."
   },
   "investRegister": {
     "title": "Register product",

@@ -50,6 +50,19 @@ export type MockProperty = {
   areaValueM2: number;
   bedrooms?: number;
   bathrooms?: number;
+  /** [2026-09-16 확정-결정사항 8] 건물 정보 — properties의 building_area/land_area/
+   * floors/year_built/occupancy_rate/rental_income/developer_id에서 온다.
+   * 2026-09-10에 열만 만들어 두고 화면이 따라오지 않아 옛 매물은 전부 비어 있다.
+   * 그래서 전부 optional이고, 상세 화면은 값이 있는 줄만 그린다. mock 매물에는 없다. */
+  buildingAreaM2?: number;
+  landAreaM2?: number;
+  floors?: number;
+  yearBuilt?: number;
+  /** 공실률 %. 0은 "공실 없음"이라는 의미 있는 값이므로 undefined와 구분한다. */
+  occupancyRate?: number;
+  /** 월 임대수익(VND). rental_yield(수익률 %)와 다른 축이다 — 이쪽은 금액. */
+  rentalIncomeVnd?: number;
+  developerName?: string;
   /** [STEP: 2026-09-09-6] 다국어 상세설명 — 언어코드 → 번역문 맵(utils/format.ts localizedText 참고). */
   description: Partial<Record<string, string>>;
   /** 매물 옵션/편의시설 — 사용자 지시 §5 "옵션" 항목. */

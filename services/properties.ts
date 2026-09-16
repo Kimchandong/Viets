@@ -58,6 +58,16 @@ type PropertyRow = {
   bedrooms: number | null;
   bathrooms: number | null;
   rental_yield: number | null;
+  /** [2026-09-16 확정 8] 건물 정보 6종 — 2026-09-10에 열만 만들어 두고 화면이
+   * 따라오지 않아 전부 NULL이던 값들(불일치-목록 3②). 옛 매물은 계속 NULL이다. */
+  building_area: number | null;
+  land_area: number | null;
+  floors: number | null;
+  year_built: number | null;
+  occupancy_rate: number | null;
+  rental_income: number | null;
+  /** 시행사. 이름은 developers 조인으로 가져온다 — 화면은 id를 쓰지 않는다. */
+  developers: { name: string } | null;
   featured: boolean;
   amenities: string[] | null;
   address: string | null;
@@ -68,8 +78,11 @@ type PropertyRow = {
   property_images: PropertyImageRow[] | null;
 };
 
+// developers(name)은 비로그인 사용자에게도 돌아온다 — developers_select_active_public
+// 정책과 열 단위 grant(id,name,logo_url,is_active)로 name만 열어 두었다. 비활성
+// 시행사이거나 연결이 없으면 null이 온다.
 const PROPERTY_SELECT =
-  "id,title,description,description_i18n,description_lang,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,featured,amenities,address,latitude,longitude,region,created_by,property_images(url,sort_order)";
+  "id,title,description,description_i18n,description_lang,category,listing_type,price,area,bedrooms,bathrooms,rental_yield,building_area,land_area,floors,year_built,occupancy_rate,rental_income,featured,amenities,address,latitude,longitude,region,created_by,developers(name),property_images(url,sort_order)";
 
 /** 매물의 지역.
  *
@@ -122,6 +135,16 @@ function mapRowToMockProperty(row: PropertyRow): MockProperty {
     areaValueM2: row.area ?? 0,
     bedrooms: row.bedrooms ?? undefined,
     bathrooms: row.bathrooms ?? undefined,
+    // [2026-09-16 확정 8] 건물 정보 — 값이 없는 매물이 대부분이므로(열이 생긴 뒤
+    // 6개월 가까이 아무도 채우지 않았다) 전부 optional로 두고, 화면에서 있는 것만
+    // 줄로 그린다. 0과 NULL을 구분한다 — 공실률 0%는 의미 있는 값이다.
+    buildingAreaM2: row.building_area ?? undefined,
+    landAreaM2: row.land_area ?? undefined,
+    floors: row.floors ?? undefined,
+    yearBuilt: row.year_built ?? undefined,
+    occupancyRate: row.occupancy_rate ?? undefined,
+    rentalIncomeVnd: row.rental_income ?? undefined,
+    developerName: row.developers?.name ?? undefined,
     // [2026-09-12] 저장 시점에 만들어 둔 번역을 그대로 쓴다. 번역이 없는 언어(또는
     // 번역 붙기 전에 등록된 매물)는 localizedText()가 원문으로 폴백한다.
     description: toContentMap(row.description, row.description_i18n, row.description_lang),
@@ -318,6 +341,19 @@ export type NewPropertyInput = {
   area: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  /** [2026-09-16 확정 8] 건물 정보 6종. 전부 선택 항목이라 비우면 null이 저장된다. */
+  building_area: number | null;
+  land_area: number | null;
+  floors: number | null;
+  year_built: number | null;
+  occupancy_rate: number | null;
+  rental_income: number | null;
+  /**
+   * 시행사 **이름**. id가 아니다 — 등록 화면이 자유 입력이라(2026-09-16 사용자 결정)
+   * 저장 직전에 upsert_developer가 이름으로 찾거나 만들어 id로 바꾼다. 이 필드는
+   * DB 열이 아니므로 insert/update 페이로드에서 반드시 빼야 한다.
+   */
+  developerName: string;
   address: string;
   /** [2026-09-11] 등록 화면에서 고른 지역(MOCK_REGIONS). 고르지 않으면 빈 문자열. */
   region: string;
@@ -328,6 +364,54 @@ export type NewPropertyInput = {
   /** 'active'면 즉시 공개, 'draft'면 비공개 저장(목록에 노출되지 않음). */
   status: "active" | "draft";
 };
+
+/**
+ * 시행사 이름 자동완성 — 이미 등록된 이름을 먼저 보여 준다.
+ *
+ * 자유 입력의 대가는 표기 흔들림이다("Vingroup" vs "Vin Group"). 고를 수 있으면
+ * 대부분 고른다. 실패하면 빈 목록 — 자동완성이 안 되는 것뿐이고 입력은 계속된다.
+ */
+export async function searchDevelopers(query: string): Promise<{ id: string; name: string }[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.rpc("search_developers", { p_query: query });
+  if (error) {
+    console.warn("[services/properties] searchDevelopers failed:", error.message);
+    return [];
+  }
+  return (data ?? []) as { id: string; name: string }[];
+}
+
+/**
+ * 폼 입력을 DB 페이로드로 바꾼다.
+ *
+ * developerName은 DB 열이 아니다 — 이름을 id로 바꾸고 원래 필드는 **뺀다**.
+ * 빼지 않고 `...input`을 그대로 보내면 "column developerName does not exist"로
+ * 저장 전체가 실패한다.
+ *
+ * 시행사 등록이 실패하면(권한 없음 등) developer_id만 null로 두고 매물 저장은
+ * 계속한다 — 시행사는 선택 항목이라, 그것 때문에 매물을 못 올리게 하지 않는다.
+ */
+async function toPropertyPayload(input: NewPropertyInput) {
+  const { developerName, ...rest } = input;
+
+  let developerId: string | null = null;
+  const trimmed = developerName.trim();
+  if (trimmed.length > 0 && supabase) {
+    const { data, error } = await supabase.rpc("upsert_developer", { p_name: trimmed });
+    if (error) {
+      console.warn("[services/properties] upsert_developer failed:", error.message);
+    } else {
+      developerId = (data as string | null) ?? null;
+    }
+  }
+
+  return {
+    ...rest,
+    region: rest.region.length > 0 ? rest.region : null,
+    developer_id: developerId,
+  };
+}
 
 /**
  * 매물 등록. 성공 시 생성된 매물 id를, 실패 시 null을 반환한다(예외를 던지지 않는다).
@@ -357,8 +441,7 @@ export async function createProperty(input: NewPropertyInput): Promise<string | 
   const { data, error } = await supabase
     .from("properties")
     .insert({
-      ...input,
-      region: input.region.length > 0 ? input.region : null,
+      ...(await toPropertyPayload(input)),
       currency: "VND",
       agency_id: (agencyId as string | null) ?? null,
       description_i18n: descriptionI18n,
@@ -407,8 +490,7 @@ export async function updateProperty(id: string, input: NewPropertyInput): Promi
   const { error } = await supabase
     .from("properties")
     .update({
-      ...input,
-      region: input.region.length > 0 ? input.region : null,
+      ...(await toPropertyPayload(input)),
       ...translation,
     })
     .eq("id", id);
@@ -595,7 +677,7 @@ export async function getPropertyForEdit(id: string): Promise<NewPropertyInput |
   const { data, error } = await supabase
     .from("properties")
     .select(
-      "title,description,category,listing_type,price,area,bedrooms,bathrooms,address,region,latitude,longitude,amenities,featured,status",
+      "title,description,category,listing_type,price,area,bedrooms,bathrooms,building_area,land_area,floors,year_built,occupancy_rate,rental_income,address,region,latitude,longitude,amenities,featured,status,developers(name)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -605,9 +687,17 @@ export async function getPropertyForEdit(id: string): Promise<NewPropertyInput |
     return null;
   }
 
-  const row = data as unknown as NewPropertyInput & { status: string; region: string | null };
+  // developers(name)은 폼이 쓰는 developerName과 이름이 다르다 — 조인 결과를 풀어
+  // 넣고 원래 키는 버린다(그대로 두면 저장 때 DB 열이 아닌 키가 섞여 들어간다).
+  const row = data as unknown as NewPropertyInput & {
+    status: string;
+    region: string | null;
+    developers: { name: string } | null;
+  };
+  const { developers, ...rest } = row;
   return {
-    ...row,
+    ...rest,
+    developerName: developers?.name ?? "",
     region: row.region ?? "",
     // 폼은 active/draft 두 가지만 다룬다 — archived 매물을 수정하면 draft로 되살아난다
     // (사용자가 "즉시 공개"를 켜서 다시 active로 만들 수 있다).

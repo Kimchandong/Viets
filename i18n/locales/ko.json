@@ -106,7 +106,17 @@
     "expectedYieldLabel2": "부동산 매매 매물에만 Ai 예상 수익률 입니다.\n(투자 참고용)",
     "locationTitle": "위치",
     "editButton": "매물 수정",
-    "linkedInvestmentsTitle": "이 매물의 투자상품"
+    "linkedInvestmentsTitle": "이 매물의 투자상품",
+    "buildingTitle": "건물 정보",
+    "buildingAreaLabel": "건물면적",
+    "landAreaLabel": "대지면적",
+    "floorsLabel": "층수",
+    "floorsValue": "{{count}}층",
+    "yearBuiltLabel": "준공년도",
+    "occupancyRateLabel": "공실률",
+    "rentalIncomeLabel": "월 임대수익",
+    "rentalIncomeValue": "{{amount}}/월",
+    "developerLabel": "시행사"
   },
   "invest": {
     "title": "투자",
@@ -505,7 +515,18 @@
     "listingTypeLabel": "거래 유형",
     "amenitiesLegacyGroup": "기타 (이전에 입력된 항목)",
     "savedAsDraftNoBalance": "잔액이 부족해 미노출로 저장했습니다",
-    "regionLabel": "지역 선택"
+    "regionLabel": "지역 선택",
+    "buildingSection": "건물 정보",
+    "buildingHelper": "모두 선택 항목입니다. 아는 것만 채우세요.",
+    "buildingAreaLabel": "건물면적 (m²)",
+    "landAreaLabel": "대지면적 (m²)",
+    "floorsLabel": "층수",
+    "yearBuiltLabel": "준공년도",
+    "occupancyRateLabel": "공실률 (%)",
+    "rentalIncomeLabel": "월 임대수익 (VND)",
+    "developerLabel": "시행사",
+    "developerPlaceholder": "시행사 이름",
+    "developerHelper": "이미 등록된 이름은 아래에서 고르세요. 새 이름은 저장할 때 등록됩니다."
   },
   "investRegister": {
     "title": "투자상품 등록",

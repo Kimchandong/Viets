@@ -41,7 +41,7 @@ import {
   optionGroupsFor,
   PROPERTY_OPTION_VALUE_PATTERN,
 } from "@/constants/propertyOptions";
-import { localizedText, splitYieldText } from "@/utils/format";
+import { formatVndAmount, localizedText, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { getPropertyById } from "@/services/properties";
 import { reportProperty } from "@/services/reports";
@@ -185,6 +185,52 @@ export default function PropertyDetailScreen() {
     const rest = owned.filter((value) => !grouped.has(value));
     return rest.length > 0 ? [...groups, { id: "etc", values: rest }] : groups;
   }, [property?.options, listingKind]);
+
+  /**
+   * [2026-09-16 확정-결정사항 8] 건물 정보 줄 — 값이 있는 것만.
+   *
+   * `!= null`로 거르는 이유: 공실률 0%는 "공실 없음"이라는 실제 값이다. 층수 0은
+   * 없지만 공실률과 규칙을 다르게 두면 나중에 한쪽만 고치는 일이 생긴다.
+   * 임대수익은 가격과 같은 표기(formatVndAmount)를 쓴다 — 같은 화면에서 같은 통화를
+   * 서로 다른 모양으로 적으면 읽는 사람이 단위를 다시 확인해야 한다.
+   */
+  const buildingRows = useMemo(() => {
+    if (!property) return [];
+    const rows: { label: string; value: string }[] = [];
+    const push = (label: string, value: string | undefined) => {
+      if (value !== undefined) rows.push({ label, value });
+    };
+
+    push(
+      t("propertyDetail.buildingAreaLabel"),
+      property.buildingAreaM2 != null ? `${property.buildingAreaM2} m²` : undefined,
+    );
+    push(
+      t("propertyDetail.landAreaLabel"),
+      property.landAreaM2 != null ? `${property.landAreaM2} m²` : undefined,
+    );
+    push(
+      t("propertyDetail.floorsLabel"),
+      property.floors != null ? t("propertyDetail.floorsValue", { count: property.floors }) : undefined,
+    );
+    push(
+      t("propertyDetail.yearBuiltLabel"),
+      property.yearBuilt != null ? String(property.yearBuilt) : undefined,
+    );
+    push(
+      t("propertyDetail.occupancyRateLabel"),
+      property.occupancyRate != null ? `${property.occupancyRate}%` : undefined,
+    );
+    push(
+      t("propertyDetail.rentalIncomeLabel"),
+      property.rentalIncomeVnd != null
+        ? t("propertyDetail.rentalIncomeValue", { amount: formatVndAmount(property.rentalIncomeVnd) })
+        : undefined,
+    );
+    push(t("propertyDetail.developerLabel"), property.developerName);
+
+    return rows;
+  }, [property, t]);
 
   // [STEP: 2026-09-09-6] 사용자 요청 — "투자신청/문의하기 클릭 시 로그인이 안 되고
   // 다시 로그인창으로 돌아옴" 버그 수정. 기존에는 getSession()을 마운트 시 한 번만
@@ -393,6 +439,34 @@ export default function PropertyDetailScreen() {
                     {property.yieldRate.split("/")[1]}
                   </Text>
                 ) : null}
+              </View>
+            </View>
+          ) : null}
+
+          {/* [2026-09-16 확정-결정사항 8] 건물 정보.
+              2026-09-10에 열만 만들어 두고 6개월 가까이 비어 있던 값들이라, 옛 매물은
+              한 줄도 없을 수 있다. 값이 있는 줄만 그리고, 하나도 없으면 섹션 자체를
+              내린다 — 빈 표를 보여 주면 "정보가 없는 매물"이 아니라 "고장난 화면"으로
+              읽힌다. 공실률은 0%가 의미 있는 값이라 undefined와만 구분한다. */}
+          {buildingRows.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title={t("propertyDetail.buildingTitle")} />
+              <View style={[styles.buildingBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                {buildingRows.map((row) => (
+                  <View key={row.label} style={styles.buildingRow}>
+                    <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
+                      {row.label}
+                    </Text>
+                    <Text
+                      style={[
+                        textStyles.bodySmall,
+                        { color: theme.text, fontWeight: typography.weight.semibold },
+                      ]}
+                    >
+                      {row.value}
+                    </Text>
+                  </View>
+                ))}
               </View>
             </View>
           ) : null}
@@ -763,6 +837,22 @@ const styles = createScaledStyles(() => ({
     paddingVertical: spacing.xs,
     borderRadius: radius.sm,
     borderWidth: 1,
+  },
+  // [2026-09-16 확정 8] 건물 정보 — 라벨/값 두 칸이 줄마다 좌우로 붙는다.
+  // yieldBox와 같은 테두리·반경을 써서 상세 화면의 상자 모양이 갈라지지 않게 한다.
+  buildingBox: {
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  buildingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
   },
   yieldBox: {
     flexDirection: "row",

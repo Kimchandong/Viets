@@ -106,7 +106,17 @@
     "expectedYieldLabel2": "AI预期收益率仅适用于出售类房源。\n（仅供投资参考）",
     "locationTitle": "位置",
     "editButton": "编辑房源",
-    "linkedInvestmentsTitle": "本房源的投资产品"
+    "linkedInvestmentsTitle": "本房源的投资产品",
+    "buildingTitle": "建筑信息",
+    "buildingAreaLabel": "建筑面积",
+    "landAreaLabel": "土地面积",
+    "floorsLabel": "楼层数",
+    "floorsValue": "{{count}} 层",
+    "yearBuiltLabel": "竣工年份",
+    "occupancyRateLabel": "空置率",
+    "rentalIncomeLabel": "月租金收入",
+    "rentalIncomeValue": "{{amount}}/月",
+    "developerLabel": "开发商"
   },
   "invest": {
     "title": "投资",
@@ -505,7 +515,18 @@
     "listingTypeLabel": "交易类型",
     "amenitiesLegacyGroup": "其他（此前录入的项目）",
     "savedAsDraftNoBalance": "余额不足，已保存为不公开",
-    "regionLabel": "选择地区"
+    "regionLabel": "选择地区",
+    "buildingSection": "建筑信息",
+    "buildingHelper": "均为选填，只填写您知道的项目即可。",
+    "buildingAreaLabel": "建筑面积 (m²)",
+    "landAreaLabel": "土地面积 (m²)",
+    "floorsLabel": "楼层数",
+    "yearBuiltLabel": "竣工年份",
+    "occupancyRateLabel": "空置率 (%)",
+    "rentalIncomeLabel": "月租金收入 (VND)",
+    "developerLabel": "开发商",
+    "developerPlaceholder": "开发商名称",
+    "developerHelper": "可从下方选择已有名称。新名称将在保存时登记。"
   },
   "investRegister": {
     "title": "发布投资产品",

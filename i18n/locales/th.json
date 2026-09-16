@@ -106,7 +106,17 @@
     "expectedYieldLabel2": "อัตราผลตอบแทนคาดการณ์จาก AI ใช้ได้เฉพาะอสังหาริมทรัพย์ประเภทขายเท่านั้น\n(ใช้เพื่ออ้างอิงการลงทุนเท่านั้น)",
     "locationTitle": "ทำเลที่ตั้ง",
     "editButton": "แก้ไขประกาศ",
-    "linkedInvestmentsTitle": "สินค้าการลงทุนของประกาศนี้"
+    "linkedInvestmentsTitle": "สินค้าการลงทุนของประกาศนี้",
+    "buildingTitle": "ข้อมูลอาคาร",
+    "buildingAreaLabel": "พื้นที่อาคาร",
+    "landAreaLabel": "พื้นที่ดิน",
+    "floorsLabel": "จำนวนชั้น",
+    "floorsValue": "{{count}} ชั้น",
+    "yearBuiltLabel": "ปีที่สร้าง",
+    "occupancyRateLabel": "อัตราว่าง",
+    "rentalIncomeLabel": "รายได้ค่าเช่าต่อเดือน",
+    "rentalIncomeValue": "{{amount}}/เดือน",
+    "developerLabel": "ผู้พัฒนาโครงการ"
   },
   "invest": {
     "title": "ลงทุน",
@@ -505,7 +515,18 @@
     "listingTypeLabel": "ประเภทการซื้อขาย",
     "amenitiesLegacyGroup": "อื่น ๆ (ที่กรอกไว้ก่อนหน้า)",
     "savedAsDraftNoBalance": "ยอดเงินไม่พอ จึงบันทึกเป็นแบบไม่เปิดเผย",
-    "regionLabel": "เลือกพื้นที่"
+    "regionLabel": "เลือกพื้นที่",
+    "buildingSection": "ข้อมูลอาคาร",
+    "buildingHelper": "ทั้งหมดเป็นตัวเลือก กรอกเฉพาะที่ทราบ",
+    "buildingAreaLabel": "พื้นที่อาคาร (ตร.ม.)",
+    "landAreaLabel": "พื้นที่ดิน (ตร.ม.)",
+    "floorsLabel": "จำนวนชั้น",
+    "yearBuiltLabel": "ปีที่สร้าง",
+    "occupancyRateLabel": "อัตราว่าง (%)",
+    "rentalIncomeLabel": "รายได้ค่าเช่าต่อเดือน (VND)",
+    "developerLabel": "ผู้พัฒนาโครงการ",
+    "developerPlaceholder": "ชื่อผู้พัฒนาโครงการ",
+    "developerHelper": "เลือกชื่อที่มีอยู่ด้านล่าง ชื่อใหม่จะถูกบันทึกเมื่อคุณกดบันทึก"
   },
   "investRegister": {
     "title": "ลงทะเบียนผลิตภัณฑ์",

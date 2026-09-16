@@ -106,7 +106,17 @@
     "expectedYieldLabel2": "Tỷ suất lợi nhuận dự kiến AI chỉ áp dụng cho bất động sản bán.\n(Chỉ mang tính tham khảo đầu tư)",
     "locationTitle": "Vị trí",
     "editButton": "Sửa tin đăng",
-    "linkedInvestmentsTitle": "Sản phẩm đầu tư của tin này"
+    "linkedInvestmentsTitle": "Sản phẩm đầu tư của tin này",
+    "buildingTitle": "Thông tin tòa nhà",
+    "buildingAreaLabel": "Diện tích sàn",
+    "landAreaLabel": "Diện tích đất",
+    "floorsLabel": "Số tầng",
+    "floorsValue": "{{count}} tầng",
+    "yearBuiltLabel": "Năm xây dựng",
+    "occupancyRateLabel": "Tỷ lệ trống",
+    "rentalIncomeLabel": "Thu nhập cho thuê hàng tháng",
+    "rentalIncomeValue": "{{amount}}/tháng",
+    "developerLabel": "Chủ đầu tư"
   },
   "invest": {
     "title": "Đầu tư",
@@ -505,7 +515,18 @@
     "listingTypeLabel": "Hình thức giao dịch",
     "amenitiesLegacyGroup": "Khác (đã nhập trước đây)",
     "savedAsDraftNoBalance": "Số dư không đủ — đã lưu ở chế độ ẩn",
-    "regionLabel": "Chọn khu vực"
+    "regionLabel": "Chọn khu vực",
+    "buildingSection": "Thông tin tòa nhà",
+    "buildingHelper": "Tất cả đều không bắt buộc — chỉ điền những gì bạn biết.",
+    "buildingAreaLabel": "Diện tích sàn (m²)",
+    "landAreaLabel": "Diện tích đất (m²)",
+    "floorsLabel": "Số tầng",
+    "yearBuiltLabel": "Năm xây dựng",
+    "occupancyRateLabel": "Tỷ lệ trống (%)",
+    "rentalIncomeLabel": "Thu nhập cho thuê hàng tháng (VND)",
+    "developerLabel": "Chủ đầu tư",
+    "developerPlaceholder": "Tên chủ đầu tư",
+    "developerHelper": "Chọn tên có sẵn bên dưới. Tên mới sẽ được tạo khi bạn lưu."
   },
   "investRegister": {
     "title": "Đăng sản phẩm",

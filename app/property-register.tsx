@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,6 +29,7 @@ import {
   geocodeAddress,
   getPropertyForEdit,
   listPropertyImages,
+  searchDevelopers,
   updateProperty,
   uploadPropertyImage,
   type ExistingPropertyImage,
@@ -101,6 +102,20 @@ export default function PropertyRegisterScreen() {
   const [area, setArea] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
+  // [2026-09-16 확정-결정사항 8] 건물 정보 — 열은 2026-09-10부터 있었으나 입력란이
+  // 없어 계속 비어 있던 값들. 전부 선택 항목이다.
+  const [buildingArea, setBuildingArea] = useState("");
+  const [landArea, setLandArea] = useState("");
+  const [floors, setFloors] = useState("");
+  const [yearBuilt, setYearBuilt] = useState("");
+  const [occupancyRate, setOccupancyRate] = useState("");
+  const [rentalIncome, setRentalIncome] = useState("");
+  // 시행사는 자유 입력이다(2026-09-16 사용자 결정) — 저장 직전에 서비스가
+  // upsert_developer로 이름을 id로 바꾼다. 이미 등록된 이름은 아래에서 제안한다.
+  const [developerName, setDeveloperName] = useState("");
+  const [developerHits, setDeveloperHits] = useState<{ id: string; name: string }[]>([]);
+  // 마지막으로 보낸 자동완성 질의 — 늦게 온 응답이 최신 입력을 덮어쓰지 않게 한다.
+  const developerQueryRef = useRef("");
   const [address, setAddress] = useState("");
   // [2026-09-11 사용자 지시 — 4차] 지역 — 투자상품 등록과 같은 목록·같은 모양(맨 위 가로 슬라이드).
   const [region, setRegion] = useState("");
@@ -283,6 +298,15 @@ export default function PropertyRegisterScreen() {
       setArea(existing.area !== null ? String(existing.area) : "");
       setBedrooms(existing.bedrooms !== null ? String(existing.bedrooms) : "");
       setBathrooms(existing.bathrooms !== null ? String(existing.bathrooms) : "");
+      setBuildingArea(existing.building_area !== null ? String(existing.building_area) : "");
+      setLandArea(existing.land_area !== null ? String(existing.land_area) : "");
+      setFloors(existing.floors !== null ? String(existing.floors) : "");
+      setYearBuilt(existing.year_built !== null ? String(existing.year_built) : "");
+      setOccupancyRate(existing.occupancy_rate !== null ? String(existing.occupancy_rate) : "");
+      setRentalIncome(
+        existing.rental_income !== null ? formatThousands(String(existing.rental_income)) : "",
+      );
+      setDeveloperName(existing.developerName ?? "");
       setAddress(existing.address ?? "");
       setRegion(existing.region ?? "");
       setLatitude(existing.latitude !== null ? String(existing.latitude) : "");
@@ -331,6 +355,29 @@ export default function PropertyRegisterScreen() {
     return Number.isFinite(parsed) ? parsed : null;
   }
 
+  /**
+   * [2026-09-16 확정 8] 시행사 자동완성.
+   *
+   * 매 글자마다 서버를 부르지 않는다 — 두 글자부터, 그리고 마지막 입력 기준으로만
+   * 결과를 반영한다(먼저 보낸 요청이 늦게 도착해 최신 입력을 덮어쓰는 것을 막는다).
+   * 자동완성이 실패해도 입력은 그대로 진행된다 — 고르는 건 편의이고, 저장은
+   * 이름 문자열만으로 된다.
+   */
+  function handleDeveloperChange(next: string) {
+    setDeveloperName(next);
+    const query = next.trim();
+    if (query.length < 2) {
+      setDeveloperHits([]);
+      return;
+    }
+    developerQueryRef.current = query;
+    void searchDevelopers(query).then((hits) => {
+      if (developerQueryRef.current !== query) return;
+      // 친 글자와 똑같은 이름은 제안할 것이 없다.
+      setDeveloperHits(hits.filter((hit) => hit.name.toLowerCase() !== query.toLowerCase()));
+    });
+  }
+
   async function handleSubmit() {
     const nextErrors: { title?: string; price?: string } = {};
     if (title.trim().length === 0) {
@@ -352,6 +399,13 @@ export default function PropertyRegisterScreen() {
       area: parseNumber(area),
       bedrooms: parseNumber(bedrooms),
       bathrooms: parseNumber(bathrooms),
+      building_area: parseNumber(buildingArea),
+      land_area: parseNumber(landArea),
+      floors: parseNumber(floors),
+      year_built: parseNumber(yearBuilt),
+      occupancy_rate: parseNumber(occupancyRate),
+      rental_income: parseNumber(rentalIncome),
+      developerName: developerName.trim(),
       address: address.trim(),
       region,
       latitude: parseNumber(latitude),
@@ -602,6 +656,86 @@ export default function PropertyRegisterScreen() {
               containerStyle={styles.rowItem}
             />
           </View>
+        </View>
+
+        {/* [2026-09-16 확정-결정사항 8] 건물 정보 — 전부 선택 항목이라 별도 섹션으로
+            뺐다. 가격·면적 섹션에 이어 붙이면 필수처럼 보여 등록을 주저하게 된다. */}
+        <View style={styles.section}>
+          <SectionHeader title={t("propertyRegister.buildingSection")} />
+          <Text style={styles.sectionHint}>{t("propertyRegister.buildingHelper")}</Text>
+          <View style={styles.row}>
+            <Input
+              label={t("propertyRegister.buildingAreaLabel")}
+              value={buildingArea}
+              onChangeText={setBuildingArea}
+              keyboardType="numeric"
+              containerStyle={styles.rowItem}
+            />
+            <Input
+              label={t("propertyRegister.landAreaLabel")}
+              value={landArea}
+              onChangeText={setLandArea}
+              keyboardType="numeric"
+              containerStyle={styles.rowItem}
+            />
+          </View>
+          <View style={styles.row}>
+            <Input
+              label={t("propertyRegister.floorsLabel")}
+              value={floors}
+              onChangeText={setFloors}
+              keyboardType="numeric"
+              containerStyle={styles.rowItem}
+            />
+            <Input
+              label={t("propertyRegister.yearBuiltLabel")}
+              value={yearBuilt}
+              onChangeText={setYearBuilt}
+              keyboardType="numeric"
+              containerStyle={styles.rowItem}
+            />
+          </View>
+          <View style={styles.row}>
+            <Input
+              label={t("propertyRegister.occupancyRateLabel")}
+              value={occupancyRate}
+              onChangeText={setOccupancyRate}
+              keyboardType="numeric"
+              containerStyle={styles.rowItem}
+            />
+            <Input
+              label={t("propertyRegister.rentalIncomeLabel")}
+              value={rentalIncome}
+              onChangeText={(next) => setRentalIncome(formatThousands(next))}
+              keyboardType="numeric"
+              containerStyle={styles.rowItem}
+            />
+          </View>
+          <Input
+            label={t("propertyRegister.developerLabel")}
+            value={developerName}
+            onChangeText={handleDeveloperChange}
+            placeholder={t("propertyRegister.developerPlaceholder")}
+            helperText={t("propertyRegister.developerHelper")}
+          />
+          {/* 이미 등록된 이름을 먼저 보여 준다 — 자유 입력이라 고르지 않으면
+              "Vingroup"과 "Vin Group"이 다른 시행사로 쌓인다. */}
+          {developerHits.length > 0 ? (
+            <View style={styles.developerHits}>
+              {developerHits.map((hit) => (
+                <Chip
+                  key={hit.id}
+                  label={hit.name}
+                  active={false}
+                  theme={theme}
+                  onPress={() => {
+                    setDeveloperName(hit.name);
+                    setDeveloperHits([]);
+                  }}
+                />
+              ))}
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.section}>
@@ -973,6 +1107,18 @@ const styles = StyleSheet.create({
   },
   rowItem: {
     flex: 1,
+  },
+  // [2026-09-16 확정 8] 건물 정보 섹션은 전부 선택 항목이라, 제목 아래 한 줄로
+  // 그 사실을 적는다. SectionHeader에 부제 자리가 없어 여기서 그린다.
+  sectionHint: {
+    ...textStyles.caption,
+    color: colors.light.secondaryText,
+    marginTop: -spacing.xs,
+  },
+  developerHits: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
   },
   multiline: {
     minHeight: 96,

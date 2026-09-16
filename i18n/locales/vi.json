@@ -339,7 +339,8 @@
       "idLabel": "ID",
       "idPlaceholder": "ID hoặc email",
       "passwordLabel": "Mật khẩu",
-      "missingFields": "Vui lòng nhập ID và mật khẩu"
+      "missingFields": "Vui lòng nhập ID và mật khẩu",
+      "signUpLink": "Đăng ký bằng email"
     },
     "chatInbox": "Danh sách tư vấn",
     "myProperties": "Tin đăng",
@@ -372,7 +373,8 @@
     "adBalanceEmpty": "Số dư quảng cáo đã hết.",
     "adSlotDropped": "Tin của bạn đã bị trả giá cao hơn và rớt khỏi bảng xếp hạng quảng cáo.",
     "adManage": "Quảng cáo trả phí",
-    "manageReports": "Báo cáo tin giả"
+    "manageReports": "Báo cáo tin giả",
+    "managePermissions": "Phân quyền tài khoản"
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",

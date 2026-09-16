@@ -339,7 +339,8 @@
       "idLabel": "ID",
       "idPlaceholder": "ID or email",
       "passwordLabel": "Password",
-      "missingFields": "Enter your ID and password"
+      "missingFields": "Enter your ID and password",
+      "signUpLink": "Sign up with email"
     },
     "chatInbox": "Inquiries",
     "myProperties": "Listings",
@@ -372,7 +373,8 @@
     "adBalanceEmpty": "Your ad balance has run out.",
     "adSlotDropped": "Your listing was outbid and dropped from the ad ranking.",
     "adManage": "Paid ads",
-    "manageReports": "Fake listing reports"
+    "manageReports": "Fake listing reports",
+    "managePermissions": "Account permissions"
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",

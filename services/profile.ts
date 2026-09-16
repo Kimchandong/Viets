@@ -114,3 +114,73 @@ export async function deleteMyAccount(): Promise<DeleteAccountResult> {
   }
   return { ok: false, reason: "failed" };
 }
+
+/**
+ * [2026-09-16 확정-결정사항 1·9] 언어·통화를 서버에 둔다.
+ *
+ * 왜: 지금 언어는 기기(AsyncStorage)에만 있고 통화는 아무 데도 없어서, 기기를
+ * 바꾸면 초기화된다(불일치-목록 3①). 열은 2026-08-28부터 있었으나 아무도 쓰지
+ * 않았다.
+ *
+ * NULL은 **"아직 고르지 않음"**이다(20260921000000 마이그레이션). 그래서:
+ *   NULL    → 기기 값을 쓴다. 사용자가 처음 고를 때 여기 올라간다.
+ *   값 있음 → 사용자가 고른 값이다. 로그인하면 그 값을 따른다.
+ *
+ * 아무도 고른 적 없는 열 기본값('en'/'USD')을 그대로 두고 "서버 우선"을 켰다면,
+ * 기존 사용자가 로그인할 때마다 화면이 영어·USD로 튕겼을 것이다.
+ */
+export type MyPreferences = {
+  language: string | null;
+  currency: string | null;
+};
+
+/** 비로그인이거나 조회에 실패하면 둘 다 null — 호출부는 기기 값을 그대로 쓴다. */
+export async function getMyPreferences(): Promise<MyPreferences> {
+  if (!supabase) return { language: null, currency: null };
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) return { language: null, currency: null };
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("default_language,default_currency")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("[services/profile] getMyPreferences failed:", error.message);
+    return { language: null, currency: null };
+  }
+
+  const row = data as { default_language: string | null; default_currency: string | null } | null;
+  return {
+    language: row?.default_language ?? null,
+    currency: row?.default_currency ?? null,
+  };
+}
+
+/**
+ * 고른 값을 올린다. 비로그인이면 아무 일도 하지 않는다 — 기기 저장만으로 충분하고,
+ * 나중에 로그인하면 그때 올라간다.
+ *
+ * 실패해도 조용히 넘어간다. 언어·통화 전환은 이미 화면에서 끝난 일이라, 서버 저장
+ * 실패로 전환 자체를 되돌리면 사용자에게는 "설정이 안 먹는" 것으로 보인다.
+ */
+export async function saveMyPreferences(next: Partial<MyPreferences>): Promise<void> {
+  if (!supabase) return;
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) return;
+
+  const payload: Record<string, string> = {};
+  if (next.language) payload.default_language = next.language;
+  if (next.currency) payload.default_currency = next.currency;
+  if (Object.keys(payload).length === 0) return;
+
+  const { error } = await supabase.from("profiles").update(payload).eq("id", userId);
+  if (error) {
+    console.warn("[services/profile] saveMyPreferences failed:", error.message);
+  }
+}

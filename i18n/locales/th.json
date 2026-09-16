@@ -339,7 +339,8 @@
       "idLabel": "ID",
       "idPlaceholder": "ID หรืออีเมล",
       "passwordLabel": "รหัสผ่าน",
-      "missingFields": "กรุณากรอก ID และรหัสผ่าน"
+      "missingFields": "กรุณากรอก ID และรหัสผ่าน",
+      "signUpLink": "สมัครด้วยอีเมล"
     },
     "chatInbox": "รายการสอบถาม",
     "myProperties": "ข้อมูลประกาศ",
@@ -372,7 +373,8 @@
     "adBalanceEmpty": "ยอดค่าโฆษณาหมดแล้ว",
     "adSlotDropped": "ประกาศของคุณถูกเสนอราคาสูงกว่าและหลุดจากอันดับโฆษณา",
     "adManage": "โฆษณาแบบเสียค่าใช้จ่าย",
-    "manageReports": "รายงานประกาศปลอม"
+    "manageReports": "รายงานประกาศปลอม",
+    "managePermissions": "จัดการสิทธิ์บัญชี"
   },
   "auth": {
     "tagline": "แพลตฟอร์มอสังหาริมทรัพย์และการลงทุนเวียดนาม",

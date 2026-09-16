@@ -18,25 +18,36 @@ import i18n, {
   SUPPORTED_LANGUAGES,
   SupportedLanguage,
 } from "@/i18n";
+import { getMyPreferences, saveMyPreferences } from "@/services/profile";
 
 type LocaleState = {
   language: SupportedLanguage;
   setLanguage: (language: SupportedLanguage) => void;
   /** i18n 초기화 완료 후, 실제 적용된 언어로 화면 표기를 맞춘다(app/_layout.tsx에서 호출). */
   syncFromI18n: () => void;
+  /**
+   * [2026-09-16 확정-결정사항 9] 로그인 뒤 서버 값을 반영한다(app/_layout.tsx에서 호출).
+   *
+   * 지금까지 언어는 기기에만 남아 기기를 바꾸면 초기화됐다. 서버가 비어 있으면
+   * "아직 고르지 않음"이므로 기기 값을 유지하고, 그 값을 서버에 올린다.
+   */
+  syncWithServer: () => Promise<void>;
 };
 
 function isSupported(tag: string): tag is SupportedLanguage {
   return (SUPPORTED_LANGUAGES as readonly string[]).includes(tag);
 }
 
-export const useLocaleStore = create<LocaleState>((set) => ({
+export const useLocaleStore = create<LocaleState>((set, get) => ({
   language: detectInitialLanguage(),
   setLanguage: (language) => {
     i18n.changeLanguage(language);
     set({ language });
     // 저장 실패는 persistLanguage 안에서 경고만 남기고 삼킨다 — 전환 자체는 이미 끝났다.
     void persistLanguage(language);
+    // [2026-09-16 확정 9] 로그인 상태면 서버에도 올린다. 비로그인이면 아무 일도
+    // 하지 않는다 — 나중에 로그인할 때 syncWithServer가 올린다.
+    void saveMyPreferences({ language });
   },
   syncFromI18n: () => {
     // i18n.language는 "ko-KR"처럼 지역까지 붙어 올 수 있어 앞 두 글자만 본다.
@@ -44,5 +55,17 @@ export const useLocaleStore = create<LocaleState>((set) => ({
     if (isSupported(applied)) {
       set({ language: applied });
     }
+  },
+  syncWithServer: async () => {
+    const { language } = await getMyPreferences();
+    if (language && isSupported(language)) {
+      i18n.changeLanguage(language);
+      set({ language });
+      // 서버 값을 기기에도 남긴다 — 다음 실행은 로그인 전에도 이 언어로 뜬다.
+      void persistLanguage(language);
+      return;
+    }
+    // 서버가 비어 있다 = 아직 고르지 않았다. 지금 기기 값을 올려 둔다.
+    void saveMyPreferences({ language: get().language });
   },
 }));

@@ -339,7 +339,8 @@
       "idLabel": "아이디",
       "idPlaceholder": "아이디 또는 이메일",
       "passwordLabel": "비밀번호",
-      "missingFields": "아이디와 비밀번호를 입력해 주세요"
+      "missingFields": "아이디와 비밀번호를 입력해 주세요",
+      "signUpLink": "이메일로 회원가입"
     },
     "chatInbox": "상담 목록",
     "myProperties": "매물 정보",
@@ -372,7 +373,8 @@
     "adBalanceEmpty": "광고비 잔액이 모두 소진되었습니다.",
     "adSlotDropped": "다른 매물의 광고비가 더 높아 광고 순위에서 밀려났습니다.",
     "adManage": "유료 노출광고",
-    "manageReports": "허위매물 신고"
+    "manageReports": "허위매물 신고",
+    "managePermissions": "계정 권한 관리"
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",

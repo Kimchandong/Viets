@@ -339,7 +339,8 @@
       "idLabel": "账号",
       "idPlaceholder": "账号或邮箱",
       "passwordLabel": "密码",
-      "missingFields": "请输入账号和密码"
+      "missingFields": "请输入账号和密码",
+      "signUpLink": "使用邮箱注册"
     },
     "chatInbox": "咨询列表",
     "myProperties": "房源信息",
@@ -372,7 +373,8 @@
     "adBalanceEmpty": "广告余额已全部用完。",
     "adSlotDropped": "其他房源出价更高，您的房源已跌出广告排名。",
     "adManage": "付费展示广告",
-    "manageReports": "虚假房源举报"
+    "manageReports": "虚假房源举报",
+    "managePermissions": "账号权限管理"
   },
   "auth": {
     "tagline": "越南房地产与投资平台",

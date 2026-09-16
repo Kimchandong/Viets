@@ -10,6 +10,7 @@ import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { registerPushToken, subscribeToNotificationTaps } from "@/services/push";
 import { useLocaleStore } from "@/store/useLocaleStore";
+import { useCurrencyStore } from "@/store/useCurrencyStore";
 import { refreshTypography } from "@/constants/theme";
 
 // STEP 03 범위: Navigation/Provider 골격만 구성한다. Supabase 클라이언트,
@@ -134,6 +135,12 @@ export default function RootLayout() {
       }
     });
 
+    // [2026-09-16 확정-결정사항 1·9] 기기에 저장된 통화를 읽어 온다.
+    //
+    // 언어는 i18n이 초기화하면서 저장값을 이미 반영하지만(resolveInitialLanguage),
+    // 통화는 이번에 저장을 붙였으므로 여기서 한 번 읽어 준다. 로그인 여부와 무관하다.
+    void useCurrencyStore.getState().hydrateFromDevice();
+
     return () => {
       mounted = false;
       unsubscribe();
@@ -174,6 +181,22 @@ export default function RootLayout() {
   useEffect(() => {
     if (!session) return;
     void registerPushToken();
+  }, [session]);
+
+  /**
+   * [2026-09-16 확정-결정사항 9] 로그인하면 서버에 저장된 언어·통화를 반영한다.
+   *
+   * 여기(루트 레이아웃)에 두는 이유는 푸시 등록과 같다 — 로그인은 A1 로그인 화면뿐
+   * 아니라 T5 MY의 게스트 영역에서도 일어나고, 세션 복구로도 일어난다. 한 곳에서
+   * 세션을 보는 편이 빠뜨릴 곳이 없다.
+   *
+   * 서버 값이 비어 있으면(아직 고르지 않음) 지금 기기 값을 서버에 올린다 —
+   * 각 스토어의 syncWithServer가 그 판단을 한다.
+   */
+  useEffect(() => {
+    if (!session) return;
+    void useLocaleStore.getState().syncWithServer();
+    void useCurrencyStore.getState().syncWithServer();
   }, [session]);
 
   useEffect(() => {

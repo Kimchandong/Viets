@@ -339,7 +339,8 @@
       "idLabel": "ID",
       "idPlaceholder": "IDまたはメール",
       "passwordLabel": "パスワード",
-      "missingFields": "IDとパスワードを入力してください"
+      "missingFields": "IDとパスワードを入力してください",
+      "signUpLink": "メールで新規登録"
     },
     "chatInbox": "相談一覧",
     "myProperties": "物件情報",
@@ -372,7 +373,8 @@
     "adBalanceEmpty": "広告費の残高がすべて消尽されました。",
     "adSlotDropped": "他の物件の広告費が高く、広告順位から外れました。",
     "adManage": "有料掲載広告",
-    "manageReports": "虚偽物件の通報"
+    "manageReports": "虚偽物件の通報",
+    "managePermissions": "アカウント権限管理"
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",

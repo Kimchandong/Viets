@@ -618,17 +618,17 @@ export default function MyScreen() {
                   (중개업소·고객·관리자)을 번갈아 쓰며 테스트하기 위한 경로다.
                   웹 미리보기는 OAuth 콜백을 처리할 수 없어 이 경로로만 로그인된다.
 
-                  [2026-09-12 사용자 지시] **배포되는 빌드에서는 감춘다.**
-                  실기기 테스트는 실제 소셜 계정으로만 해야 한다 — 아이디/비번으로
-                  들어간 세션과 OAuth 세션은 토큰 발급·재발급 경로가 달라, 이 경로로
-                  테스트하면 실사용에서만 나타나는 문제를 놓친다.
+                  [2026-09-12 사용자 지시] 배포 빌드에서는 __DEV__로 감췄었다.
+                  실기기 테스트를 실제 소셜 계정으로만 하기 위해서였다.
 
-                  코드를 지우지 않고 __DEV__로 막는 이유: 웹 미리보기(expo start)에서는
-                  여전히 이 경로가 유일한 로그인 수단이고, 실기기에서 문제가 나왔을 때
-                  웹으로 빠르게 되짚어 볼 수단이 사라지면 안 된다. __DEV__는
-                  preview/production 빌드에서 false이므로 배포본에는 나오지 않는다.
-                  출시 직전(production 프로필을 만들 때) 코드째 지운다. */}
-              {__DEV__ ? (
+                  [2026-09-16 사용자 결정 — 되돌림] **__DEV__를 걷어내고 정식 기능으로
+                  되살린다.** 이유는 테스트 편의가 아니라 심사다:
+                    · 앱스토어 심사에는 심사자가 쓸 로그인 계정을 제출해야 한다.
+                    · 소셜 로그인만 두면 심사자가 낯선 지역·기기에서 접속하게 되어
+                      구글 보안 차단에 걸리고, 심사 자체가 정상적으로 진행되지 않는다.
+                  그래서 이메일 로그인은 **출시본에 남는다**. 아래 가입 줄도 같은
+                  이유로 함께 노출한다 — 로그인은 되는데 가입할 길이 없으면 앞뒤가
+                  맞지 않는다(A2 화면은 완성돼 있었으나 진입 경로가 없었다). */}
               <View style={[styles.passwordLogin, { borderTopColor: theme.border }]}>
                 <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
                   {t("my.passwordLogin.title")}
@@ -657,8 +657,21 @@ export default function MyScreen() {
                   loading={passwordLoading}
                   disabled={passwordLoading || !!loadingProvider}
                 />
+                {/* [2026-09-16 확정-결정사항 2] 이메일 가입 진입.
+                    app/register.tsx(A2)는 완성돼 있었지만 코드 어디에도
+                    router.push("/register")가 없었다 — 로그인 화면을 소셜 전용으로
+                    바꾸면서 가입 링크가 사라졌고 대신 넣을 곳을 만들지 않았다.
+                    여기가 이미 이메일 로그인이 있는 자리라 가입도 여기 둔다. */}
+                <Pressable
+                  onPress={() => router.push("/register")}
+                  hitSlop={8}
+                  style={styles.signUpLink}
+                >
+                  <Text style={[textStyles.caption, { color: theme.accent }]}>
+                    {t("my.passwordLogin.signUpLink")}
+                  </Text>
+                </Pressable>
               </View>
-              ) : null}
             </View>
           )}
         </Card>
@@ -852,6 +865,22 @@ export default function MyScreen() {
                   icon="stats-chart-outline"
                   label={t("my.translationUsage")}
                   onPress={() => router.push("/admin-translation-usage")}
+                  theme={theme}
+                />
+              ) : null}
+              {/* [2026-09-16 확정-결정사항 3] 계정 권한 관리(M7) 되살림.
+                  2026-09-11에 "등록신청 관리와 겹친다"며 진입을 뺐는데, 그 결과
+                  investment_manage / property_manage 권한을 **앱에서 줄 방법이
+                  사라졌다**. 위 "등록권한 계정관리"(admin-agencies)는 업체 신청
+                  심사이지, 개별 계정에 권한을 주는 화면이 아니다.
+                  지금까지는 테스트 계정 권한을 SQL로만 넣을 수 있었다 — 3개 기기
+                  테스트를 위해 되살린다. 화면(admin-permissions.tsx, 286줄)은
+                  완성돼 있어 진입만 붙이면 된다. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="person-add-outline"
+                  label={t("my.managePermissions")}
+                  onPress={() => router.push("/admin-permissions")}
                   theme={theme}
                   last
                 />
@@ -1235,6 +1264,12 @@ const styles = createScaledStyles(() => ({
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
     gap: spacing.sm,
+  },
+  // [2026-09-16 확정 2] 이메일 가입 진입 — 로그인 버튼 아래 한 줄. 버튼으로 두면
+  // 로그인과 같은 무게로 보여, 무엇을 눌러야 할지 한 번 더 생각하게 된다.
+  signUpLink: {
+    alignSelf: "center",
+    paddingVertical: spacing.xs,
   },
   refundBox: {
     flexDirection: "row",

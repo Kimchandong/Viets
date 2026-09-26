@@ -369,6 +369,9 @@ const styles = createScaledStyles(() => ({
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: spacing.xs,
+    // [2026-09-26] 제목 쪽이 flex: 1로 남는 폭을 가져가므로, 칩은 줄어들지 않게 못박는다.
+    // 없으면 제목이 길어질 때 칩 글자가 먼저 잘린다.
+    flexShrink: 0,
   },
   sortChip: {
     borderWidth: 1,

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "D & D",
+    "name": "BĐS & REiT",
     "slug": "viets-app",
     "scheme": "viets",
     "version": "1.0.0",
@@ -18,7 +18,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F7F8F2"
+      "backgroundColor": "#D70202"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -33,7 +33,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#F7F8F2"
+        "backgroundColor": "#D70202"
       },
       "package": "com.viets.app",
       "config": {

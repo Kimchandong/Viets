@@ -923,7 +923,21 @@ const styles = createScaledStyles(() => ({
     gap: spacing.sm,
   },
   listingsHeaderTitle: {
-    flexShrink: 1,
+    // [2026-09-26 실기기 결함 수정] 여기가 flexShrink: 1 뿐이었다.
+    //
+    // 증상: 실기기에서 "매물 목록" 제목이 보이지 않고 그 자리에 **세로로 긴 빈칸**이
+    // 생겼다(웹 미리보기는 정상). 정렬 칩도 오른쪽으로 밀렸다.
+    //
+    // 원인: 안쪽 SectionHeader의 titleGroup이 flex: 1이고, RN에서 flex: 1은
+    // flexBasis를 **0**으로 만든다. 그래서 SectionHeader의 본래 너비가 0으로 계산되고,
+    // 이 상자는 flexGrow가 없어 0에서 늘어나지 않는다 → 제목 Text가 너비 0으로
+    // 줄어들어 **한 글자씩 줄바꿈**되고, 그 세로 길이가 빈칸으로 보였다.
+    //
+    // 웹에서만 멀쩡했던 이유: CSS 플렉스 항목에는 min-width: auto가 기본이라 내용보다
+    // 작게 줄어들지 않는다. RN(Yoga)에는 그 보호가 없다 — 웹 미리보기로는 절대
+    // 잡히지 않는 종류의 차이다.
+    flex: 1,
+    minWidth: 0,
   },
   featuredRow: {
     gap: spacing.md,

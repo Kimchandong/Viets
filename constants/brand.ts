@@ -12,4 +12,7 @@
  * 여섯 번 적어 두면 한 언어만 고쳐지는 일이 생긴다. 문장 안에 이름이 들어가는
  * 경우(약관 동의 문구)는 i18n 쪽에서 {{brand}}로 받아 여기 값을 끼운다.
  */
-export const APP_NAME = "D & D";
+// [2026-09-26 사용자 지시] "D & D" → "BĐS & REiT".
+// BĐS는 베트남어 Bất Động Sản(부동산)의 약자다. app.json의 expo.name과 같은 값이어야
+// 한다(홈 화면 아이콘 밑에 뜨는 이름은 그쪽이다).
+export const APP_NAME = "BĐS & REiT";

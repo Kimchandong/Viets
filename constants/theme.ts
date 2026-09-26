@@ -10,7 +10,7 @@
  * 중립 placeholder 값을 사용한다. 브랜드 색상이 확정되면 이 값만 교체하면 되도록
  * 모든 색상은 이 파일 한 곳에서만 정의한다(하드코딩 금지).
  */
-import { Dimensions, type ImageStyle, type TextStyle, type ViewStyle } from "react-native";
+import { Dimensions, PixelRatio, type ImageStyle, type TextStyle, type ViewStyle } from "react-native";
 
 export const colors = {
   light: {
@@ -122,6 +122,29 @@ function clampRatio(raw: number): number {
 let widthRatio = clampRatio(RAW_WIDTH_RATIO);
 
 /**
+ * [2026-09-26 실기기 결함 수정] 기기의 **시스템 글꼴 크기 배율**.
+ *
+ * 증상: 해상도가 더 큰 폰에서 글자가 더 **작게**, 작은 폰에서 더 크게 나왔다.
+ * 화면 폭에 따라 커져야 하는데 반대로 나온 것이다.
+ *
+ * 원인: app/_layout.tsx가 `Text.defaultProps = { allowFontScaling: false }`로
+ * 시스템 배율을 끈다고 되어 있었지만 **그 코드는 아무 일도 하지 않았다.**
+ * RN 0.81의 Text는 함수형 컴포넌트이고(`component(...)` 문법),
+ * React 19는 함수형 컴포넌트의 defaultProps를 제거했다. 그래서 모든 글자가
+ * 기기의 글꼴 크기 설정을 그대로 곱하고 있었고, 그 배율이 이 파일의 폭 기반
+ * 계산 위에 겹쳐 곱해져 결과가 기기마다 제멋대로였다.
+ *
+ * 대응: 배율을 끄는 대신 **미리 나눠 둔다.** RN이 렌더링할 때 fontScale을 곱하므로,
+ * 여기서 먼저 나눠 두면 최종 크기가 정확히 폭 기반 값이 된다. 끄는 쪽(각 Text에
+ * allowFontScaling={false}를 일일이 붙이는 것)은 한 곳만 빠뜨려도 그 글자만
+ * 어긋나지만, 이 방법은 크기를 만드는 통로가 여기 하나뿐이라 빠질 곳이 없다.
+ *
+ * 맞바꾼 것: 기기에서 글꼴을 크게 설정한 사용자에게도 앱 글자는 커지지 않는다.
+ * 이 앱은 "폭 하나로만 크기를 정한다"는 방침이므로 그 방침을 실제로 지키는 쪽을 택했다.
+ */
+let fontScale = PixelRatio.getFontScale() || 1;
+
+/**
  * 화면 폭 비율(CLAMPED_WIDTH_RATIO)을 `factor` 비율만큼만 크기에 반영하는 완만한
  * (moderate) 스케일 함수. 폭 차이를 그대로 곱하면(factor=1) 태블릿급 화면에서
  * 제목이 과도하게 커지고 작은 화면에서는 본문까지 읽기 힘들 만큼 작아지므로,
@@ -135,7 +158,8 @@ let widthRatio = clampRatio(RAW_WIDTH_RATIO);
  */
 function moderateScale(base: number, factor: number): number {
   const scaled = base * (1 + (widthRatio - 1) * factor);
-  return Math.round(scaled);
+  // fontScale로 나누는 이유는 위 fontScale 선언부 주석 참고(RN이 렌더링 때 다시 곱한다).
+  return Math.round(scaled / fontScale);
 }
 
 /**
@@ -366,11 +390,17 @@ export function textColor(theme: ThemeColors, role: TextRole): string {
   return theme[TEXT_ROLE_COLOR[role]];
 }
 
-export function refreshTypography(width: number): boolean {
+export function refreshTypography(width: number, nextFontScale: number = fontScale): boolean {
   const next = clampRatio(width / BASELINE_WIDTH);
-  if (Math.abs(next - widthRatio) < 0.001) return false;
+  const safeFontScale = nextFontScale > 0 ? nextFontScale : 1;
+  const widthSame = Math.abs(next - widthRatio) < 0.001;
+  const scaleSame = Math.abs(safeFontScale - fontScale) < 0.001;
+  // 글꼴 배율도 감시한다 — 사용자가 앱을 켜 둔 채 시스템 설정에서 글자 크기를 바꾸면
+  // 그 순간 모든 크기를 다시 계산해야 한다.
+  if (widthSame && scaleSame) return false;
 
   widthRatio = next;
+  fontScale = safeFontScale;
 
   // [2026-09-26] 크기 토큰을 **먼저** 고친다. 아래 rebuildScaledStyles()가 다시 돌리는
   // 화면 스타일 팩토리 안에서 typography.size.*를 읽는 곳이 많은데, 순서가 뒤집히면
@@ -543,3 +573,20 @@ export const opacity = {
   disabled: 0.4,
   pressed: 0.7,
 } as const;
+
+
+/**
+ * [2026-09-26] 기기별 글자 크기 진단용 한 줄. 알림 > 설정 화면이 보여 준다.
+ *
+ * 두 기기에서 글자 크기가 다르게 보일 때, 추측하지 않고 **숫자를 읽어** 원인을
+ * 가리기 위한 것이다(폭이 다른지, 시스템 글꼴 배율이 다른지).
+ */
+export function describeTypographyScale(): string {
+  return [
+    `폭 ${Math.round(SCREEN_WIDTH)}dp`,
+    `비율 ${widthRatio.toFixed(2)}`,
+    `글꼴배율 ${fontScale.toFixed(2)}`,
+    `본문 ${textStyles.body.fontSize}px`,
+    `제목 ${textStyles.screenTitle.fontSize}px`,
+  ].join(" · ");
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Stack, usePathname, useRouter } from "expo-router";
-import { ActivityIndicator, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { ActivityIndicator, useWindowDimensions, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
@@ -8,9 +8,8 @@ import type { Session } from "@supabase/supabase-js";
 import { Loading } from "@/components/Loading";
 import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
-import * as Updates from "expo-updates";
-
 import { registerPushToken, subscribeToNotificationTaps } from "@/services/push";
+import { checkAndApplyUpdate } from "@/services/updates";
 import { useLocaleStore } from "@/store/useLocaleStore";
 import { useCurrencyStore } from "@/store/useCurrencyStore";
 import { createScaledStyles, refreshTypography } from "@/constants/theme";
@@ -40,24 +39,21 @@ import { createScaledStyles, refreshTypography } from "@/constants/theme";
 // onAuthStateChange/단일 auth 리스너 구조는 전혀 바꾸지 않았다).
 
 /**
- * [2026-09-12 사용자 지시] **시스템 글꼴 배율을 앱에 적용하지 않는다.**
+ * [2026-09-26 실기기 결함 수정] 여기 있던 코드를 **지웠다.**
  *
- * 이것이 "해상도에 따라 글자가 조정되지 않는다"의 실제 원인이었다. React Native의
- * Text는 기본적으로 기기 설정(설정 → 디스플레이 → 글꼴 크기)의 배율을 곱한다. 그래서
- * 글꼴을 크게 써 온 기기에서는 앱이 화면 폭으로 계산한 크기 위에 그 배율이 다시
- * 곱해져, 좁은 화면에서도 글자가 그대로 커 보였다 — 앱의 계산이 무력화된 것이다.
+ * 있던 것: `Text.defaultProps = { allowFontScaling: false }` — 기기의 시스템 글꼴
+ * 크기 배율을 꺼서, 크기를 화면 폭 하나로만 정하려는 의도였다.
  *
- * 이 앱은 크기를 화면 폭 하나로만 정한다(constants/theme.ts). 두 개의 기준이 겹쳐
- * 곱해지면 어느 쪽으로도 예측할 수 없으므로, 배율 쪽을 끈다.
+ * 문제: **그 코드는 아무 일도 하지 않았다.** RN 0.81의 Text는 함수형 컴포넌트이고
+ * (Libraries/Text/Text.js의 `component(...)` 문법), React 19는 함수형 컴포넌트의
+ * defaultProps를 제거했다. 그래서 모든 글자가 시스템 배율을 그대로 곱하고 있었고,
+ * 폭 기반 계산과 겹쳐 곱해져 "해상도가 큰 폰에서 글자가 더 작은" 결과가 나왔다.
  *
- * defaultProps는 함수형 컴포넌트에서 사라졌지만 Text/TextInput 같은 RN 내장
- * 컴포넌트에서는 여전히 동작한다 — 화면마다 allowFontScaling={false}를 일일이
- * 붙이는 것(빠뜨리면 그 글자만 배율을 타는)보다 이 한 곳이 확실하다.
+ * 지금은 constants/theme.ts가 크기를 만들 때 fontScale로 미리 나눈다 — RN이
+ * 렌더링에서 다시 곱하므로 최종 크기가 정확히 폭 기반 값이 된다. 끄는 방식은
+ * 한 곳만 빠뜨려도 그 글자만 어긋나지만, 나누는 방식은 통로가 한 곳뿐이라 빠질 곳이 없다.
  */
-type FontScalable = { defaultProps?: { allowFontScaling?: boolean } };
-for (const component of [Text, TextInput] as unknown as FontScalable[]) {
-  component.defaultProps = { ...component.defaultProps, allowFontScaling: false };
-}
+
 
 const queryClient = new QueryClient();
 
@@ -163,14 +159,16 @@ export default function RootLayout() {
    * 경우에만 올린다 — 키보드가 오르내리며 높이만 바뀔 때마다 다시 마운트하면
    * 입력하던 내용이 날아간다.
    */
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   const [typographyVersion, setTypographyVersion] = useState(0);
 
   useEffect(() => {
-    if (refreshTypography(width)) {
+    if (refreshTypography(width, fontScale)) {
       setTypographyVersion((current) => current + 1);
     }
-  }, [width]);
+    // fontScale도 의존성이다 — 앱을 켜 둔 채 시스템에서 글자 크기를 바꾸면
+    // 그 순간 모든 크기를 다시 계산해야 한다.
+  }, [width, fontScale]);
 
   /**
    * [2026-09-26 사용자 지시] OTA — 앱을 켤 때 새 JS 번들이 있으면 받아서 적용한다.
@@ -194,24 +192,9 @@ export default function RootLayout() {
    * 번들로 그냥 실행돼야 한다 — 업데이트 확인 때문에 앱이 안 켜지는 편이 훨씬 나쁘다.
    */
   useEffect(() => {
-    if (__DEV__) return;
-
-    let cancelled = false;
-    void (async () => {
-      try {
-        const check = await Updates.checkForUpdateAsync();
-        if (cancelled || !check.isAvailable) return;
-        await Updates.fetchUpdateAsync();
-        if (cancelled) return;
-        await Updates.reloadAsync();
-      } catch {
-        // 조용히 넘어간다(위 주석 참고).
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    // 결과를 남기는 일까지 services/updates.ts가 맡는다 — 알림 화면이 그 값을 읽어
+    // "지금 이 앱이 OTA를 물고 있는지"를 한 줄로 보여 준다.
+    void checkAndApplyUpdate();
   }, []);
 
   /**

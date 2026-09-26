@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
-import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, describeTypographyScale, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
   deleteNotification,
   listDisabledNotificationKinds,
@@ -22,6 +22,7 @@ import {
   type AppNotification,
 } from "@/services/notifications";
 import { getPushRegistrationStatus, registerPushToken } from "@/services/push";
+import { checkAndApplyUpdate, describeUpdateRuntime, getUpdateStatus } from "@/services/updates";
 
 /**
  * [2026-09-12 사용자 지시] 알림 수신함.
@@ -46,6 +47,7 @@ export default function NotificationsScreen() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [pushStatus, setPushStatus] = useState(getPushRegistrationStatus());
+  const [updateStatus, setUpdateStatus] = useState(getUpdateStatus());
   const [showSettings, setShowSettings] = useState(false);
   const [disabledKinds, setDisabledKinds] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
@@ -71,6 +73,7 @@ export default function NotificationsScreen() {
       void registerPushToken().then(() => {
         if (active) setPushStatus(getPushRegistrationStatus());
       });
+      if (active) setUpdateStatus(getUpdateStatus());
       return () => {
         active = false;
       };
@@ -189,6 +192,50 @@ export default function NotificationsScreen() {
             >
               {pushStatus.reason}
             </Text>
+            <Ionicons name="refresh-outline" size={14} color={theme.secondaryText} />
+          </Pressable>
+
+          {/* [2026-09-26 사용자 지시] 이 앱이 OTA를 제대로 물고 있는지 **눈으로 확인**하는 줄.
+              빌드하고 나서 "업데이트가 왜 안 오지"를 추측으로 풀지 않기 위한 것이다.
+              채널이 비어 있으면 eas update를 올려도 이 앱에는 오지 않는다 — 그걸 여기서 본다.
+              눌러서 지금 바로 확인할 수 있다(새 번들이 있으면 받아서 앱이 재시작된다). */}
+          <Pressable
+            testID="ota-status-row"
+            onPress={async () => {
+              setUpdateStatus({ state: "checking", reason: "업데이트 확인 중…" });
+              setUpdateStatus(await checkAndApplyUpdate());
+            }}
+            style={({ pressed }) => [styles.pushStatus, { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 }]}
+          >
+            <Ionicons
+              name={
+                updateStatus.state === "failed"
+                  ? "alert-circle-outline"
+                  : updateStatus.state === "latest"
+                    ? "checkmark-circle-outline"
+                    : "cloud-download-outline"
+              }
+              size={16}
+              color={updateStatus.state === "failed" ? theme.danger : theme.secondaryText}
+            />
+            <View style={styles.pushStatusText}>
+              <Text
+                style={[
+                  textStyles.caption,
+                  { color: updateStatus.state === "failed" ? theme.danger : theme.secondaryText },
+                ]}
+              >
+                {updateStatus.reason}
+              </Text>
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+                {describeUpdateRuntime()}
+              </Text>
+              {/* [2026-09-26] 글자 크기 진단 — 기기마다 글자가 다르게 보일 때
+                  추측하지 않고 숫자를 읽기 위한 줄이다. */}
+              <Text style={[textStyles.caption, { color: theme.secondaryText }]} numberOfLines={1}>
+                {describeTypographyScale()}
+              </Text>
+            </View>
             <Ionicons name="refresh-outline" size={14} color={theme.secondaryText} />
           </Pressable>
           {NOTIFICATION_KINDS.map((kind) => {

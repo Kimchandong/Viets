@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 
@@ -13,7 +13,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
 import {
   createBoardPost,
   getBoardPost,
@@ -260,7 +260,7 @@ export default function AdminBoardWriteScreen() {
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -309,4 +309,4 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
   },
-});
+}));

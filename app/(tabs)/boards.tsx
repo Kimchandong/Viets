@@ -13,7 +13,7 @@ import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import { createBoardPost, listBoardPosts, type BoardKind, type BoardPost } from "@/services/boards";
 import { supabase } from "@/services/supabase";
 
@@ -269,7 +269,7 @@ export default function BoardsScreen() {
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -334,4 +334,4 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
   },
-});
+}));

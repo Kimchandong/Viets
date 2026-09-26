@@ -1,6 +1,6 @@
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleProp, Text, View, ViewStyle } from "react-native";
 
-import { colors, spacing, typography } from "@/constants/theme";
+import { createScaledStyles, colors, spacing, typography } from "@/constants/theme";
 
 export type EmptyStateProps = {
   title: string;
@@ -28,7 +28,7 @@ export function EmptyState({ title, description, action, style }: EmptyStateProp
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     alignItems: "center",
     justifyContent: "center",
@@ -54,4 +54,4 @@ const styles = StyleSheet.create({
   action: {
     marginTop: spacing.md,
   },
-});
+}));

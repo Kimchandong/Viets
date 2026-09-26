@@ -1,7 +1,7 @@
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors, spacing, typography } from "@/constants/theme";
+import { createScaledStyles, colors, spacing, typography } from "@/constants/theme";
 
 export type HeaderProps = {
   title: string;
@@ -64,7 +64,7 @@ export function Header({ title, subtitle, leftAction, rightAction, style, border
 // SafeAreaView(edges=["top"])가 상태바만큼 비켜주는 것으로 충분하다 — 여백을 주면
 // 모든 화면의 제목이 한 칸씩 내려앉아 보인다.
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   safeArea: {},
   row: {
     flexDirection: "row",
@@ -97,4 +97,4 @@ const styles = StyleSheet.create({
     fontWeight: typography.weight.regular,
     marginLeft: spacing.sm,
   },
-});
+}));

@@ -19,7 +19,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { SegmentedToggle } from "@/components/SegmentedToggle";
 import { Select } from "@/components/Select";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
   addPropertyImages,
   archiveProperty,
@@ -863,7 +863,7 @@ export default function PropertyRegisterScreen() {
                     style={styles.photoRemove}
                     disabled={deletingPhoto}
                   >
-                    <Ionicons name="close-circle" size={22} color="#FFFFFF" />
+                    <Ionicons name="close-circle" size={22} color={colors.light.onAccent} />
                   </Pressable>
                   {slot === 0 ? (
                     <View style={[styles.photoBadge, { backgroundColor: theme.accent }]}>
@@ -1069,7 +1069,7 @@ export default function PropertyRegisterScreen() {
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   // 지역 슬라이드 — 칩 사이 간격만 두고 좌우 여백은 content가 이미 갖고 있다.
   regionSection: {
     gap: spacing.xs,
@@ -1178,4 +1178,4 @@ const styles = StyleSheet.create({
   noticeText: {
     textAlign: "center",
   },
-});
+}));

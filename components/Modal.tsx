@@ -1,6 +1,6 @@
 import { Modal as RNModal, Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 
-import { colors, radius, shadow, spacing } from "@/constants/theme";
+import { createScaledStyles, colors, radius, shadow, spacing } from "@/constants/theme";
 
 export type ModalProps = {
   visible: boolean;
@@ -59,7 +59,7 @@ export function Modal({ visible, onClose, children, style, accessibilityLabel }:
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   backdrop: {
     flex: 1,
     alignItems: "center",
@@ -71,4 +71,4 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.lg,
   },
-});
+}));

@@ -84,7 +84,8 @@
     "categoryLabel": "分类",
     "mapNoCoords": "没有可在地图上显示的房源位置信息。",
     "mapMissingCoords": "{{count}} 个缺少位置信息的房源未在地图上显示。",
-    "top10Title": "TOP10 房源"
+    "top10Title": "TOP10 房源",
+    "locationNeeded": "需允许位置权限才能按距离排序。"
   },
   "propertyDetail": {
     "descriptionTitle": "详细描述",
@@ -148,7 +149,8 @@
     "infoBody": "与其他投资者共同出资，投资于同一个房地产产品。收益与风险因产品而异——投资前请务必查看详细信息。",
     "categoryLabel": "分类",
     "riskLabel": "风险等级",
-    "riskSelectAll": "全部风险等级"
+    "riskSelectAll": "全部风险等级",
+    "allInFeaturedDescription": "所有产品目前都显示在上方的推荐区。"
   },
   "investDetail": {
     "targetAmountLabel": "目标募集金额",
@@ -229,7 +231,7 @@
     },
     "submitButton": "提交申请",
     "successTitle": "投资申请已提交",
-    "successDescription": "这是测试页面，实际并未提交。\n在正式服务中，审核后会通知您结果。",
+    "successDescription": "负责人审核后会通过您填写的联系方式与您联系。\n申请记录可在 MY > 我的投资 中查看。",
     "goToProduct": "返回产品详情",
     "goToInvestList": "前往投资列表",
     "confirmBeforeApplyTitle": "投资申请前请务必确认",
@@ -390,7 +392,7 @@
       "google": "使用 Google 继续",
       "apple": "使用 Apple 继续",
       "oauthUnavailable": "Google/Apple 登录尚未配置。",
-      "termsNotice": "继续即表示您同意 Viet's 的服务条款和隐私政策。"
+      "termsNotice": "继续即表示您同意 {{brand}} 的服务条款和隐私政策。"
     },
     "register": {
       "title": "注册",
@@ -1135,7 +1137,9 @@
     "changeBid": "修改我的出价",
     "lowerWarning": "降低金额会下调排名；若跌出展示位，广告将停止展示。",
     "belowMin": "最低广告费为 {{amount}}。",
-    "outbid": "排名已发生变化。该位置现在至少需要 {{amount}}。"
+    "outbid": "排名已发生变化。该位置现在至少需要 {{amount}}。",
+    "noPermissionTitle": "没有广告权限",
+    "noPermissionDescription": "只有房产登记申请已通过审核或拥有房源管理权限的账号才能查看和设置广告排名。"
   },
   "adManage": {
     "title": "付费展示广告",
@@ -1145,7 +1149,9 @@
     },
     "hint": "请选择要投放的房源。",
     "emptyTitle": "暂无房源",
-    "emptyDescription": "请先登记房源再设置广告。"
+    "emptyDescription": "请先登记房源再设置广告。",
+    "noPermissionTitle": "没有广告权限",
+    "noPermissionDescription": "只有房产登记申请已通过审核或拥有房源管理权限的账号才能设置广告。"
   },
   "propertyReport": {
     "button": "举报",
@@ -1220,6 +1226,10 @@
       "payment_requested": {
         "title": "收到充值申报",
         "body": "{{agency}} 申报了 {{amount}} VND 的充值。"
+      },
+      "agency_applied": {
+        "title": "收到中介注册申请",
+        "body": "{{agency}} 提交了中介注册申请。"
       }
     }
   },
@@ -1248,5 +1258,36 @@
     "emptyDescription": "请在投资标签中浏览募集中的产品。",
     "signedOutTitle": "需要登录",
     "signedOutDescription": "登录后可查看您的投资记录。"
+  },
+  "homeSearch": {
+    "region": "地区",
+    "regionPlaceholder": "选择市 / 省",
+    "regionCity": "直辖市",
+    "regionProvince": "省",
+    "listingKind": "类型",
+    "category": "类型",
+    "amount": "投资额",
+    "amountAny": "全部",
+    "dividend": "分红周期",
+    "searchProperty": "搜索房源",
+    "searchInvest": "搜索投资",
+    "listing": {
+      "forSale": "买卖",
+      "forRent": "租赁",
+      "presale": "预售"
+    },
+    "dividendKind": {
+      "monthly": "每月",
+      "quarterly": "每季",
+      "yearly": "每年",
+      "single": "一次性(%)"
+    },
+    "rentBuilding": "商铺/大厦/办公",
+    "price": "金额",
+    "listingPlaceholder": "选择交易类型",
+    "categoryPlaceholder": "选择类型",
+    "dividendPlaceholder": "选择分红周期",
+    "confirm": "确定",
+    "upTo": "{{amount}} 以内"
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Stack, usePathname, useRouter } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { ActivityIndicator, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
@@ -8,10 +8,12 @@ import type { Session } from "@supabase/supabase-js";
 import { Loading } from "@/components/Loading";
 import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
+import * as Updates from "expo-updates";
+
 import { registerPushToken, subscribeToNotificationTaps } from "@/services/push";
 import { useLocaleStore } from "@/store/useLocaleStore";
 import { useCurrencyStore } from "@/store/useCurrencyStore";
-import { refreshTypography } from "@/constants/theme";
+import { createScaledStyles, refreshTypography } from "@/constants/theme";
 
 // STEP 03 범위: Navigation/Provider 골격만 구성한다. Supabase 클라이언트,
 // 인증 상태, 실제 화면 로직은 다음 단계(Phase 2 이후)에서 연결한다.
@@ -171,6 +173,48 @@ export default function RootLayout() {
   }, [width]);
 
   /**
+   * [2026-09-26 사용자 지시] OTA — 앱을 켤 때 새 JS 번들이 있으면 받아서 적용한다.
+   *
+   * 무엇이 되고 무엇이 안 되나: expo-updates는 **JS/자산만** 갈아 끼운다. 화면·문구·
+   * 로직 수정은 스토어를 거치지 않고 바로 나가지만, 네이티브가 바뀌는 변경
+   * (패키지 추가, 권한, app.json의 plugins·아이콘 등)은 여전히 새 빌드가 필요하다.
+   *
+   * 어느 빌드가 이 업데이트를 받는가: app.json의 runtimeVersion(정책 appVersion)이
+   * 같은 빌드만 받는다. version을 올리면 그 전 빌드는 이 업데이트를 받지 않는다 —
+   * 네이티브가 다를 수 있으므로 그게 맞다.
+   *
+   * 받은 뒤 바로 reload하는 이유: 기본 동작은 "다음 실행부터 적용"이라 사용자가
+   * 앱을 두 번 껐다 켜야 새 코드가 돈다. 고친 것이 바로 반영되지 않으면
+   * "고쳤는데 그대로"로 읽힌다.
+   *
+   * __DEV__에서는 하지 않는다 — 개발 중에는 Metro가 번들을 주고, 여기서 reload를
+   * 걸면 개발 서버와 싸운다.
+   *
+   * 실패는 삼킨다. 네트워크가 없거나 업데이트 서버가 응답하지 않아도 앱은 지금 가진
+   * 번들로 그냥 실행돼야 한다 — 업데이트 확인 때문에 앱이 안 켜지는 편이 훨씬 나쁘다.
+   */
+  useEffect(() => {
+    if (__DEV__) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const check = await Updates.checkForUpdateAsync();
+        if (cancelled || !check.isAvailable) return;
+        await Updates.fetchUpdateAsync();
+        if (cancelled) return;
+        await Updates.reloadAsync();
+      } catch {
+        // 조용히 넘어간다(위 주석 참고).
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /**
    * [2026-09-12 사용자 지시] 푸시 — 로그인한 뒤에 토큰을 등록하고, 알림을 누르면
    * MY로 보낸다.
    *
@@ -243,11 +287,11 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   splash: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#FFFFFF",
   },
-});
+}));

@@ -79,6 +79,9 @@ export const NOTIFICATION_KINDS = [
   "ad_slot_dropped",
   "agency_approved",
   "agency_rejected",
+  // [2026-09-16] 업체 등록 신청 — 관리자가 받는다. 이 목록에 없으면 알림 설정
+  // 화면에 종류가 뜨지 않아 끄고 켤 수 없다.
+  "agency_applied",
   "payment_requested",
   "payment_approved",
   "payment_rejected",

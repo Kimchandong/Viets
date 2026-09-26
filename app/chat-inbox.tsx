@@ -3,14 +3,14 @@ import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { Session } from "@supabase/supabase-js";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/EmptyState";
 import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
-import { colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
 import { listManagedConversations, type ManagedConversation } from "@/services/chat";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { canRegisterProperty } from "@/services/roles";
@@ -182,7 +182,7 @@ export default function ChatInboxScreen() {
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -214,4 +214,4 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
     borderRadius: radius.full,
   },
-});
+}));

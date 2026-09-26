@@ -1,6 +1,6 @@
-import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, Text, View, ViewStyle } from "react-native";
 
-import { opacity, radius, spacing, textStyles, typography, type ThemeColors } from "@/constants/theme";
+import { createScaledStyles, opacity, radius, spacing, textStyles, typography, type ThemeColors } from "@/constants/theme";
 
 /**
  * [2026-09-11 사용자 지시] 홈 화면의 "부동산 투자 / 부동산 매물" 탭과 같은 모양의
@@ -82,7 +82,7 @@ export function SegmentedToggle({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     gap: spacing.xs,
   },
@@ -105,4 +105,4 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
   },
-});
+}));

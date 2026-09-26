@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleProp, Text, View, ViewStyle } from "react-native";
 
 import { Button } from "@/components/Button";
-import { colors, spacing, typography } from "@/constants/theme";
+import { createScaledStyles, colors, spacing, typography } from "@/constants/theme";
 
 export type ErrorStateProps = {
   title: string;
@@ -36,7 +36,7 @@ export function ErrorState({ title, message, onRetry, retryLabel, style }: Error
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     alignItems: "center",
     justifyContent: "center",
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
   action: {
     marginTop: spacing.md,
   },
-});
+}));

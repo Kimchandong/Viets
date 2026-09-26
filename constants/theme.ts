@@ -33,6 +33,14 @@ export const colors = {
     warning: "#F2994A",
     // accent/danger 위에 올라가는 텍스트/아이콘 색상 — accent 자체가 placeholder이므로 이 값도 D28 확정 시 함께 재검토
     onAccent: "#FFFFFF",
+    // [2026-09-26] 히어로 영상 위 보조 문구(롤링 배너 등) — onAccent를 70%로 낮춘 것.
+    // 투명도를 style.opacity로 주면 등장/퇴장 애니메이션과 곱해져 중간값이 흐트러지므로
+    // 색 자체에 담는다. 화면에 rgba를 직접 적던 것을 토큰으로 올렸다.
+    onAccentMuted: "rgba(255, 255, 255, 0.7)",
+    // [2026-09-09 사용자 지시] 누적 모집액 같은 "강조 숫자" 전용 붉은색.
+    // danger(#D64545)와 **의미가 다르다** — 오류가 아니라 강조다. 화면에 #B6010C를
+    // 직접 적던 것을 토큰으로 올렸다(2026-09-26).
+    figureHighlight: "#B6010C",
     // 모달 backdrop 등 스크림 — light/dark 공통으로 동일 값 사용(관례적 패턴)
     overlay: "rgba(0, 0, 0, 0.5)",
     // outline/ghost variant 등 투명 배경 — light/dark 공통 값이지만 컴포넌트에서 리터럴 "transparent"를
@@ -54,6 +62,8 @@ export const colors = {
     success: "#66BB6A",
     warning: "#F5A962",
     onAccent: "#FFFFFF",
+    onAccentMuted: "rgba(255, 255, 255, 0.7)",
+    figureHighlight: "#E2565F",
     overlay: "rgba(0, 0, 0, 0.5)",
     surfaceTransparent: "transparent",
   },
@@ -159,6 +169,55 @@ export type ColorScheme = keyof typeof colors;
  */
 export type ThemeColors = { [K in keyof typeof colors.light]: string };
 
+/**
+ * [2026-09-26] 크기 토큰의 **기준값 표**. typography.size는 이 표에서 만들어지고,
+ * refreshTypography()가 폭이 바뀔 때마다 이 표를 다시 읽어 제자리에서 고쳐 쓴다.
+ *
+ * 왜 표로 뺐나 — 예전에는 typography.size의 각 값이 `moderateScale(14, 0.22)`처럼
+ * **그 자리에서 한 번 계산된 숫자**였다. 기준값(14)과 계수(0.22)가 어디에도 남지
+ * 않아 다시 계산할 방법이 없었고, 그 결과 `typography.size.*`를 쓰는 앱 전체
+ * 37곳이 **화면 폭이 바뀌어도 영원히 첫 폭의 크기로 굳어 있었다.**
+ * textStyles만 다시 계산되고 있었기 때문에 이 사각지대가 보이지 않았다.
+ */
+const SIZE_SCALE = {
+  // caption/Bottom Tab label의 "가장 작은 계층". 하한을 지키려고 폭에 반응시키지
+  // 않는다(navLabel 5개가 고정폭 탭 바에 들어가야 한다).
+  xs: { base: 11, factor: 0 },
+  sm: { base: 13, factor: FONT_FACTOR.BODY },
+  // STEP 4-16-2(2026-09-08) 사용자 요청 — body/cardTitle/buttonLabel/price/
+  // sectionTitle 기준값을 15→14로 축소.
+  md: { base: 14, factor: FONT_FACTOR.BODY },
+  lg: { base: 17, factor: FONT_FACTOR.TITLE },
+  // STEP 4-16-2 사용자 요청 — screenTitle 기준값을 20→18로 축소.
+  xl: { base: 18, factor: FONT_FACTOR.TITLE },
+  xxl: { base: 26, factor: FONT_FACTOR.TITLE },
+  // 큰 숫자(수익률, 자산총액 등) 강조용. STEP 4-16-2 — 34→30.
+  display: { base: 30, factor: FONT_FACTOR.TITLE },
+  // 매물 가격/투자 예상수익률처럼 display보다는 작지만 본문보다 훨씬 강조되는
+  // "히어로 숫자". STEP 4-16-2 — 28→24.
+  heroValue: { base: 24, factor: FONT_FACTOR.TITLE },
+  // 알림 배지처럼 아주 작은 숫자 전용.
+  badge: { base: 9, factor: FONT_FACTOR.SMALL },
+  // [2026-09-26] 홈 히어로의 브랜드 워드마크. 예전에는 home.tsx가
+  // `typography.size.xl * 1.2`로 직접 계산해 썼다 — 곱셈이 화면 안에 들어가 있으면
+  // 그 글자만 다른 규칙으로 움직인다.
+  brandLogo: { base: 22, factor: FONT_FACTOR.TITLE },
+  // [2026-09-26 사용자 지시] 워드마크 뒷부분("in VIETNAM")은 앞부분의 **절반 크기**다.
+  // brandLogo와 같은 factor를 쓴다 — factor가 다르면 화면 폭이 바뀔 때 둘의 비율이
+  // 절반에서 어긋난다. 22의 절반이라 base는 11.
+  brandLogoSmall: { base: 11, factor: FONT_FACTOR.TITLE },
+} as const;
+
+type SizeKey = keyof typeof SIZE_SCALE;
+
+/** 폭에 따라 제자리에서 갱신되는 크기 토큰. 새 참조를 만들지 않는다. */
+const sizeTokens = Object.fromEntries(
+  (Object.keys(SIZE_SCALE) as SizeKey[]).map((key) => [
+    key,
+    moderateScale(SIZE_SCALE[key].base, SIZE_SCALE[key].factor),
+  ]),
+) as { [K in SizeKey]: number };
+
 export const typography = {
   fontFamily: {
     regular: undefined, // 시스템 기본 폰트 사용 (브랜드 폰트 확정 시 교체)
@@ -167,40 +226,11 @@ export const typography = {
   /**
    * STEP 4-12: PC 화면을 그대로 축소한 듯한 크기를 실제 스마트폰 앱 UI 기준으로
    * 낮췄다(예: screenTitle 24→20, sectionTitle 20→17, body 16→15, caption 12→11).
-   * 계층 간 상대적 비율은 유지하면서 전체적으로 한 단계씩 축소해 "글자가 너무 큼/
-   * 화면 밖으로 나감/카드·버튼·탭 라벨 잘림" 문제를 해결했다. 이 표만 바꾸면
-   * textStyles를 통해 앱 전체에 일괄 반영된다(화면별 개별 fontSize 하드코딩 없음).
    *
-   * 아래 값들은 위 STEP 4-12에서 정한 크기를 "기준값(base, 375dp 화면 기준)"으로
-   * 두고, moderateScale()로 실제 화면 폭에 맞춰 연속적으로 조정한 결과다(STEP
-   * 4-16). 375dp 화면(대부분의 표준 스마트폰)에서는 STEP 4-12 값과 정확히
-   * 동일하다.
+   * 값은 위 SIZE_SCALE의 기준값(375dp 화면 기준)을 moderateScale()로 실제 화면 폭에
+   * 맞춰 조정한 결과다. 375dp에서는 기준값과 정확히 같다.
    */
-  size: {
-    // caption/Bottom Tab label의 "가장 작은 계층" 기준값. Bottom Tab label(navLabel)은
-    // 5개 탭 라벨이 고정폭 안에 들어가야 해서 이 tier 자체는 의도적으로 스케일을
-    // 적용하지 않는다(아래 textStyles.navLabel 참고) — caption은 이 값에 SMALL
-    // factor를 별도로 곱해서 쓴다(아래 textStyles.caption 참고).
-    xs: 11,
-    sm: moderateScale(13, 0.22),
-    // STEP 4-16-2(2026-09-08) 사용자 요청 — body/cardTitle/buttonLabel/price/
-    // sectionTitle 기준값을 15→14로 축소.
-    md: moderateScale(14, 0.22), // body/cardTitle/buttonLabel/가격 — 정보 전달 핵심 텍스트라 소폭만 반응
-    lg: moderateScale(17, 0.5),
-    // STEP 4-16-2 사용자 요청 — screenTitle 기준값을 20→18로 축소.
-    xl: moderateScale(18, 0.5),
-    xxl: moderateScale(26, 0.5),
-    // STEP 4-16-2 사용자 요청 — statValue 기준값을 34→30으로 축소.
-    display: moderateScale(30, 0.5), // 큰 숫자(수익률, 자산총액 등) 강조용
-    // STEP 4-16 신규 — 매물 가격/투자 예상수익률처럼 statValue(display)보다는
-    // 작지만 일반 본문보다는 훨씬 강조되는 "히어로 숫자" 전용 크기. property-detail/
-    // invest-detail에서 각자 다른 하드코딩 숫자(28)를 쓰던 것을 이 토큰 하나로
-    // 통일한다(§ textStyles.heroValue). STEP 4-16-2 사용자 요청 — 기준값을 28→24로 축소.
-    heroValue: moderateScale(24, 0.5),
-    // STEP 4-16 신규 — 알림 배지처럼 아주 작은 숫자 전용 크기. home.tsx의
-    // notificationBadgeText가 쓰던 하드코딩 숫자(9)를 이 토큰으로 대체한다.
-    badge: moderateScale(9, 0.18),
-  },
+  size: sizeTokens,
   weight: {
     regular: "400" as const,
     medium: "500" as const,
@@ -244,7 +274,15 @@ const TYPE_SCALE = {
   cardTitle: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
   body: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
   bodySmall: { base: 13, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
+  /** 안내·코멘트·부가설명 — 읽어도 되고 넘어가도 되는 글. 색은 secondaryText. */
   caption: { base: 11, factor: FONT_FACTOR.SMALL, weight: typography.weight.regular },
+  // [2026-09-26] caption과 **크기는 같고 색이 다른** 계층을 따로 둔다.
+  //
+  // 매물 카드의 상태 배지, 홈 카테고리 이름, 약관 동의 체크박스 라벨처럼 "작지만
+  // 반드시 읽어야 하는 글"이 caption을 빌려 쓰면서 색만 theme.text로 덮고 있었다.
+  // 그래서 caption의 색 규칙(secondaryText)이 앱 안에서 세 번 깨졌다. 역할을 나누면
+  // 픽셀은 하나도 바뀌지 않으면서 규칙이 어긋나는 곳이 사라진다.
+  label: { base: 11, factor: FONT_FACTOR.SMALL, weight: typography.weight.regular },
   buttonLabel: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
   // 하단 탭 라벨 — 5개 라벨이 고정폭 탭 바 안에 들어가야 해서 폭에 반응시키지 않는다.
   navLabel: { base: 11, factor: 0, weight: typography.weight.medium },
@@ -285,11 +323,62 @@ export const textStyles = Object.fromEntries(
  * 복사되므로 여기서 바꿀 수 없다. 그래서 화면들의 하드코딩된 fontSize를 걷어내
  * scaleFont()/textStyles로 옮겼다 — 남아 있으면 그 글자만 옛 크기로 굳는다.
  */
+/**
+ * [2026-09-26 사용자 지시] **종류별 글자 색을 한곳에서 정한다.**
+ *
+ * 크기는 textStyles가 정하고 있었지만 색은 화면마다 골라 쓰고 있었다. 전수 조사
+ * 결과 같은 역할에 서로 다른 색이 섞여 있었다 — 예를 들어 caption(안내 문구)은
+ * 84곳이 secondaryText인데 2곳만 text였고, 오류 문구는 theme.danger(#D64545)와
+ * 화면에 직접 적은 #B6010C 두 가지가 같이 쓰였다.
+ *
+ * 규칙은 세 줄로 요약된다:
+ *   · 제목·본문·숫자 = text          (읽어야 하는 것)
+ *   · 안내·코멘트·부가정보 = secondaryText (읽어도 되고 넘어가도 되는 것)
+ *   · 강조/상태 = accent · danger · success · warning (의미가 있을 때만)
+ *
+ * 화면에서 `color: textColor(theme, "caption")`처럼 쓰면 역할만 고르면 된다.
+ * 의미 있는 강조(가격을 accent로, 오류를 danger로)는 그대로 theme.* 를 직접 쓴다 —
+ * 이 함수는 "무심코 고른 색"을 없애기 위한 기본값이지 강조를 막는 장치가 아니다.
+ */
+export const TEXT_ROLE_COLOR = {
+  screenTitle: "text",
+  sectionTitle: "text",
+  cardTitle: "text",
+  body: "text",
+  bodySmall: "text",
+  /** 안내·코멘트·보조 설명 — 본문보다 한 단계 약하게. */
+  caption: "secondaryText",
+  /** caption과 같은 크기지만 읽어야 하는 글(배지·카테고리명·체크박스 라벨). */
+  label: "text",
+  buttonLabel: "text",
+  navLabel: "secondaryText",
+  statValue: "text",
+  price: "text",
+  heroValue: "text",
+  brandLogo: "onAccent",
+} as const;
+// `satisfies`를 쓰지 않는다 — TS 4.9 미만 환경에서 파싱 자체가 깨진다.
+// 값이 ThemeColors의 키인지는 아래 textColor()의 색인 접근에서 그대로 검사된다.
+
+export type TextRole = keyof typeof TEXT_ROLE_COLOR;
+
+export function textColor(theme: ThemeColors, role: TextRole): string {
+  return theme[TEXT_ROLE_COLOR[role]];
+}
+
 export function refreshTypography(width: number): boolean {
   const next = clampRatio(width / BASELINE_WIDTH);
   if (Math.abs(next - widthRatio) < 0.001) return false;
 
   widthRatio = next;
+
+  // [2026-09-26] 크기 토큰을 **먼저** 고친다. 아래 rebuildScaledStyles()가 다시 돌리는
+  // 화면 스타일 팩토리 안에서 typography.size.*를 읽는 곳이 많은데, 순서가 뒤집히면
+  // 그 팩토리들이 옛 숫자를 다시 집어넣는다.
+  for (const key of Object.keys(SIZE_SCALE) as SizeKey[]) {
+    sizeTokens[key] = moderateScale(SIZE_SCALE[key].base, SIZE_SCALE[key].factor);
+  }
+
   for (const key of Object.keys(TYPE_SCALE) as TypeKey[]) {
     textStyles[key].fontSize = moderateScale(TYPE_SCALE[key].base, TYPE_SCALE[key].factor);
   }

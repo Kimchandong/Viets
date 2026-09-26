@@ -53,14 +53,29 @@ export default function InvestScreen() {
   // [STEP: 홈 카테고리 2탭 전환] 홈 화면 "부동산 투자" 탭 아이콘 탭 시 이 화면으로
   // category 쿼리 param을 전달한다(app/(tabs)/home.tsx 참고) — property.tsx와
   // 동일한 패턴으로 초기 선택값에만 사용한다.
-  const params = useLocalSearchParams<{ category?: string }>();
+  // [2026-09-26] 홈 검색 패널에서 maxAmount/dividend도 함께 넘어온다.
+  //   maxAmount — 최소투자금이 이 금액 **이하**인 상품만(슬라이더 값, VND)
+  //   dividend  — monthly | quarterly | yearly | single
+  // 'single'(단일 %)은 **아직 DB에 값이 없다**(investment_products.dividend_frequency
+  // check 제약이 monthly/quarterly/yearly 셋뿐). 고르면 결과가 0건인 것이 맞다 —
+  // 화면 결함이 아니라 데이터가 아직 없는 것이고, 마이그레이션이 따라와야 한다.
+  const params = useLocalSearchParams<{
+    category?: string;
+    maxAmount?: string;
+    dividend?: string;
+  }>();
   const initialCategory =
     params.category && (INVEST_CATEGORIES as string[]).includes(params.category)
       ? (params.category as InvestImageCategory)
       : null;
+  const maxAmount = Number(params.maxAmount);
+  const initialMaxAmount = Number.isFinite(maxAmount) && maxAmount > 0 ? maxAmount : null;
+  const initialDividend = params.dividend ?? null;
 
   const [risk, setRisk] = useState<RiskFilter>("all");
   const [category, setCategory] = useState<InvestImageCategory | null>(initialCategory);
+  const [amountCap] = useState<number | null>(initialMaxAmount);
+  const [dividend] = useState<string | null>(initialDividend);
   // [STEP: 카테고리 재구성] 사용자 지시("낮은위험/중간위험/높은위험은 우측 선택(셀렉트)
   // 항목으로 위치변경")에 따라 위험도 필터를 가로 칩 목록 대신 우측 정렬된 select
   // 버튼 + Modal로 바꿨다 — my.tsx의 언어 선택 Modal(체크마크 목록)과 동일한 패턴.
@@ -96,11 +111,17 @@ export default function InvestScreen() {
 
   const filtered = useMemo(
     () =>
-      products.filter(
-        (product) =>
-          (risk === "all" || product.riskLevel === risk) && (!category || product.category === category),
-      ),
-    [products, risk, category],
+      products.filter((product) => {
+        const matchesRisk = risk === "all" || product.riskLevel === risk;
+        const matchesCategory = !category || product.category === category;
+        // 슬라이더는 "이 금액까지 넣을 수 있다"는 뜻이므로, 최소투자금이 그 이하인
+        // 상품만 남긴다. 값이 없으면(0 = 전체) 거르지 않는다.
+        const matchesAmount = !amountCap || product.minInvestmentValueVnd <= amountCap;
+        // 'single'은 DB에 없는 값이라 아무 상품도 걸리지 않는다(위 params 주석 참고).
+        const matchesDividend = !dividend || product.dividendFrequency === dividend;
+        return matchesRisk && matchesCategory && matchesAmount && matchesDividend;
+      }),
+    [products, risk, category, amountCap, dividend],
   );
   const featured = filtered.filter((product) => product.featured);
   const others = filtered.filter((product) => !product.featured);
@@ -139,7 +160,7 @@ export default function InvestScreen() {
           />
           {/* [STEP: 2026-09-09-22] 배경이 회색에서 컬러 그라데이션으로 바뀌어
               theme.secondaryText(회색)로는 대비가 부족해졌다 — 흰색으로. */}
-          <Text style={[textStyles.caption, { color: "#FFFFFF", fontSize: typography.size.sm }]}>
+          <Text style={[textStyles.bodySmall, { color: theme.onAccent }]}>
             {t("invest.overviewTitle")}
           </Text>
           <View style={styles.overviewRow}>
@@ -278,8 +299,22 @@ export default function InvestScreen() {
           <SectionHeader title={t("invest.allProductsTitle")} />
           {loading ? (
             <Loading />
-          ) : filtered.length === 0 ? (
-            <EmptyState title={t("invest.emptyTitle")} description={t("invest.emptyDescription")} />
+          ) : others.length === 0 ? (
+            /* [2026-09-16 웹 검증에서 발견 — 결함 수정] 판정을 filtered가 아니라
+               **실제로 그리는 목록(others)** 기준으로 본다.
+               예전에는 filtered.length로 판정했는데, 이 자리에 그리는 것은 추천을
+               제외한 others다. 그래서 상품이 전부 추천이면 filtered는 0이 아니라
+               EmptyState가 뜨지 않고, others는 비어 있어 아무것도 안 그려졌다 —
+               제목만 있고 아래가 텅 빈 화면이 됐다(실제로 그 상태였다).
+               홈(home.tsx)은 처음부터 investAllProducts 기준이라 멀쩡했다. */
+            <EmptyState
+              title={t("invest.emptyTitle")}
+              description={
+                filtered.length > 0
+                  ? t("invest.allInFeaturedDescription")
+                  : t("invest.emptyDescription")
+              }
+            />
           ) : (
             <View style={styles.stack}>
               {others.map((product) => (
@@ -349,7 +384,7 @@ const styles = createScaledStyles(() => ({
   // [STEP: 2026-09-09] 사용자 요청 — 누적 모집액 글자색 #B6010C(단위 tỷ도 이 색을
   // 그대로 상속한다 — 아래 overviewUnit은 fontWeight만 override)
   overviewValueDanger: {
-    color: "#B6010C",
+    color: colors.light.figureHighlight,
   },
   // [STEP: 2026-09-09] 사용자 요청 — tỷ/năm 등 단위 접미사는 bold를 없앤다
   overviewUnit: {

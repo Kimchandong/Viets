@@ -1,15 +1,6 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  PressableProps,
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextStyle,
-  ViewStyle,
-} from "react-native";
+import { ActivityIndicator, Pressable, PressableProps, StyleProp, Text, TextStyle, ViewStyle } from "react-native";
 
-import { colors, opacity, radius, spacing, ThemeColors, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, ThemeColors, typography } from "@/constants/theme";
 
 export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 export type ButtonSize = "small" | "medium" | "large";
@@ -27,11 +18,27 @@ export type ButtonProps = Omit<PressableProps, "style" | "children"> & {
   textStyle?: StyleProp<TextStyle>;
 };
 
-const SIZE_STYLES: Record<ButtonSize, { paddingVertical: number; paddingHorizontal: number; fontSize: number }> = {
-  small: { paddingVertical: spacing.xs, paddingHorizontal: spacing.md, fontSize: typography.size.sm },
-  medium: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, fontSize: typography.size.md },
-  large: { paddingVertical: spacing.md, paddingHorizontal: spacing.xl, fontSize: typography.size.lg },
-};
+/**
+ * [2026-09-26] 버튼 크기 표를 **모듈 상수에서 함수로** 바꿨다.
+ *
+ * 예전에는 이 표가 모듈이 처음 읽힐 때 한 번 계산됐다. typography.size.*는 그 시점의
+ * 화면 폭으로 이미 계산이 끝난 숫자라, 앱을 켠 뒤 폭이 바뀌어도(폴더블을 펴거나
+ * 화면을 돌려도) 버튼 글자만 옛 크기로 굳어 있었다 — 앱에서 가장 많이 쓰이는
+ * 컴포넌트라 그 하나로 화면 전체가 어긋나 보였다.
+ *
+ * 렌더할 때마다 부르면 그 순간의 typography.size를 읽는다.
+ */
+function sizeStyleFor(size: ButtonSize): { paddingVertical: number; paddingHorizontal: number; fontSize: number } {
+  switch (size) {
+    case "small":
+      return { paddingVertical: spacing.xs, paddingHorizontal: spacing.md, fontSize: typography.size.sm };
+    case "large":
+      return { paddingVertical: spacing.md, paddingHorizontal: spacing.xl, fontSize: typography.size.lg };
+    case "medium":
+    default:
+      return { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, fontSize: typography.size.md };
+  }
+}
 
 /**
  * 도메인 독립적인 공통 Button.
@@ -53,7 +60,7 @@ export function Button({
   // (검은색 배경 금지 요구사항, colors.dark는 이후 재사용 가능성을 위해 삭제하지 않고 유지).
   const theme = colors.light;
   const isDisabled = disabled || loading;
-  const sizeStyle = SIZE_STYLES[size];
+  const sizeStyle = sizeStyleFor(size);
 
   const variantStyle = getVariantStyle(variant, theme);
 
@@ -111,7 +118,7 @@ function getVariantStyle(variant: ButtonVariant, theme: ThemeColors) {
   }
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   base: {
     borderRadius: radius.md,
     alignItems: "center",
@@ -121,4 +128,4 @@ const styles = StyleSheet.create({
   text: {
     fontWeight: typography.weight.semibold,
   },
-});
+}));

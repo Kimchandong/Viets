@@ -84,7 +84,8 @@
     "categoryLabel": "Danh mục",
     "mapNoCoords": "Không có vị trí bất động sản nào để hiển thị trên bản đồ.",
     "mapMissingCoords": "{{count}} bất động sản không có dữ liệu vị trí nên không hiển thị trên bản đồ.",
-    "top10Title": "Tin TOP10"
+    "top10Title": "Tin TOP10",
+    "locationNeeded": "Cho phép truy cập vị trí để sắp xếp theo khoảng cách."
   },
   "propertyDetail": {
     "descriptionTitle": "Mô tả chi tiết",
@@ -148,7 +149,8 @@
     "infoBody": "Góp vốn cùng các nhà đầu tư khác vào một sản phẩm bất động sản chung. Lợi nhuận và rủi ro phụ thuộc vào từng sản phẩm — hãy luôn xem kỹ thông tin chi tiết trước khi đầu tư.",
     "categoryLabel": "Danh mục",
     "riskLabel": "Mức rủi ro",
-    "riskSelectAll": "Tất cả mức rủi ro"
+    "riskSelectAll": "Tất cả mức rủi ro",
+    "allInFeaturedDescription": "Tất cả sản phẩm hiện đang hiển thị ở mục nổi bật phía trên."
   },
   "investDetail": {
     "targetAmountLabel": "Số tiền mục tiêu",
@@ -229,7 +231,7 @@
     },
     "submitButton": "Gửi đăng ký",
     "successTitle": "Đã gửi đăng ký đầu tư",
-    "successDescription": "Đây là màn hình thử nghiệm nên chưa được gửi đi thực sự.\nTrong dịch vụ thực tế, bạn sẽ được thông báo kết quả sau khi xem xét.",
+    "successDescription": "Bộ phận phụ trách sẽ xem xét và liên hệ với bạn theo số đã nhập.\nBạn có thể xem lại tại MY > Khoản đầu tư của tôi.",
     "goToProduct": "Quay lại chi tiết sản phẩm",
     "goToInvestList": "Đến danh sách đầu tư",
     "confirmBeforeApplyTitle": "Lưu ý quan trọng trước khi đăng ký đầu tư",
@@ -390,7 +392,7 @@
       "google": "Tiếp tục với Google",
       "apple": "Tiếp tục với Apple",
       "oauthUnavailable": "Đăng nhập Google/Apple chưa được thiết lập.",
-      "termsNotice": "Bằng việc tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của Viet's."
+      "termsNotice": "Bằng việc tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của {{brand}}."
     },
     "register": {
       "title": "Đăng ký",
@@ -1135,7 +1137,9 @@
     "changeBid": "Đổi giá của tôi",
     "lowerWarning": "Giảm giá sẽ hạ thứ hạng; nếu rớt khỏi vị trí hiển thị, quảng cáo sẽ ngừng.",
     "belowMin": "Mức giá tối thiểu là {{amount}}.",
-    "outbid": "Thứ hạng đã thay đổi. Vị trí này hiện cần tối thiểu {{amount}}."
+    "outbid": "Thứ hạng đã thay đổi. Vị trí này hiện cần tối thiểu {{amount}}.",
+    "noPermissionTitle": "Không có quyền quảng cáo",
+    "noPermissionDescription": "Chỉ tài khoản đã được duyệt đăng ký môi giới hoặc có quyền quản lý bất động sản mới xem và đặt thứ hạng quảng cáo được."
   },
   "adManage": {
     "title": "Quảng cáo trả phí",
@@ -1145,7 +1149,9 @@
     },
     "hint": "Chọn tin muốn quảng cáo.",
     "emptyTitle": "Chưa có tin nào",
-    "emptyDescription": "Hãy đăng tin trước rồi thiết lập quảng cáo."
+    "emptyDescription": "Hãy đăng tin trước rồi thiết lập quảng cáo.",
+    "noPermissionTitle": "Không có quyền quảng cáo",
+    "noPermissionDescription": "Chỉ tài khoản đã được duyệt đăng ký môi giới hoặc có quyền quản lý bất động sản mới có thể thiết lập quảng cáo."
   },
   "propertyReport": {
     "button": "Báo cáo",
@@ -1220,6 +1226,10 @@
       "payment_requested": {
         "title": "Có yêu cầu nạp tiền",
         "body": "{{agency}} đã báo nạp {{amount}} VND."
+      },
+      "agency_applied": {
+        "title": "Có đơn đăng ký môi giới",
+        "body": "{{agency}} đã nộp đơn đăng ký làm đại lý."
       }
     }
   },
@@ -1248,5 +1258,36 @@
     "emptyDescription": "Xem các sản phẩm đang huy động trong tab Đầu tư.",
     "signedOutTitle": "Cần đăng nhập",
     "signedOutDescription": "Đăng nhập để xem các khoản đầu tư của bạn."
+  },
+  "homeSearch": {
+    "region": "Khu vực",
+    "regionPlaceholder": "Chọn tỉnh / thành phố",
+    "regionCity": "Thành phố trực thuộc TW",
+    "regionProvince": "Tỉnh",
+    "listingKind": "Loại giao dịch",
+    "category": "Loại hình",
+    "amount": "Số tiền đầu tư",
+    "amountAny": "Tất cả",
+    "dividend": "Kỳ chia cổ tức",
+    "searchProperty": "Tìm bất động sản",
+    "searchInvest": "Tìm sản phẩm đầu tư",
+    "listing": {
+      "forSale": "Bán",
+      "forRent": "Cho thuê",
+      "presale": "Mở bán"
+    },
+    "dividendKind": {
+      "monthly": "Hàng tháng",
+      "quarterly": "Hàng quý",
+      "yearly": "Hàng năm",
+      "single": "Một lần (%)"
+    },
+    "rentBuilding": "Mặt bằng / Văn phòng",
+    "price": "Giá",
+    "listingPlaceholder": "Chọn loại giao dịch",
+    "categoryPlaceholder": "Chọn loại hình",
+    "dividendPlaceholder": "Chọn kỳ chia cổ tức",
+    "confirm": "Xong",
+    "upTo": "Tối đa {{amount}}"
   }
 }

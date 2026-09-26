@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/EmptyState";
@@ -9,7 +9,7 @@ import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { Loading } from "@/components/Loading";
-import { colors, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, radius, spacing, textStyles, typography } from "@/constants/theme";
 import { getSession } from "@/services/auth";
 import { isFundraisingOpen, listMyInvestments, type MyInvestment } from "@/services/investments";
 import { formatVndAmount } from "@/utils/format";
@@ -125,7 +125,7 @@ export default function MyInvestmentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -149,4 +149,4 @@ const styles = StyleSheet.create({
   closedNote: {
     paddingHorizontal: spacing.xs,
   },
-});
+}));

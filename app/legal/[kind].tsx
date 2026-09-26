@@ -8,7 +8,7 @@ import { BackButton } from "@/components/BackButton";
 import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
-import { colors, spacing, textStyles } from "@/constants/theme";
+import { createScaledStyles, colors, spacing, textStyles } from "@/constants/theme";
 import { getLegalDocument, type BoardPost, type LegalKind } from "@/services/boards";
 
 /**
@@ -79,7 +79,7 @@ export default function LegalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -92,4 +92,4 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     marginVertical: spacing.md,
   },
-});
+}));

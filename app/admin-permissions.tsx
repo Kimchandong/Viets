@@ -10,7 +10,7 @@ import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
   adminSearchUsers,
   adminSetUserPermission,
@@ -226,7 +226,7 @@ export default function AdminPermissionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -283,4 +283,4 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: spacing.sm,
   },
-});
+}));

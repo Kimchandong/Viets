@@ -1,16 +1,7 @@
 import { forwardRef } from "react";
-import {
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  TextStyle,
-  View,
-  ViewStyle,
-} from "react-native";
+import { StyleProp, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from "react-native";
 
-import { colors, opacity, radius, spacing, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, typography } from "@/constants/theme";
 
 export type InputProps = Omit<TextInputProps, "style"> & {
   label?: string;
@@ -72,7 +63,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   );
 });
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     gap: spacing.xs,
   },
@@ -94,4 +85,4 @@ const styles = StyleSheet.create({
   helper: {
     fontSize: typography.size.xs,
   },
-});
+}));

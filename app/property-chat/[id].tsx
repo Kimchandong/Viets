@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,8 +26,9 @@ import { Modal as AppModal } from "@/components/Modal";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
-import { findMockProperty } from "@/constants/mockData";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
+import { getPropertyById } from "@/services/properties";
+import type { MockProperty } from "@/constants/mockData";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import {
   ChatMessage,
@@ -84,7 +85,37 @@ export default function PropertyChatScreen() {
   }>();
   const language = useLocaleStore((state) => state.language);
 
-  const property = useMemo(() => (id ? findMockProperty(id) : undefined), [id]);
+  /**
+   * [2026-09-16 실기기 제보 — 결함 수정] 매물을 **실제 DB에서** 가져온다.
+   *
+   * 이전에는 findMockProperty(constants/mockData.ts)로 목 배열에서 찾았다. 실제
+   * 매물의 id는 UUID라 그 배열에 있을 리가 없고, 따라서 property는 **항상
+   * undefined**였다 — 그래서 문의하기를 누르면 언제나 "찾을 수 없습니다"만 떴고
+   * 1:1 상담은 한 번도 열린 적이 없다.
+   *
+   * 매물 상세(property-detail)는 2026-09-11에 이미 getPropertyById로 옮겼는데,
+   * 이 화면만 남아 있었다. 같은 파일에 "Mock → 실제 Supabase 연동" 주석이 달린
+   * 화면 옆에서 이 화면만 목을 보고 있었다.
+   */
+  const [property, setProperty] = useState<MockProperty | undefined>(undefined);
+  const [propertyLoading, setPropertyLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) {
+      setPropertyLoading(false);
+      return;
+    }
+    let mounted = true;
+    setPropertyLoading(true);
+    getPropertyById(id).then((result) => {
+      if (!mounted) return;
+      setProperty(result);
+      setPropertyLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -271,7 +302,7 @@ export default function PropertyChatScreen() {
     }
   }
 
-  if (sessionLoading) {
+  if (sessionLoading || propertyLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
         <Header title={t("chat.headerTitle")} leftAction={<BackButton fallback="/property" />} />
@@ -462,7 +493,7 @@ export default function PropertyChatScreen() {
             accessibilityLabel={t("common.cancel")}
             style={styles.previewClose}
           >
-            <Ionicons name="close" size={28} color="#FFFFFF" />
+            <Ionicons name="close" size={28} color={colors.light.onAccent} />
           </Pressable>
         </Pressable>
       </Modal>
@@ -473,7 +504,7 @@ export default function PropertyChatScreen() {
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -600,4 +631,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));

@@ -23,14 +23,15 @@ import {
 
 import { EmptyState } from "@/components/EmptyState";
 import { FadeInText } from "@/components/FadeInText";
+import { ACCENT_BY_TAB, HomeSearchPanel } from "@/components/HomeSearchPanel";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
 import { INVESTMENT_CARD_IMAGE_HEIGHT, InvestmentCard } from "@/components/InvestmentCard";
 import { Modal } from "@/components/Modal";
-import { PROPERTY_CARD_IMAGE_HEIGHT, PropertyCard } from "@/components/PropertyCard";
 import { PropertyListRow } from "@/components/PropertyListRow";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { createScaledStyles, colors, FONT_FACTOR, layout, opacity, radius, scaleFont, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
+import { HOME_HERO_VIDEO_URL } from "@/constants/media";
+import { createScaledStyles, colors, FONT_FACTOR, layout, opacity, radius, scaleFont, spacing, textStyles, typography, ThemeColors, textColor } from "@/constants/theme";
 import {
   HOME_CATEGORIES,
   HOME_INVEST_CATEGORIES,
@@ -78,6 +79,29 @@ const SPEECH_LOCALES: Record<string, string> = {
   th: "th-TH",
 };
 
+/**
+ * [2026-09-26 사용자 지시] 히어로 영상 위에 얹는 요소들의 공통 유리판 색.
+ * HomeSearchPanel과 같은 값을 쓴다 — 검색창과 그 아래 조건 상자가 한 판처럼 보여야 한다.
+ */
+const GLASS_BORDER = "rgba(255,255,255,0.5)";
+const GLASS_FILL = "rgba(255,255,255,0.2)";
+/**
+ * [2026-09-26 사용자 지시] 워드마크 "BĐS & REIT"의 **&** 전용 색.
+ *
+ * 유리판 색(GLASS_*)과 따로 둔다 — 같은 흰색 계열이지만 쓰임이 전혀 다르다.
+ * 유리판을 조절할 때 로고 글자까지 함께 흔들리면 안 된다.
+ */
+const LOGO_AMPERSAND = "rgba(255,255,255,0.6)";
+
+/**
+ * [2026-09-26 사용자 지시] 공지 롤링 줄의 글자·아이콘 색 — rgba(255,255,255,0.9).
+ *
+ * 배경영상 위에 얹히는 줄이라 순백(#FFF)이면 로고·검색창 글자와 같은 무게가 되어
+ * 시선을 나눠 가진다. 0.9는 읽히되 한 단계 물러나는 값이다.
+ * (이전 0.7(colors.light.onAccentMuted)에서 올린 값이다 — 영상 밝은 장면에서 묻혔다.)
+ */
+const NOTICE_FOREGROUND = "rgba(255, 255, 255, 0.9)";
+
 export default function HomeScreen() {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지, 비로그인 공개 화면)
   const theme = colors.light;
@@ -90,11 +114,45 @@ export default function HomeScreen() {
   // 재생)으로 교체. 실제 오디오 트랙이 없는 5초 루프 클립이라 muted는 형식상 켜두는
   // 정도지만, 오디오가 있는 영상으로 교체되더라도 배경 장식 용도라 소리가 나지
   // 않도록 항상 muted를 유지한다.
-  const heroVideoPlayer = useVideoPlayer(require("@/assets/videos/home/banner-flag.mp4"), (player) => {
+  /**
+   * [2026-09-26 사용자 지시] 배경영상을 **Supabase Storage에서** 가져온다.
+   *
+   * 번들 파일이었을 때는 영상을 바꾸려면 앱을 새로 빌드해 스토어에 다시 올려야 했다.
+   * 이제 app-media 버킷의 home/hero.mp4를 교체하면 다음 실행부터 새 영상이 나온다.
+   *
+   * 번들 파일은 **지우지 않고 대비책으로 남긴다.** 네트워크가 느리거나 끊겼을 때,
+   * 또는 아직 파일을 올리지 않았을 때 홈 상단이 빈 채로 남으면 그 위에 얹힌 검색창·
+   * 조건 상자(전부 흰 글씨)가 읽히지 않는다. 주소를 만들 수 없으면(환경변수 없음)
+   * 번들로 떨어지고, 주소는 있는데 재생에 실패하면 아래 status 감시가 번들로 되돌린다.
+   */
+  const [heroFellBack, setHeroFellBack] = useState(false);
+  const heroVideoSource = useMemo(
+    () =>
+      !heroFellBack && HOME_HERO_VIDEO_URL
+        ? HOME_HERO_VIDEO_URL
+        : require("@/assets/videos/home/banner-flag.mp4"),
+    [heroFellBack],
+  );
+
+  const heroVideoPlayer = useVideoPlayer(heroVideoSource, (player) => {
     player.loop = true;
+    // 배경 장식이라 항상 무음이다. 올리는 영상에 오디오 트랙이 있어도 소리가 나지 않는다.
     player.muted = true;
     player.play();
   });
+
+  // 원격 영상이 실패하면 한 번만 번들로 되돌린다. heroFellBack이 true가 되면
+  // heroVideoSource가 번들을 가리키고 player가 그 소스로 다시 만들어진다.
+  useEffect(() => {
+    if (heroFellBack || !HOME_HERO_VIDEO_URL) return;
+    const sub = heroVideoPlayer.addListener("statusChange", ({ status, error }) => {
+      if (status === "error") {
+        console.warn("[home] 배경영상 원격 재생 실패 — 번들 영상으로 대체합니다:", error?.message);
+        setHeroFellBack(true);
+      }
+    });
+    return () => sub.remove();
+  }, [heroVideoPlayer, heroFellBack]);
 
   // [STEP S-2, 2026-09-09] 사용자 요청 — 상단 배너가 상태바 영역까지 이어지고(흰
   // 여백 없음) 그 아래 흰 콘텐츠 영역만 좌우 상단이 16px 라운딩되어야 한다. 이
@@ -126,7 +184,8 @@ export default function HomeScreen() {
   // 바꿨다 — 탭에 따라 아래 노출되는 섹션도 달라진다(부동산 투자: 추천 투자상품 +
   // 전체상품(투자 페이지와 동일한 목록) / 부동산 매물: 추천 매물 + 주변 매물 +
   // 시장 동향, 추천 투자상품은 제외).
-  const [categoryTab, setCategoryTab] = useState<"property" | "invest">("invest");
+  // [2026-09-26 사용자 지시] 홈에 처음 들어오면 **매물** 탭이 켜져 있다(예전엔 투자).
+  const [categoryTab, setCategoryTab] = useState<"property" | "invest">("property");
   // [STEP: 2026-09-08 사용자 요청] 홈 검색창을 "누르면 /property로 이동만 하는 버튼"에서
   // 실제 텍스트 입력이 가능한 검색창으로 바꿨다 — 커서가 실제로 동작해야 한다는 요청.
   const [homeSearch, setHomeSearch] = useState("");
@@ -427,13 +486,52 @@ export default function HomeScreen() {
             allowsPictureInPicture={false}
             pointerEvents="none"
           />
+          {/* [2026-09-26 사용자 지시] 영상 위에 rgba(0,0,0,0.3) 어둡게 깔기.
+              영상과 그 위 글자(전부 흰색) 사이에 두는 얇은 막이라, 영상이 밝은
+              장면으로 넘어가도 글자가 묻히지 않는다.
+              pointerEvents="none" — 이 막이 터치를 먹으면 아래 검색창·탭이 눌리지 않는다. */}
+          <View style={styles.heroScrim} pointerEvents="none" />
           <View testID="home-top-bar" style={styles.topBar}>
             <View>
               <FadeInText
-                style={[textStyles.screenTitle, { color: theme.onAccent, fontSize: typography.size.xl * 1.2 }]}
+                style={[textStyles.screenTitle, { color: theme.onAccent, fontSize: typography.size.brandLogo }]}
+                // 삼각형의 크기·위치는 글자 크기에서 계산된다(FadeInText 참고).
+                // 고정 px로 두면 화면이 커질 때 글자만 커지고 삼각형은 그대로라 점처럼 보인다.
+                cornerFontSize={typography.size.brandLogo}
+                /* [2026-09-26 사용자 지시] 워드마크 교체: "REIT VIET" → "BDS & REIT in VIETNAM".
+                   · "&"만 bold를 빼 앞뒤 두 낱말이 각각 덩어리로 읽히게 한다
+                   · "in VIETNAM"은 절반 크기(typography.size.brandLogoSmall) */
                 segments={[
-                  { text: "REIT", style: { fontWeight: typography.weight.bold } },
-                  { text: " VIET", style: { fontWeight: typography.weight.regular } },
+                  // [2026-09-26 사용자 지시] BDS → **BĐS**. 베트남어 "Bất Động Sản"(부동산)의
+                  // 약자이고, Đ는 베트남어 알파벳의 독립 글자(D와 다른 문자)다.
+                  // [2026-09-26 사용자 지시] B와 R의 **좌측 상단 모서리**에 삼각형.
+                  // B는 파랑, R은 빨강 — 탭 강조색(ACCENT_BY_TAB)과 같은 값이라
+                  // 로고와 화면의 두 색이 따로 놀지 않는다.
+                  //
+                  // 삼각형은 구간의 **첫 글자**에만 붙으므로, B와 R을 각각 한 글자짜리
+                  // 구간으로 떼어 낸다("BĐS " → "B" + "ĐS ").
+                  { text: "B", style: { fontWeight: typography.weight.bold }, cornerColor: ACCENT_BY_TAB.property },
+                  { text: "ĐS ", style: { fontWeight: typography.weight.bold } },
+                  // [2026-09-26 사용자 지시] &만 한 치수 작게(brandLogo 22 → xl 18) + 흐린 흰색.
+                  // xl은 brandLogo와 같은 TITLE factor를 쓰므로 화면 폭이 바뀌어도
+                  // 두 글자의 크기 비율이 유지된다.
+                  {
+                    text: "& ",
+                    style: {
+                      fontWeight: typography.weight.regular,
+                      fontSize: typography.size.xl,
+                      color: LOGO_AMPERSAND,
+                    },
+                  },
+                  { text: "R", style: { fontWeight: typography.weight.bold }, cornerColor: ACCENT_BY_TAB.invest },
+                  { text: "EIT ", style: { fontWeight: typography.weight.bold } },
+                  {
+                    text: "in VIETNAM",
+                    style: {
+                      fontWeight: typography.weight.regular,
+                      fontSize: typography.size.brandLogoSmall,
+                    },
+                  },
                 ]}
               />
               {/* 사용자 요청: 로고 아래 위치 표기(아이콘+텍스트+화살표) 전체를 70% 불투명도로. */}
@@ -481,20 +579,25 @@ export default function HomeScreen() {
               AI 탭으로 넘긴다(위 handleVoicePress 주석 참고). */}
           <View
             testID="home-search-bar"
+            /* [2026-09-26 사용자 지시] 배경영상 위 유리판 — 테두리
+               rgba(255,255,255,0.6) / 배경 rgba(255,255,255,0.3).
+               테마 토큰이 아니라 리터럴을 쓰는 이유: 이 값들은 "영상 위"라는
+               맥락에서만 의미가 있고, 그 맥락이 사라지면 흰색 알파는 아무 데도
+               쓸 수 없다. 같은 이유로 HomeSearchPanel도 같은 두 값을 공유한다. */
             style={[
               styles.searchBar,
-              { backgroundColor: theme.background, borderColor: theme.border },
+              { backgroundColor: GLASS_FILL, borderColor: GLASS_BORDER },
             ]}
           >
             <Pressable onPress={submitHomeSearch} accessibilityRole="button" hitSlop={8}>
-              <Ionicons name="search" size={18} color={theme.secondaryText} />
+              <Ionicons name="search" size={18} color={theme.onAccent} />
             </Pressable>
             <TextInput
               value={homeSearch}
               onChangeText={setHomeSearch}
               onSubmitEditing={submitHomeSearch}
               placeholder={t("home.searchPlaceholder")}
-              placeholderTextColor={theme.secondaryText}
+              placeholderTextColor={colors.light.onAccentMuted}
               returnKeyType="search"
               autoCorrect={false}
               // [STEP: 2026-09-08] 사용자 요청 — 검색창 내부 텍스트를 caption 크기로 축소.
@@ -502,7 +605,7 @@ export default function HomeScreen() {
               // 글씨를 px로 고정한다 (공용 caption 토큰은 디바이스별로 moderateScale이
               // 적용돼 값이 흔들릴 수 있어, 이 입력창만 명시적으로 고정).
               // [2026-09-11 사용자 지시] 한 치수 크게 — 12 → 13.
-              style={[textStyles.caption, styles.searchInput, { color: theme.text, fontSize: scaleFont(13, FONT_FACTOR.BODY) }]}
+              style={[textStyles.caption, styles.searchInput, { color: theme.onAccent, fontSize: textStyles.bodySmall.fontSize }]}
             />
             {/* [2026-09-11 사용자 지시] 음성검색 아이콘 크게(18 → 22).
                 [2026-09-14] 인식기가 없는 기기에서는 버튼을 그리지 않는다 — 눌러도
@@ -518,17 +621,71 @@ export default function HomeScreen() {
                 <Ionicons
                   name={listening ? "stop-circle" : "mic-outline"}
                   size={22}
-                  color={listening ? theme.danger : theme.secondaryText}
+                  color={listening ? theme.danger : theme.onAccent}
                 />
               </Pressable>
             ) : null}
           </View>
 
-          {/* [2026-09-11 사용자 지시] 검색창과 흰 콘텐츠 영역 사이에 공지 5건을
-              아래에서 위로 올라가는 롤링으로 보여 준다. 이 자리는 원래 배너 색만
-              보이던 빈 여백(heroBanner.paddingBottom)이라 새로 자리를 만들지 않고
-              그 안에 넣었다 — 아래 레이아웃이 밀리지 않는다.
-              공지가 없으면 줄 자체를 그리지 않는다(빈 줄만 떠 있게 되므로). */}
+          {/* [2026-09-26 사용자 지시] 투자/매물 토글을 **배경영상 위, 그 하단으로** 옮긴다.
+              예전에는 흰 본문(body)의 첫 섹션이었다.
+
+              위치는 marginTop:"auto"로 잡는다 — heroBanner가 이제 고정 높이(600)라
+              남는 세로 공간을 이 한 줄이 전부 밀어내고 맨 아래에 붙는다. 고정
+              top/bottom 값을 주면 검색창·공지 줄의 유무나 기기별 상단 안전영역
+              (insets.top)에 따라 위치가 어긋난다.
+
+              heroBanner.paddingBottom(26) 위에 앉으므로, 아래 bodyMask가 -16으로
+              겹쳐 올라와도 토글을 가리지 않는다.
+
+              [2026-09-26] 트랙(둥근 회색 배경)은 없앴다 — 이제 탭 버튼 각자가
+              배경을 갖는다(활성 흰색 / 비활성 rgba(255,255,255,0.6)). */}
+          {/* [2026-09-26 사용자 지시] 탭과 아래 상자를 **붙인다**.
+              heroBanner는 자식 사이에 gap:lg를 주므로 탭과 패널을 그대로 형제로
+              두면 24px이 벌어진다. 둘을 한 덩이로 감싸 그 안에서 gap을 0으로 둔다.
+              맨 아래로 내려보내는 marginTop:"auto"도 탭이 아니라 이 덩이가 갖는다 —
+              탭에 남겨 두면 탭만 내려가고 패널은 따라가지 않는다. */}
+          <View testID="home-search-group" style={styles.heroSearchGroup}>
+          <View
+            testID="home-category-tab-row"
+            style={styles.categoryTabRow}
+          >
+            {/* [2026-09-26 사용자 지시] **고른 탭이 항상 왼쪽으로 온다.**
+                고정 순서(매물 → 투자)가 아니라 활성 탭을 먼저 그린다 — 지금 보고 있는
+                것이 늘 같은 자리(맨 왼쪽)에 있어야 아래 상자가 무엇의 조건인지
+                헷갈리지 않는다.
+
+                배열을 직접 정렬하지 않고 활성 탭을 앞에 두는 순서를 만들어 넘긴다.
+                key를 탭 이름으로 주므로 React가 같은 버튼이 자리를 옮긴 것으로 알고
+                다시 만들지 않는다(누른 순간 깜빡이지 않는다). */}
+            {(categoryTab === "invest"
+              ? (["invest", "property"] as const)
+              : (["property", "invest"] as const)
+            ).map((key) => (
+              <CategoryTabButton
+                key={key}
+                label={t(`home.categoryTabs.${key}`)}
+                active={categoryTab === key}
+                accent={ACCENT_BY_TAB[key]}
+                onPress={() => setCategoryTab(key)}
+                theme={theme}
+              />
+            ))}
+          </View>
+
+          {/* [2026-09-26 사용자 지시] 탭 바로 아래 조건 상자. 탭에 따라 내용이 통째로
+              바뀐다(매물: 지역·거래종류·매물종류 / 투자: 종류·투자액·배당주기).
+              검색 버튼을 누르면 조건을 들고 해당 목록 화면으로 이동한다. */}
+          <HomeSearchPanel tab={categoryTab} />
+          </View>
+
+          {/* [2026-09-11 사용자 지시] 공지 5건을 아래에서 위로 올라가는 롤링으로 보여 준다.
+              공지가 없으면 줄 자체를 그리지 않는다(빈 줄만 떠 있게 되므로).
+
+              [2026-09-26 사용자 지시] 위치를 **검색 상자 아래**로 옮겼다. 예전에는
+              검색창과 상자 사이에 있었는데, 그 자리에서는 검색창 → 공지 → 탭으로
+              이어져 검색 흐름이 한 번 끊겼다. 지금은 검색에 필요한 것(검색창 · 탭 ·
+              조건 상자)이 붙어 있고, 공지는 그 아래 별개의 줄로 읽힌다. */}
           {notices.length > 0 ? (
             <NoticeTicker
               items={notices.slice(0, 5)}
@@ -551,28 +708,6 @@ export default function HomeScreen() {
         <View testID="home-body-mask" style={styles.bodyMask}>
         <View testID="home-body" style={[styles.body, { backgroundColor: theme.background }]}>
         <View testID="home-section-category-tabs" style={styles.section}>
-          {/* 사용자 요청(2026-09-08): 두 탭을 하나의 라운딩 배경(테두리색은 아래
-              categoryIcon과 동일한 theme.border)으로 감싼다 — 바깥 pill 컨테이너에
-              옅은 padding을 둬 활성 탭이 그 안에서 다시 완전히 둥근 파란색 pill로
-              떠 보이게 하고, 비활성 탭은 바깥 배경(theme.card, 연회색) 위에 텍스트만
-              얹혀 보이도록 한다. */}
-          {/* [2026-09-11 사용자 지시] 비활성(선택 안 된) 쪽 배경은 #EEEEEE
-              (constants/theme.ts surfaceMuted) — 비활성 버튼은 배경 없이 이 트랙을
-              그대로 비춘다. */}
-          <View testID="home-category-tab-row" style={[styles.categoryTabRow, { borderColor: theme.border, backgroundColor: theme.surfaceMuted }]}>
-            <CategoryTabButton
-              label={t("home.categoryTabs.invest")}
-              active={categoryTab === "invest"}
-              onPress={() => setCategoryTab("invest")}
-              theme={theme}
-            />
-            <CategoryTabButton
-              label={t("home.categoryTabs.property")}
-              active={categoryTab === "property"}
-              onPress={() => setCategoryTab("property")}
-              theme={theme}
-            />
-          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -613,22 +748,31 @@ export default function HomeScreen() {
               actionLabel={t("common.seeAll")}
               onAction={() => router.push("/property")}
             />
-            <HorizontalCardCarousel
-              style={styles.bleedScroll}
-              contentContainerStyle={styles.featuredRow}
-              step={layout.featuredCardWidth + spacing.md}
-              arrowCenterY={PROPERTY_CARD_IMAGE_HEIGHT / 2}
-              autoPlayMs={FEATURED_AUTOPLAY_MS}
-            >
-              {featured.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  variant="featured"
-                  onPress={() => openProperty(property.id, "featured")}
-                />
-              ))}
-            </HorizontalCardCarousel>
+            {/* [2026-09-26 사용자 지시] 추천을 **"최근 TOP10"과 같은 행 목록**으로 바꾼다.
+                (앞선 시도에서 카드 썸네일의 모서리·배지만 맞췄는데, 요구는 레이아웃
+                자체였다 — 큰 가로 카드가 아니라 왼쪽 작은 썸네일 + 오른쪽 정보 행.)
+
+                가로 캐러셀을 걷어내도 광고 노출 문제는 없다. 캐러셀 자동재생은
+                "다섯 자리 중 1~2위만 보인다"를 풀려고 넣은 것인데, 세로 목록은
+                다섯 자리가 한 번에 다 보이므로 목적이 그대로 달성된다.
+
+                TOP10과 같은 컴포넌트(PropertyListRow)·같은 컨테이너(propertyList)를
+                쓴다 — 복사본을 만들면 다음 디자인 수정 때 한쪽만 바뀐다. */}
+            {featured.length === 0 ? (
+              <EmptyState title={t("property.emptyTitle")} description={t("property.emptyDescription")} />
+            ) : (
+              <View style={styles.propertyList}>
+                {featured.map((property, index) => (
+                  <PropertyListRow
+                    key={property.id}
+                    property={property}
+                    distance={distanceLabel(property)}
+                    showDivider={index > 0}
+                    onPress={() => openProperty(property.id, "featured")}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         ) : null}
 
@@ -668,7 +812,20 @@ export default function HomeScreen() {
                 "전체 상품" 섹션(같은 t("invest.allProductsTitle") 키)은 그대로 둔다. */}
             <SectionHeader title={t("home.allInvestProductsTitle")} />
             {investAllProducts.length === 0 ? (
-              <EmptyState title={t("invest.emptyTitle")} description={t("invest.emptyDescription")} />
+              /* [2026-09-16 웹 검증에서 발견 — 결함] 이 섹션은 featured를 뺀 목록을
+                 그리는데, 빈 상태 문구는 "상품이 없습니다 / 다른 위험도를 선택해
+                 보세요"였다. 등록된 상품이 **전부 추천에 들어 있으면** 바로 위
+                 캐러셀에 세 건이 보이는데 아래에서는 "상품이 없습니다"라고 말한다
+                 — 지금 운영 DB가 정확히 그 상태다. invest.tsx에서 고친 것과 같은
+                 방식으로, 상품 자체가 없을 때와 전부 추천에 있을 때를 나눈다. */
+              <EmptyState
+                title={t("invest.emptyTitle")}
+                description={
+                  investmentProducts.length > 0
+                    ? t("invest.allInFeaturedDescription")
+                    : t("invest.emptyDescription")
+                }
+              />
             ) : (
               <View style={styles.stack}>
                 {investAllProducts.map((product) => (
@@ -913,12 +1070,6 @@ const TICKER_SLIDE_MS = 400;
 /** [2026-09-12 사용자 지시] 홈 매물 목록은 10건까지만. */
 const HOME_LIST_LIMIT = 10;
 
-/**
- * [2026-09-12 사용자 지시] 추천매물은 다섯 자리뿐이라 가만히 두면 1~2위만 보인다.
- * 3초마다 한 장씩 넘겨 다섯 곳이 모두 노출되게 한다 — 돈을 낸 자리이므로 보여야 한다.
- */
-const FEATURED_AUTOPLAY_MS = 3000;
-
 const IDLE_BORDER = "rgba(255,255,255,0.3)";
 const ICON_BUTTON_BG = "rgba(0,0,0,0.3)";
 /** [2026-09-11 사용자 지시] 알림 아이콘 글리프 크기 — 20의 10% 축소. */
@@ -975,7 +1126,7 @@ function AlertIconButton({
         >
           {/* [2026-09-11 사용자 지시] 아이콘만 10% 축소(20 → 18).
               버튼 크기(styles.iconButton)와 배지는 건드리지 않는다. */}
-          <Ionicons name={icon} size={ALERT_ICON_SIZE} color="#FFFFFF" />
+          <Ionicons name={icon} size={ALERT_ICON_SIZE} color={colors.light.onAccent} />
           {count > 0 ? (
             <View style={[styles.notificationBadge, { backgroundColor: badgeColor }]}>
               <Text style={styles.notificationBadgeText} numberOfLines={1}>
@@ -1045,17 +1196,21 @@ function NoticeTicker({
       accessibilityRole="button"
       style={({ pressed }) => [styles.ticker, { opacity: pressed ? opacity.pressed : 1 }]}
     >
+      {/* [2026-09-26 사용자 지시] 글자 앞 스피커(확성기) 아이콘 — **롤링에서 제외.**
+          그래서 tickerViewport(잘라내는 창) 바깥에 둔다. 안에 넣으면 글자와 함께
+          위아래로 쓸려 올라가 버린다. 공지 목록 화면(megaphone-outline)과 같은 모양이다. */}
+      <Ionicons name="megaphone-outline" size={14} color={NOTICE_FOREGROUND} />
       <View style={styles.tickerViewport}>
         <Animated.Text
           numberOfLines={1}
           style={[
             textStyles.caption,
             styles.tickerText,
-            // [2026-09-11 사용자 지시] 롤링 글자색 rgba(255,255,255,0.7).
+            // [2026-09-26 사용자 지시] 롤링 글자색 rgba(255,255,255,0.9).
             // 투명도를 color에 직접 넣는다 — style.opacity는 이미 등장/퇴장
-            // 애니메이션(fade)이 쓰고 있어 거기에 0.7을 곱하면 슬라이드 중간값이
+            // 애니메이션(fade)이 쓰고 있어 거기에 0.9를 곱하면 슬라이드 중간값이
             // 흐트러진다.
-            { color: "rgba(255, 255, 255, 0.7)", opacity: fade, transform: [{ translateY }] },
+            { color: NOTICE_FOREGROUND, opacity: fade, transform: [{ translateY }] },
           ]}
         >
           {current.title}
@@ -1068,11 +1223,14 @@ function NoticeTicker({
 function CategoryTabButton({
   label,
   active,
+  accent,
   onPress,
   theme,
 }: {
   label: string;
   active: boolean;
+  /** 이 탭의 강조색 — 매물 파랑 / 투자 빨강(HomeSearchPanel의 ACCENT_BY_TAB). */
+  accent: string;
   onPress: () => void;
   theme: ThemeColors;
 }) {
@@ -1083,18 +1241,17 @@ function CategoryTabButton({
       accessibilityState={{ selected: active }}
       style={({ pressed }) => [
         styles.categoryTabButton,
-        // [2026-09-11 사용자 지시] 활성 탭은 실제 버튼이 눌린 것처럼 안쪽으로
-        // 들어간 그림자(inset)를 준다.
-        active && styles.categoryTabButtonActive,
-        { backgroundColor: active ? theme.accent : "transparent", opacity: pressed ? opacity.pressed : 1 },
+        // [2026-09-26 사용자 지시] 활성 탭은 **그 탭의 색 + 흰 글씨**
+        // (매물 파랑 / 투자 빨강). 아래 패널 테두리도 같은 색이라, 탭과 상자가
+        // 한 덩이로 읽힌다. 비활성은 rgba(255,255,255,0.6) 배경 + 흰 글씨 그대로.
+        // 비활성 배경은 유리판 배경과 같은 값(0.2)이라, 꺼진 탭이 상자와 한 면처럼 보인다.
+        { backgroundColor: active ? accent : GLASS_FILL, opacity: pressed ? opacity.pressed : 1 },
       ]}
     >
-      {/* [2026-09-11 사용자 지시] 비활성 탭 글자색은 파란색(accent) — 활성 탭은
-          파란 배경 위 흰 글씨이므로 색이 뒤집히는 형태가 된다. */}
       <Text
         style={[
           textStyles.bodySmall,
-          { color: active ? theme.onAccent : theme.accent, fontWeight: typography.weight.medium },
+          { color: theme.onAccent, fontWeight: typography.weight.semibold },
         ]}
       >
         {label}
@@ -1123,7 +1280,7 @@ function CategoryIconButton({
       <View style={styles.categoryIcon}>
         <Ionicons name={icon} size={22} color={theme.accent} />
       </View>
-      <Text style={[textStyles.caption, { color: theme.text }]} numberOfLines={1}>
+      <Text style={[textStyles.label, { color: textColor(theme, "label") }]} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -1202,7 +1359,12 @@ const styles = createScaledStyles(() => ({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    marginHorizontal: 20 - spacing.screenPaddingX,
+    // [2026-09-26] 검색창·검색 상자가 90% 폭 가운데 정렬이 되면서, 공지 줄도 그
+    // 바로 아래로 내려왔다. 폭·정렬을 맞추지 않으면 공지만 좌우로 튀어나와
+    // 세 덩이의 왼쪽 끝이 어긋나 보인다. 예전의 marginHorizontal 보정은
+    // 전체 폭을 쓸 때의 값이라 더 이상 맞지 않아 걷어낸다.
+    width: "90%",
+    alignSelf: "center",
   },
   // 한 줄 높이로 잘라내는 창. overflow:hidden이 없으면 위/아래로 빠져나가는 글자가
   // 검색창과 흰 카드 위에 그대로 겹쳐 보인다.
@@ -1264,6 +1426,39 @@ const styles = createScaledStyles(() => ({
     paddingBottom: 10 + 16,
     gap: spacing.lg,
     overflow: "hidden",
+    // [2026-09-26 사용자 지시] 배경영상 영역 높이를 600으로 고정한다.
+    //
+    // 예전에는 높이가 없었다 — 안에 든 것(로고줄 + 검색창 + 공지 롤링)이 쌓인 만큼만
+    // 차지했다. 고정 높이를 주면 남는 세로 공간이 생기고, 그 공간을 아래 토글이
+    // marginTop:"auto"로 밀어내 맨 아래에 붙는다.
+    //
+    // 영상은 contentFit="cover"라 비율을 지키며 잘려 채워진다(늘어나지 않는다).
+    //
+    // [2026-09-26] height가 아니라 **minHeight**를 쓴다. 이 안에 검색 조건 상자가
+    // 들어오면서 내용 높이가 기기·선택 상태에 따라 달라졌다 — 매물 탭에서 거래
+    // 종류를 고르면 매물 종류 줄이 하나 더 생긴다. height로 못 박으면 overflow:
+    // "hidden"과 만나 그 줄과 검색 버튼이 **잘려 안 보인다**(눌러야 할 버튼이
+    // 사라지는 것이라 그냥 미관 문제가 아니다). minHeight면 평소에는 정확히 600이고,
+    // 내용이 그보다 길 때만 그만큼 늘어난다.
+    minHeight: 600,
+    // [2026-09-26] 영상이 아직 안 떴을 때를 위한 바탕색.
+    //
+    // 이 영역의 글자·컨트롤은 전부 흰색(영상 위에 얹히는 전제)이다. 영상이 로드되기
+    // 전이나 실패했을 때 바탕이 흰색이면 **검색창과 조건 상자가 통째로 안 보인다** —
+    // 웹 미리보기에서 실제로 그렇게 보였다(개발서버가 6MB mp4를 스트리밍하지 못한다).
+    // 어두운 바탕을 깔아 두면 영상이 뜨기 전에도 읽을 수 있고, 뜨고 나면 영상이
+    // 그 위를 완전히 덮으므로 보이지 않는다.
+    backgroundColor: "#2B3350",
+  },
+  // [2026-09-26] 히어로 안으로 옮긴 탭 + 검색 상자 한 덩이.
+  // 남는 세로 공간을 전부 위쪽 margin으로 먹어 맨 아래로 내려간다.
+  // gap을 주지 않으므로 탭과 상자가 맞붙는다(사용자 지시).
+  heroSearchGroup: {
+    marginTop: "auto",
+    // [2026-09-26 사용자 지시] 가로 10% 축소 + **가운데 정렬**. 위 검색창과 같은
+    // 값이라 둘의 좌우 끝이 일직선으로 맞는다.
+    width: "90%",
+    alignSelf: "center",
   },
   // STEP: 기존 ImageBackground의 imageStyle과 동일한 이유로 필요한 스타일 —
   // 기본값(StyleSheet.absoluteFill, 즉 top/right/bottom/left:0)이
@@ -1288,6 +1483,20 @@ const styles = createScaledStyles(() => ({
     Platform.OS === "web"
       ? { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }
       : StyleSheet.absoluteFillObject,
+  // [2026-09-26 사용자 지시] 영상 위 어둡게 까는 막(rgba(0,0,0,0.3)).
+  // heroBannerVideo와 같은 방식으로 영역 전체를 덮는다 — 웹에서는 %기반,
+  // 네이티브에서는 absoluteFillObject(위 주석의 Android padding 문제와 동일한 이유).
+  heroScrim:
+    Platform.OS === "web"
+      ? {
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0,0,0,0.3)",
+        }
+      : { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
   // [STEP: 2026-09-09 재작업] heroBanner 바로 다음 형제 — 배너와 이 View 사이에
   // gap이 전혀 없으므로(content가 더 이상 gap을 주지 않음) 겹침 계산 없이 그냥
   // 붙는다. 라운딩된 모서리가 배너의 색(흰색이 아님) 위에서 시작해야 보이므로,
@@ -1369,7 +1578,7 @@ const styles = createScaledStyles(() => ({
     overflow: "hidden",
   },
   notificationBadgeText: {
-    color: "#FFFFFF",
+    color: colors.light.onAccent,
     fontSize: scaleFont(8),
     fontWeight: typography.weight.bold,
     includeFontPadding: false,
@@ -1383,6 +1592,10 @@ const styles = createScaledStyles(() => ({
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+    // [2026-09-26 사용자 지시] 가로 10% 축소 + **가운데 정렬**. 아래 탭/조건 상자와
+    // 같은 폭·같은 정렬이라 두 덩이의 좌우 끝이 맞아떨어진다.
+    width: "90%",
+    alignSelf: "center",
   },
   searchInput: {
     flex: 1,
@@ -1408,31 +1621,28 @@ const styles = createScaledStyles(() => ({
   bleedScroll: {
     marginHorizontal: -spacing.screenPaddingX,
   },
+  // [2026-09-26 사용자 지시] pill 토글 → **좌측 정렬 탭 버튼**.
+  //
+  // 바뀐 것: 가운데 정렬 80% 폭(alignSelf:"center", width:"80%")을 버리고 왼쪽에
+  // 붙인다. 트랙 배경·테두리·안쪽 그림자도 뺀다 — 탭 버튼은 각자가 배경을 갖고
+  // 트랙이 없는 형태라, 예전의 "파인 트랙 위 떠 있는 pill"과 섞이면 둘 다 흐려진다.
   categoryTabRow: {
     flexDirection: "row",
-    alignSelf: "center",
-    width: "80%",
-    borderWidth: 1,
-    borderRadius: radius.full,
-    padding: 0,
+    alignSelf: "flex-start",
     gap: spacing.xs,
-    // [2026-09-11 사용자 지시] 바깥 pill(트랙)도 살짝 파인 느낌 — 활성 탭보다
-    // 훨씬 연하게 넣어 두 그림자가 경쟁하지 않게 한다.
-    boxShadow: "inset 0 1px 3px rgba(0,0,0,0.10)",
   },
+  // [2026-09-26] 트랙을 반씩 나누던 flex:1을 뺀다 — 좌측 정렬 탭은 글자 폭 + 여백이다.
+  // 아래 상자와 맞붙으므로 **하단 라운딩은 없앤다**(사용자 지시) — 탭 아래가 둥글면
+  // 그 틈으로 상자 테두리가 비쳐 탭이 상자에서 떠 있는 것처럼 보인다.
   categoryTabButton: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-  },
-  // [2026-09-11 사용자 지시] 눌려 들어간 느낌 — 위쪽은 어둡게(그림자가 지는 면),
-  // 아래쪽은 밝게(빛이 닿는 면) 두 겹의 inset 그림자를 겹친다.
-  // RN 0.81 + 신아키텍처(app.json newArchEnabled)와 웹에서 모두 지원되는
-  // boxShadow 문자열을 쓴다 — RN의 shadow*/elevation은 바깥 그림자만 그린다.
-  categoryTabButtonActive: {
-    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.35), inset 0 -1px 2px rgba(255,255,255,0.18)",
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    borderTopLeftRadius: radius.md,
+    borderTopRightRadius: radius.md,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   categoryRow: {
     // 사용자 요청(2026-09-08): 아이콘 간 가로 간격을 lg(24)에서 sm(8)으로 좁혔다.

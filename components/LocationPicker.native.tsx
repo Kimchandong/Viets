@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 
-import { radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
+import { createScaledStyles, radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
 
 /**
  * [STEP 04-위치선택] 매물 등록 화면의 지도 위치 지정(네이티브 전용).
@@ -171,7 +171,7 @@ export function LocationPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   wrapper: {
     gap: spacing.xs,
   },
@@ -182,4 +182,4 @@ const styles = StyleSheet.create({
   hint: {
     textAlign: "center",
   },
-});
+}));

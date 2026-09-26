@@ -329,7 +329,7 @@ export default function InvestDetailScreen() {
           <Text style={[textStyles.heroValue, { color: theme.accent }]}>
             {splitYieldText(product.expectedReturn).rate}
             {splitYieldText(product.expectedReturn).suffix ? (
-              <Text style={{ fontWeight: typography.weight.regular, fontSize: typography.size.md }}>
+              <Text style={[textStyles.body, { fontWeight: typography.weight.regular }]}>
                 {splitYieldText(product.expectedReturn).suffix}
               </Text>
             ) : null}

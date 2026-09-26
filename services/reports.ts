@@ -106,12 +106,24 @@ export async function listPropertyReports(): Promise<PropertyReportGroup[]> {
 /**
  * 관리자 전용 — 그 매물의 미처리 신고를 한 번에 처리완료로 바꾼다.
  * 매물 단위로 판단하므로 건별로 누르게 하면 같은 판단을 열 번 반복하게 된다.
+ *
+ * [2026-09-16 2차 검토에서 발견 — 결함] 예전에는 boolean만 돌려줬다.
+ *
+ * 신고 처리 알림(notify_report_resolved 트리거)은 수신함에 행을 넣지만, **푸시로
+ * 내보내는 쪽을 아무도 부르지 않았다.** 다른 알림은 전부 누른 화면에서
+ * sendNotificationPush를 부르는데(승인·반려·QA 답변) 이 화면만 빠져 있었다 —
+ * 신고한 사람은 알림함을 직접 열기 전까지 처리된 것을 모른다. 신고만 받고 아무 말이
+ * 없으면 다시 신고하게 된다는 것이 이 알림을 만든 이유였는데, 그 목적이 반만 이뤄진
+ * 상태였다.
+ *
+ * 푸시를 보내려면 dedupe_key(= 신고 행의 id)가 필요하다. 트리거는 신고 **한 건마다**
+ * 알림을 남기므로(한 매물에 여러 사람이 신고했을 수 있다) id 목록을 돌려준다.
  */
-export async function resolvePropertyReports(propertyId: string): Promise<boolean> {
-  if (!supabase) return false;
+export async function resolvePropertyReports(propertyId: string): Promise<string[] | null> {
+  if (!supabase) return null;
 
   const { data: sessionData } = await supabase.auth.getSession();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("property_reports")
     .update({
       status: "resolved",
@@ -119,11 +131,12 @@ export async function resolvePropertyReports(propertyId: string): Promise<boolea
       handled_at: new Date().toISOString(),
     })
     .eq("property_id", propertyId)
-    .eq("status", "open");
+    .eq("status", "open")
+    .select("id");
 
   if (error) {
     console.warn("[services/reports] resolvePropertyReports failed:", error.message);
-    return false;
+    return null;
   }
-  return true;
+  return ((data ?? []) as { id: string }[]).map((row) => row.id);
 }

@@ -47,11 +47,18 @@ async function hashIp(ip: string): Promise<string> {
     .join("");
 }
 
-/** x-forwarded-for는 "클라이언트, 프록시1, 프록시2" 형태라 맨 앞이 실제 요청자다. */
-function clientIp(req: Request): string {
+/**
+ * x-forwarded-for는 "클라이언트, 프록시1, 프록시2" 형태라 맨 앞이 실제 요청자다.
+ *
+ * [2026-09-16 결함 수정] 못 찾으면 **null**을 돌려준다. 예전에는 "unknown"이라는
+ * 문자열을 돌려줬고, 그걸 해시하면 **모든 사용자가 똑같은 ip_hash**를 갖게 됐다.
+ * DB의 1시간 중복 판정이 그 값으로 걸리면서, 한 사람이 누르면 1시간 동안 다른 모든
+ * 사람의 클릭이 무과금이 됐다(실기기 제보). 모르면 모른다고 보내야 한다.
+ */
+function clientIp(req: Request): string | null {
   const forwarded = req.headers.get("x-forwarded-for") ?? "";
   const first = forwarded.split(",")[0]?.trim();
-  return first || req.headers.get("cf-connecting-ip") || "unknown";
+  return first || req.headers.get("cf-connecting-ip") || null;
 }
 
 /**
@@ -132,7 +139,9 @@ Deno.serve(async (req: Request) => {
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey);
-  const ipHash = await hashIp(clientIp(req));
+  // IP를 모르면 해시도 만들지 않는다 — null이면 DB가 IP 기준 판정을 건너뛴다.
+  const ip = clientIp(req);
+  const ipHash = ip ? await hashIp(ip) : null;
 
   const { data, error } = await admin.rpc("charge_ad_click", {
     p_property_id: body.propertyId,

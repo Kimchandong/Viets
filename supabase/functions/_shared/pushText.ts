@@ -76,6 +76,16 @@ const CATALOG: Record<string, Record<PushLang, Entry>> = {
     zh: { title: "咨询已回复", body: "{{title}} 的咨询已有回复。" },
     th: { title: "มีคำตอบสำหรับคำถามของคุณ", body: "มีคำตอบสำหรับ {{title}} แล้ว" },
   },
+  // [2026-09-16 결함 수정] 업체 등록 신청 알림 — 지금까지 없던 종류다.
+  // 신청이 들어와도 관리자가 화면을 직접 열기 전까지 알 수 없었다.
+  agency_applied: {
+    ko: { title: "업체 등록 신청 도착", body: "{{agency}} 님이 중개업체 등록을 신청했습니다." },
+    en: { title: "New agency application", body: "{{agency}} applied to register as an agency." },
+    vi: { title: "Có đơn đăng ký môi giới", body: "{{agency}} đã nộp đơn đăng ký làm đại lý." },
+    ja: { title: "業者登録の申請", body: "{{agency}} が仲介業者の登録を申請しました。" },
+    zh: { title: "收到中介注册申请", body: "{{agency}} 提交了中介注册申请。" },
+    th: { title: "มีคำขอลงทะเบียนตัวแทน", body: "{{agency}} ยื่นคำขอลงทะเบียนเป็นตัวแทน" },
+  },
   payment_requested: {
     ko: { title: "입금 신고 도착", body: "{{agency}} 님이 {{amount}} VND 입금을 신고했습니다." },
     en: { title: "New top-up request", body: "{{agency}} reported a {{amount}} VND deposit." },

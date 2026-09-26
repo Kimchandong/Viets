@@ -51,3 +51,14 @@ Claude outputs/
 *-firebase-adminsdk-*.json
 firebase-service-account*.json
 service-account*.json
+
+# [2026-09-26] 세션 중 만들어진 작업 영상·임시 캡처.
+# 홈 배경영상의 **원본은 Supabase Storage(app-media/hero-source.mp4)** 에 있고 앱은
+# 그 주소를 가리킨다(constants/media.ts). 저장소 루트의 34MB/25MB짜리 변환 전 사본과
+# assets/ 아래 사본은 앱이 require 하지 않아 빌드에도 안 들어간다 — 남길 이유가 없다.
+/*.mp4
+assets/videos/home/hero-source.mp4
+e14-test.png
+
+# 삭제 권한이 없어 옮겨 둔 폴더. 사용자가 직접 지운다.
+_to_delete/

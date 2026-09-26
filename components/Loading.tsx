@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { ActivityIndicator, StyleProp, Text, View, ViewStyle } from "react-native";
 
-import { colors, spacing, typography } from "@/constants/theme";
+import { createScaledStyles, colors, spacing, typography } from "@/constants/theme";
 
 export type LoadingProps = {
   /** 화면 전체를 채우는 로딩(예: 초기 화면 진입) vs 인라인 로딩(예: 리스트 하단) */
@@ -36,7 +36,7 @@ export function Loading({ fullscreen = false, message, style }: LoadingProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   base: {
     alignItems: "center",
     justifyContent: "center",
@@ -49,4 +49,4 @@ const styles = StyleSheet.create({
   message: {
     fontSize: typography.size.sm,
   },
-});
+}));

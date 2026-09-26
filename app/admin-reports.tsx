@@ -12,6 +12,7 @@ import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
 import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
+import { sendNotificationPush } from "@/services/notifications";
 import { isAdmin } from "@/services/roles";
 import {
   listPropertyReports,
@@ -67,10 +68,23 @@ export default function AdminReportsScreen() {
 
   async function handleResolve(report: PropertyReportGroup) {
     setBusyId(report.propertyId);
-    const ok = await resolvePropertyReports(report.propertyId);
+    const resolvedIds = await resolvePropertyReports(report.propertyId);
     setBusyId(null);
+    const ok = resolvedIds !== null;
     showToast(ok ? t("adminReports.resolved") : t("adminReports.actionFailed"));
-    if (ok) await load();
+    if (!ok) return;
+
+    // [2026-09-16 2차 검토에서 발견 — 결함] 수신함에만 들어가고 푸시는 나가지 않았다.
+    //
+    // 승인·반려·QA 답변 화면은 모두 누른 직후 sendNotificationPush를 부르는데 이
+    // 화면만 빠져 있었다. 신고 한 건마다 알림이 하나씩 생기므로(한 매물에 여러 명이
+    // 신고할 수 있다) 처리된 id마다 한 번씩 부른다. 실패해도 무시한다 — 처리는 이미
+    // 끝났고 알림은 수신함에 남아 있다.
+    for (const id of resolvedIds) {
+      void sendNotificationPush("report_resolved", id);
+    }
+
+    await load();
   }
 
   if (loading) {

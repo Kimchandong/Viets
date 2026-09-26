@@ -24,6 +24,7 @@ import {
 } from "@/services/ads";
 import { getMyBalance, getPaymentSettings, type AgencyBalance } from "@/services/payments";
 import { listManagedProperties, type ManagedProperty } from "@/services/properties";
+import { canRegisterProperty } from "@/services/roles";
 import { formatMoneyAmount } from "@/utils/format";
 
 /**
@@ -62,6 +63,19 @@ export default function AdSlotsScreen() {
   const targetProperty = myProperties.find((property) => property.id === propertyId) ?? null;
 
   const [loading, setLoading] = useState(true);
+  /**
+   * [2026-09-16 웹 검증에서 발견 — 결함] 이 화면에는 권한 검사가 아예 없었다.
+   *
+   * my-properties·chat-inbox·payment-info는 모두 canRegisterProperty()로 막는데
+   * 광고 화면 둘(ad-manage·ad-slots)만 빠져 있어서, **일반 고객 계정으로 주소를
+   * 직접 치면 순위표가 그대로 열렸다.** 순위표에는 남의 업체가 적어 낸 클릭 단가
+   * (예: 20,000 VND)가 그대로 보인다 — 경쟁 업체의 입찰가는 영업 정보다.
+   *
+   * 실제로 돈이 나가지는 않는다(set_ad_bid RPC가 서버에서 업체 구성원인지 검사한다).
+   * 그래도 "보이면 된다고 착각하게 만드는 화면"은 그 자체로 결함이라 막는다.
+   */
+  const [allowed, setAllowed] = useState(false);
+  const [checkingPermission, setCheckingPermission] = useState(true);
   const [slots, setSlots] = useState<AdSlot[]>([]);
   const [minBid, setMinBid] = useState(0);
   const [myBid, setMyBid] = useState(0);
@@ -75,6 +89,27 @@ export default function AdSlotsScreen() {
   const [amountDraft, setAmountDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      setCheckingPermission(true);
+      canRegisterProperty()
+        .then((ok) => {
+          if (!active) return;
+          setAllowed(ok);
+          setCheckingPermission(false);
+        })
+        .catch(() => {
+          if (!active) return;
+          setAllowed(false);
+          setCheckingPermission(false);
+        });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   const load = useCallback(async () => {
     const [nextSlots, settings, nextBid, nextBalance, nextProperties] = await Promise.all([
@@ -102,13 +137,16 @@ export default function AdSlotsScreen() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      // 권한이 없으면 조회 자체를 하지 않는다 — 화면만 가리고 요청은 나가면
+      // 순위표가 네트워크 탭에 그대로 남는다.
+      if (!allowed) return () => undefined;
       load().catch(() => {
         if (active) setLoading(false);
       });
       return () => {
         active = false;
       };
-    }, [load]),
+    }, [load, allowed]),
   );
 
   /**
@@ -261,6 +299,41 @@ export default function AdSlotsScreen() {
   ];
 
   const title = t(placement === "top10" ? "adSlots.top10Title" : "adSlots.featuredTitle");
+
+  if (checkingPermission) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+        <Header
+          title={title}
+          leftAction={
+            <Pressable onPress={goBack} accessibilityRole="button" hitSlop={8}>
+              <Ionicons name="chevron-back" size={22} color={theme.text} />
+            </Pressable>
+          }
+        />
+        <Loading />
+      </SafeAreaView>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+        <Header
+          title={title}
+          leftAction={
+            <Pressable onPress={goBack} accessibilityRole="button" hitSlop={8}>
+              <Ionicons name="chevron-back" size={22} color={theme.text} />
+            </Pressable>
+          }
+        />
+        <EmptyState
+          title={t("adSlots.noPermissionTitle")}
+          description={t("adSlots.noPermissionDescription")}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>

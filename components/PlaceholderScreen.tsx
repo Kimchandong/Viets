@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors, spacing, typography } from "@/constants/theme";
+import { createScaledStyles, colors, spacing, typography } from "@/constants/theme";
 
 type Props = {
   title: string;
@@ -29,7 +29,7 @@ export function PlaceholderScreen({ title }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -46,4 +46,4 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: typography.size.sm,
   },
-});
+}));

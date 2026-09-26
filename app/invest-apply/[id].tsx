@@ -27,7 +27,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
-import { colors, opacity, radius, spacing, textStyles, typography, ThemeColors, scaleFont } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, ThemeColors, textColor } from "@/constants/theme";
 import { type MockInvestmentProduct } from "@/constants/mockData";
 import { createInvestmentOrder, getInvestmentProductById } from "@/services/investments";
 import { VIETNAM_BANKS } from "@/constants/vietnamBanks";
@@ -43,12 +43,19 @@ const GALLERY_WIDTH = SCREEN_WIDTH - spacing.screenPaddingX * 2;
 
 // [STEP: 2026-09-09] 사용자 요청 — invest-detail의 "투자 신청" 버튼을 눌렀을 때
 // 뜨던 단순 확인 Modal(비고지 문구 + 확인 버튼) 대신, 실제 신청에 필요한 정보를
-// 입력받는 전용 신청서 화면을 새로 만든다. DB(investment_orders 등)가 아직 없으므로
-// 이 화면도 invest-detail과 동일한 원칙(§6: 실제 금융거래/결제는 구현하지 않는다)을
-// 따른다 — 제출 시 실제로 서버에 저장되지 않으며, 상단/하단에 테스트 화면임을
-// 명시한다. 다만 "항목별 입력/선택 항목이 잘 배치된" 실제 신청 폼 UI 자체는
-// 갖춰서, 이후 investment_orders 테이블/제출 API가 생기면 이 화면의 각 입력
-// state를 그대로 payload로 옮기기만 하면 되도록 필드를 구성했다.
+// 입력받는 전용 신청서 화면을 새로 만든다.
+//
+// [2026-09-10 STEP 06] investment_orders 테이블이 생기면서 **실제 저장으로 전환됐다.**
+// handleSubmit은 createInvestmentOrder로 status='pending' 행을 만든다(결제/체결은
+// 여전히 없다 — §6 원칙 그대로, D10 확정 "투자 의향 접수만").
+//
+// [2026-09-16 웹 검증에서 발견] 저장으로 바뀐 뒤에도 완료 화면 문구
+// (i18n investApply.successDescription)가 "테스트 화면이므로 실제로 접수되지는
+// 않았습니다"로 남아 있었다. 신청은 저장되는데 사용자에게는 안 됐다고 말하는
+// 상태였다 — 6개 언어를 모두 "담당자 확인 후 연락" 안내로 바꿨다.
+//
+// 계좌 정보(은행/계좌번호/예금주)는 금융 정보라 이번 범위의 테이블에 저장하지
+// 않는다(DATABASE.md에 컬럼 자체를 두지 않았다) — 화면에서만 입력받는다.
 //
 // 로그인 필요: 실제 자금이 오가는(신청이라도) 화면이라 즐겨찾기(handleFavoritePress,
 // invest-detail/[id].tsx)와 동일하게 비로그인 사용자는 이 화면 대신 로그인 유도
@@ -470,7 +477,7 @@ export default function InvestApplyScreen() {
                   tone="accent"
                   // [STEP: 2026-09-09-8] 사용자 요청 — "최소금액/최소금액x2/..." 라벨이
                   // 칩 폭보다 길어 잘려 보이는 문제 — 글자크기를 11px로 축소.
-                  textStyle={{ fontSize: scaleFont(11) }}
+                  textStyle={{ fontSize: textStyles.caption.fontSize }}
                 />
               ))}
             </View>
@@ -691,7 +698,7 @@ function AgreementRow({
         color={checked ? theme.accent : theme.secondaryText}
       />
       {/* [STEP: 2026-09-09-8] 사용자 요청 — 약관 동의 3개 항목 글자 크기 11px */}
-      <Text style={[textStyles.bodySmall, { color: theme.text, flex: 1, fontSize: scaleFont(11) }]}>{label}</Text>
+      <Text style={[textStyles.label, { color: textColor(theme, "label"), flex: 1 }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -724,7 +731,7 @@ function MetricTile({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -887,4 +894,4 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: spacing.xs,
   },
-});
+}));

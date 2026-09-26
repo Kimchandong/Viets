@@ -31,7 +31,11 @@ const THUMB_HEIGHT = 88;
 /** [2026-09-11 사용자 지시] 매물 이미지 가로 50% 확대. */
 const THUMB_WIDTH = Math.round(THUMB_HEIGHT * 1.5);
 /** 면적/방수/화장실/거리 행의 글자·아이콘 크기(components/PropertyCard.tsx와 동일). */
-const META_SIZE = scaleFont(12);
+function metaSize(): number {
+  // [2026-09-26] 모듈 상수였던 것을 함수로 바꿨다 — 상수는 모듈이 처음 읽힐 때 한 번
+  // 계산되어, 앱을 켠 뒤 폭이 바뀌면(폴더블/회전) 이 글자와 아이콘만 옛 크기로 굳었다.
+  return scaleFont(12);
+}
 
 export function PropertyListRow({
   property,
@@ -100,7 +104,7 @@ export function PropertyListRow({
             </Text>
             {property.bedrooms !== undefined ? (
               <View style={styles.metaItem}>
-                <Ionicons name="bed-outline" size={META_SIZE} color={theme.secondaryText} />
+                <Ionicons name="bed-outline" size={metaSize()} color={theme.secondaryText} />
                 <Text style={[textStyles.caption, styles.meta, { color: theme.secondaryText }]}>
                   {property.bedrooms}
                 </Text>
@@ -108,7 +112,7 @@ export function PropertyListRow({
             ) : null}
             {property.bathrooms !== undefined ? (
               <View style={styles.metaItem}>
-                <Ionicons name="water-outline" size={META_SIZE} color={theme.secondaryText} />
+                <Ionicons name="water-outline" size={metaSize()} color={theme.secondaryText} />
                 <Text style={[textStyles.caption, styles.meta, { color: theme.secondaryText }]}>
                   {property.bathrooms}
                 </Text>
@@ -118,7 +122,7 @@ export function PropertyListRow({
                 정렬한다. 기준 위치가 있을 때만 붙는다. */}
             {distance ? (
               <View style={[styles.metaItem, styles.metaDistance]}>
-                <Ionicons name="location-outline" size={META_SIZE} color={theme.secondaryText} />
+                <Ionicons name="location-outline" size={metaSize()} color={theme.secondaryText} />
                 <Text style={[textStyles.caption, styles.meta, { color: theme.secondaryText }]}>
                   {distance}
                 </Text>
@@ -206,6 +210,6 @@ const styles = createScaledStyles(() => ({
     marginLeft: "auto",
   },
   meta: {
-    fontSize: META_SIZE,
+    fontSize: metaSize(),
   },
 }));

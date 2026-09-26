@@ -1,6 +1,6 @@
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 
-import { colors, opacity, radius, shadow, spacing } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, shadow, spacing } from "@/constants/theme";
 
 export type CardProps = {
   children: React.ReactNode;
@@ -54,10 +54,10 @@ export function Card({ children, onPress, disabled = false, style, testID }: Car
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   base: {
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
   },
-});
+}));

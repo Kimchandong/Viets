@@ -13,7 +13,7 @@ import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
   getAgencyDocumentUrl,
   listAgencyApplications,
@@ -322,7 +322,7 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -390,4 +390,4 @@ const styles = StyleSheet.create({
   modalButton: {
     marginTop: spacing.md,
   },
-});
+}));

@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import { listBoardPosts, type BoardKind, type BoardPost } from "@/services/boards";
 import { isAdmin } from "@/services/roles";
 
@@ -192,7 +192,7 @@ export default function AdminBoardsScreen() {
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -242,4 +242,4 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: spacing.xs,
   },
-});
+}));

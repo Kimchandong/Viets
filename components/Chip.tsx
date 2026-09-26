@@ -1,6 +1,6 @@
-import { Pressable, StyleProp, StyleSheet, Text, TextStyle } from "react-native";
+import { Pressable, StyleProp, Text, TextStyle } from "react-native";
 
-import { opacity, radius, spacing, textStyles, ThemeColors, typography } from "@/constants/theme";
+import { createScaledStyles, opacity, radius, spacing, textStyles, ThemeColors, typography } from "@/constants/theme";
 
 export type ChipProps = {
   label: string;
@@ -114,9 +114,9 @@ export function Chip({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
-});
+}));

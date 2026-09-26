@@ -1,17 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Pressable,
-  ScrollView,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from "react-native";
+import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleProp, View, ViewStyle } from "react-native";
 
-import { colors, layout, opacity, radius, shadow } from "@/constants/theme";
+import { createScaledStyles, colors, layout, opacity, radius, shadow } from "@/constants/theme";
 
 export type HorizontalCardCarouselProps = {
   children: React.ReactNode;
@@ -169,7 +160,7 @@ const ARROW_SIZE = 36;
  */
 const ARROW_OUTSET = 20;
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   wrap: {
     position: "relative",
   },
@@ -191,4 +182,4 @@ const styles = StyleSheet.create({
   arrowRight: {
     right: -ARROW_OUTSET,
   },
-});
+}));

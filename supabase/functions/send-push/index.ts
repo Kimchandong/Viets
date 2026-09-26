@@ -151,6 +151,25 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // [2026-09-16 결함 수정] 예외 둘: **업체 등록 신청 알림은 신청자가 보낸다.**
+  //
+  // 입금 신고와 사정이 같다 — 보내는 쪽은 업체이고 받는 쪽이 관리자라, "호출자는
+  // 관리자" 규칙으로는 막힌다. dedupe_key가 agencies.id이므로 그 업체의 활성
+  // 구성원인지 확인해서 허용한다. 남의 업체 id를 넣어도 통과하지 못한다.
+  if (!allowed && body.kind === "agency_applied") {
+    const { data: userData } = await userClient.auth.getUser();
+    const callerId = userData.user?.id ?? null;
+    if (callerId) {
+      const { data: member } = await admin
+        .from("agency_members")
+        .select("agency_id")
+        .eq("agency_id", body.dedupeKey)
+        .eq("user_id", callerId)
+        .maybeSingle();
+      allowed = !!member;
+    }
+  }
+
   if (!allowed) {
     return json({ error: "forbidden" }, 403);
   }

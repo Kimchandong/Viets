@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
+import { PanResponder, Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
-import { opacity, radius, spacing, textStyles, ThemeColors } from "@/constants/theme";
+import { createScaledStyles, opacity, radius, spacing, textStyles, ThemeColors } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
 import { distanceKm } from "@/services/location";
 import { formatVndAmount } from "@/utils/format";
@@ -364,7 +364,7 @@ function clampToStep(raw: number): number {
   return Math.round(clamped / step) * step;
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   sortRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -440,4 +440,4 @@ const styles = StyleSheet.create({
   sheetButton: {
     flex: 1,
   },
-});
+}));

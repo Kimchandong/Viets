@@ -4,6 +4,13 @@
     "slug": "viets-app",
     "scheme": "viets",
     "version": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/70e9be62-ccd0-4662-b884-2c6d28874a98",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",

@@ -40,6 +40,10 @@ drop policy if exists developers_select_active_public on public.developers;
 -- 3. property_ad_slots — anon만 제외하고 로그인 사용자에게는 그대로 연다
 drop policy if exists ad_slots_select_all on public.property_ad_slots;
 
+-- [2026-09-26] drop을 앞에 둔다. 이 정책이 운영 DB에 이미 수동으로 만들어져 있어
+-- db push가 "already exists"로 멈췄다. 같은 파일 안의 다른 정책들처럼 맞춘다.
+drop policy if exists ad_slots_select_authenticated on public.property_ad_slots;
+
 create policy ad_slots_select_authenticated
   on public.property_ad_slots
   for select

@@ -24,8 +24,12 @@ import { PropertyListRow } from "@/components/PropertyListRow";
 import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { colors, layout, opacity, radius, spacing, textStyles, ThemeColors } from "@/constants/theme";
-import { MOCK_REGIONS, type MockProperty, type MockPropertyStatus } from "@/constants/mockData";
+import { createScaledStyles, colors, layout, opacity, radius, spacing, textStyles, ThemeColors } from "@/constants/theme";
+import { type MockProperty, type MockPropertyStatus } from "@/constants/mockData";
+// [2026-09-26 사용자 지시] 지역 목록을 실제 베트남 행정구역으로 바꾼다.
+// 예전 MOCK_REGIONS는 대표 도시 6개뿐이라, 홈 검색에서 고른 성(예: Bắc Ninh)이
+// 이 화면의 칩 목록에 아예 없어 선택 표시가 되지 않았다.
+import { VIETNAM_REGIONS } from "@/constants/vietnamRegions";
 import type { PropertyImageCategory } from "@/constants/mockImages";
 import { listProperties } from "@/services/properties";
 import { chargeAdClick, listActiveAdSlots } from "@/services/ads";
@@ -106,14 +110,38 @@ export default function PropertyScreen() {
   // [STEP: 2026-09-08] home.tsx의 검색창에서 검색어를 입력하고 넘어오면(search
   // 쿼리 param) 이 화면의 검색 state 초기값으로 사용한다 — category param과 동일한
   // 패턴.
-  const params = useLocalSearchParams<{ category?: string; search?: string }>();
+  // [2026-09-26] 홈 검색 패널에서 region/listing도 함께 넘어온다.
+  //   region  — 베트남 행정구역 이름(constants/vietnamRegions.ts)
+  //   listing — forSale | forRent | presale
+  // 'presale'(분양)은 **아직 DB에 값이 없다**(property_listing_type enum은
+  // for_sale/for_rent 둘뿐). 그래서 분양으로 검색하면 결과가 0건이다 — 화면이
+  // 고장 난 것이 아니라 데이터가 아직 없는 것이고, 마이그레이션이 따라와야 한다.
+  const params = useLocalSearchParams<{
+    category?: string;
+    search?: string;
+    region?: string;
+    listing?: string;
+    maxPrice?: string;
+  }>();
   const initialCategory =
     params.category && (PROPERTY_CATEGORIES as string[]).includes(params.category)
       ? (params.category as PropertyImageCategory)
       : null;
+  const initialStatus: StatusFilter =
+    params.listing === "forSale" || params.listing === "forRent"
+      ? (params.listing as StatusFilter)
+      : "all";
 
-  const [region, setRegion] = useState<string | null>(null);
-  const [status, setStatus] = useState<StatusFilter>("all");
+  const [region, setRegion] = useState<string | null>(params.region ?? null);
+  const [status, setStatus] = useState<StatusFilter>(initialStatus);
+  // 분양으로 들어온 경우만 따로 들고 있는다 — StatusFilter에는 없는 값이라
+  // status에 넣을 수 없고, 넣으면 매매/임대 셀렉트가 깨진다.
+  const [presaleOnly] = useState(params.listing === "presale");
+  // [2026-09-26] 홈 검색의 금액 조건(이 금액 이하). 0/없음이면 제한 없음.
+  const [maxPrice] = useState(() => {
+    const n = Number(params.maxPrice);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  });
   const [category, setCategory] = useState<PropertyImageCategory | null>(initialCategory);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [search, setSearch] = useState(params.search ?? "");
@@ -257,17 +285,34 @@ export default function PropertyScreen() {
 
   const filtered = useMemo(() => {
     const base = properties.filter((property) => {
-      const matchesRegion = !region || property.province === region || property.location.includes(region);
-      const matchesStatus = status === "all" || property.status === status;
+      // [2026-09-26] 지역 비교를 양방향 포함으로 바꾼다. 홈에서 고른 이름은
+      // 행정구역 정식 명칭("TP. Hồ Chí Minh")인데 매물 데이터의 province는
+      // 표기가 다를 수 있어("Hồ Chí Minh") 정확히 같은지만 보면 다 걸러진다.
+      // [2026-09-26] 양방향 포함으로 비교한다 — 홈에서 고른 이름은 행정구역 정식
+      // 명칭("TP. Hồ Chí Minh")인데 매물의 province 표기가 다를 수 있어
+      // ("Hồ Chí Minh") 정확히 같은지만 보면 전부 걸러진다.
+      //
+      // province가 빈 문자열인 매물이 실제로 있다(옛 데이터). 빈 문자열은 모든
+      // 문자열의 부분문자열이라 `region.includes(property.province)`가 **항상 참**이
+      // 되어, 어떤 지역을 골라도 그 매물이 전부 따라 나왔다. 그래서 값이 있을 때만
+      // 비교한다 — 지역 정보가 없는 매물은 지역을 고른 순간 빠지는 것이 맞다.
+      const province = property.province?.trim() ?? "";
+      const matchesRegion =
+        !region ||
+        (province.length > 0 && (province.includes(region) || region.includes(province))) ||
+        property.location.includes(region);
+      // 분양은 아직 데이터가 없다(위 params 주석 참고) — 고르면 0건이 맞다.
+      const matchesStatus = presaleOnly ? false : status === "all" || property.status === status;
+      const matchesPrice = !maxPrice || property.priceValueVnd <= maxPrice;
       const matchesCategory = !category || property.category === category;
       const matchesSearch =
         !isSearching ||
         property.title.toLowerCase().includes(normalizedSearch) ||
         property.location.toLowerCase().includes(normalizedSearch);
-      return matchesRegion && matchesStatus && matchesCategory && matchesSearch;
+      return matchesRegion && matchesStatus && matchesPrice && matchesCategory && matchesSearch;
     });
     return sortProperties(base, sort);
-  }, [properties, region, status, category, normalizedSearch, isSearching, sort]);
+  }, [properties, region, status, presaleOnly, maxPrice, category, normalizedSearch, isSearching, sort]);
 
   // 광고 자리를 산 매물만, DB가 준 순위 그대로. 광고가 하나도 없을 때만 예전처럼
   // featured 플래그(관리자 수동 큐레이션)를 쓴다.
@@ -455,12 +500,12 @@ export default function PropertyScreen() {
               activeBorderColor={theme.accent}
               borderRadius={radius.full}
             />
-            {MOCK_REGIONS.map((item) => (
+            {VIETNAM_REGIONS.map((item) => (
               <Chip
-                key={item}
-                label={item}
-                active={region === item}
-                onPress={() => setRegion(item)}
+                key={item.name}
+                label={item.name}
+                active={region === item.name}
+                onPress={() => setRegion(item.name)}
                 theme={theme}
                 bordered={false}
                 squared
@@ -734,7 +779,7 @@ function ViewToggleButton({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -888,4 +933,4 @@ const styles = StyleSheet.create({
   propertyList: {
     gap: 0,
   },
-});
+}));

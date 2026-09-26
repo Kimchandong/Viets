@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 import type { MockProperty } from "@/constants/mockData";
-import { radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
+import { createScaledStyles, radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
 
 /**
  * [STEP 04-지도] 매물 지도 뷰(네이티브 전용).
@@ -99,7 +99,7 @@ function computeRegion(properties: MockProperty[]) {
   };
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   wrapper: {
     gap: spacing.xs,
   },
@@ -119,4 +119,4 @@ const styles = StyleSheet.create({
   note: {
     textAlign: "center",
   },
-});
+}));

@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image, StyleProp, Text, View, ViewStyle } from "react-native";
 
 import { Card } from "@/components/Card";
-import { createScaledStyles, colors, layout, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
+import { createScaledStyles, colors, layout, radius, spacing, textStyles, typography, scaleFont, textColor } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
 import { splitYieldText } from "@/utils/format";
 
@@ -47,7 +47,7 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
           <Image source={thumbnail} style={styles.imagePhoto} resizeMode="cover" />
         ) : null}
         <View style={[styles.statusTag, { backgroundColor: theme.background }]}>
-          <Text style={[textStyles.caption, { color: theme.text }]}>
+          <Text style={[textStyles.label, { color: textColor(theme, "label") }]}>
             {t(`property.status.${property.status}`)}
           </Text>
         </View>
@@ -102,7 +102,7 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
               양쪽에 쓰므로 기기마다 어긋날 일이 없다. */}
           {property.bedrooms !== undefined ? (
             <View style={styles.metaItem}>
-              <Ionicons name="bed-outline" size={META_SIZE} color={theme.secondaryText} />
+              <Ionicons name="bed-outline" size={metaSize()} color={theme.secondaryText} />
               <Text style={[textStyles.caption, styles.metaText, { color: theme.secondaryText }]} numberOfLines={1}>
                 {property.bedrooms}
               </Text>
@@ -110,7 +110,7 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
           ) : null}
           {property.bathrooms !== undefined ? (
             <View style={styles.metaItem}>
-              <Ionicons name="water-outline" size={META_SIZE} color={theme.secondaryText} />
+              <Ionicons name="water-outline" size={metaSize()} color={theme.secondaryText} />
               <Text style={[textStyles.caption, styles.metaText, { color: theme.secondaryText }]} numberOfLines={1}>
                 {property.bathrooms}
               </Text>
@@ -123,7 +123,11 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
 }
 
 /** [2026-09-11 사용자 지시] 면적/침실/욕실 행의 글자·아이콘 크기(px). */
-const META_SIZE = scaleFont(12);
+function metaSize(): number {
+  // [2026-09-26] 모듈 상수였던 것을 함수로 바꿨다 — 상수는 모듈이 처음 읽힐 때 한 번
+  // 계산되어, 앱을 켠 뒤 폭이 바뀌면(폴더블/회전) 이 글자와 아이콘만 옛 크기로 굳었다.
+  return scaleFont(12);
+}
 
 /**
  * 썸네일 높이. 캐러셀 화살표를 "이미지 상하 가운데"에 놓으려면 바깥(화면)에서도
@@ -227,7 +231,7 @@ const styles = createScaledStyles(() => ({
   },
   // [2026-09-11 사용자 지시] 평수/방수/화장실 글자 12px. 위 아이콘과 같은 상수를 쓴다.
   metaText: {
-    fontSize: META_SIZE,
+    fontSize: metaSize(),
   },
   // [STEP: 2026-09-09] 사용자 요청 — 가격 단위(tỷ/tháng) bold 없앰.
   // [2026-09-11 사용자 지시] 단위 글자 크기를 앞의 금액과 같게 — fontSize override를

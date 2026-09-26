@@ -12,15 +12,7 @@ import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
-import {
-  colors,
-  opacity,
-  radius,
-  spacing,
-  textStyles,
-  typography,
-  type ThemeColors,
-} from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, type ThemeColors } from "@/constants/theme";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { listManagedConversations, type ManagedConversation } from "@/services/chat";
 import {
@@ -525,7 +517,7 @@ function StatusBadge({
 }
 
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -616,4 +608,4 @@ const styles = StyleSheet.create({
     gap: 2,
     minWidth: 0,
   },
-});
+}));

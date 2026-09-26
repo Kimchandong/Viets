@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
+import { createScaledStyles, radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
 
 /**
  * [STEP 04-위치선택] 매물 등록 화면의 지도 위치 지정 — 웹/기본 구현.
@@ -32,7 +32,7 @@ export function LocationPicker({ theme, unavailableLabel }: LocationPickerProps)
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   placeholder: {
     height: 160,
     borderRadius: radius.md,
@@ -42,4 +42,4 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
   },
-});
+}));

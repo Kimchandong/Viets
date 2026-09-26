@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
-import { colors, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, radius, spacing, textStyles, typography } from "@/constants/theme";
 import { GOOGLE_ICON_URI } from "@/constants/icons";
 import { mapAuthErrorToMessageKey, signInWithApple, signInWithGoogle } from "@/services/auth";
 
@@ -108,13 +108,13 @@ export function LoginPromptModal({ visible, onClose, description }: LoginPromptM
         </Button>
       </View>
       {errorMessage ? (
-        <Text style={[textStyles.caption, styles.errorText, { color: "#B6010C" }]}>{errorMessage}</Text>
+        <Text style={[textStyles.caption, styles.errorText, { color: theme.danger }]}>{errorMessage}</Text>
       ) : null}
     </Modal>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   authButtons: {
     flexDirection: "row",
     gap: spacing.sm,
@@ -143,4 +143,4 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: spacing.sm,
   },
-});
+}));

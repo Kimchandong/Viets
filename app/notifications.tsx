@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
   deleteNotification,
   listDisabledNotificationKinds,
@@ -21,6 +21,7 @@ import {
   NOTIFICATION_KINDS,
   type AppNotification,
 } from "@/services/notifications";
+import { getPushRegistrationStatus, registerPushToken } from "@/services/push";
 
 /**
  * [2026-09-12 사용자 지시] 알림 수신함.
@@ -44,6 +45,7 @@ export default function NotificationsScreen() {
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<AppNotification[]>([]);
+  const [pushStatus, setPushStatus] = useState(getPushRegistrationStatus());
   const [showSettings, setShowSettings] = useState(false);
   const [disabledKinds, setDisabledKinds] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
@@ -63,6 +65,11 @@ export default function NotificationsScreen() {
       let active = true;
       void load().then(() => {
         if (!active) return;
+      });
+      // [2026-09-26] 화면에 들어올 때마다 푸시 등록 상태를 다시 읽는다.
+      // 사용자가 휴대폰 설정에서 권한을 켜고 돌아오면 그 결과가 바로 보여야 한다.
+      void registerPushToken().then(() => {
+        if (active) setPushStatus(getPushRegistrationStatus());
       });
       return () => {
         active = false;
@@ -145,6 +152,45 @@ export default function NotificationsScreen() {
           <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
             {t("notifications.settingsHint")}
           </Text>
+
+          {/* [2026-09-26] 이 기기가 푸시를 받을 수 있는 상태인지 한 줄로 보여 준다.
+              왜 넣었나: 등록이 실패해도 앱은 아무 말 없이 넘어가도록 만들어져 있어
+              (알림 하나 때문에 로그인이 막히면 안 되므로) **실패를 알 방법이 없었다.**
+              실제로 관리자 계정에 토큰이 끝내 생기지 않았는데 원인을 화면에서도
+              로그에서도 확인할 수 없었다. 여기 한 줄이면 사용자가 바로 읽고 말해 줄 수 있다.
+
+              눌러서 다시 시도할 수 있게 둔다 — 권한을 켜고 돌아왔을 때 앱을 다시
+              켜지 않아도 되도록. */}
+          <Pressable
+            testID="push-status-row"
+            onPress={async () => {
+              await registerPushToken();
+              setPushStatus(getPushRegistrationStatus());
+            }}
+            style={({ pressed }) => [styles.pushStatus, { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 }]}
+          >
+            <Ionicons
+              name={
+                pushStatus.state === "ok"
+                  ? "checkmark-circle-outline"
+                  : pushStatus.state === "failed"
+                    ? "alert-circle-outline"
+                    : "information-circle-outline"
+              }
+              size={16}
+              color={pushStatus.state === "failed" ? theme.danger : theme.secondaryText}
+            />
+            <Text
+              style={[
+                textStyles.caption,
+                styles.pushStatusText,
+                { color: pushStatus.state === "failed" ? theme.danger : theme.secondaryText },
+              ]}
+            >
+              {pushStatus.reason}
+            </Text>
+            <Ionicons name="refresh-outline" size={14} color={theme.secondaryText} />
+          </Pressable>
           {NOTIFICATION_KINDS.map((kind) => {
             const enabled = !disabledKinds.includes(kind);
             return (
@@ -254,7 +300,21 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
+  // 푸시 등록 상태 한 줄. 테두리만 두고 배경은 두지 않는다 — 알림 목록이 주인공이고
+  // 이 줄은 문제가 있을 때만 눈에 걸리면 된다.
+  pushStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  pushStatusText: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -300,4 +360,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-});
+}));

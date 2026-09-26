@@ -13,7 +13,7 @@ import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import { formatMoneyAmount } from "@/utils/format";
 import { getMyAgency, type MyAgency } from "@/services/agencies";
 import {
@@ -286,7 +286,7 @@ export default function PaymentInfoScreen() {
             <SectionHeader title={t("payment.registrantsTitle")} />
             {billing.length === 0 ? (
               <Text
-                style={[textStyles.bodySmall, { color: theme.secondaryText, fontSize: typography.size.xs }]}
+                style={[textStyles.caption, { color: theme.secondaryText }]}
               >
                 {t("payment.registrantsEmpty")}
               </Text>
@@ -322,7 +322,7 @@ export default function PaymentInfoScreen() {
         <SectionHeader title={t("payment.depositsTitle")} />
         {entries.filter((entry) => entry.amount > 0).length === 0 ? (
           <Text
-            style={[textStyles.bodySmall, { color: theme.secondaryText, fontSize: typography.size.xs }]}
+            style={[textStyles.caption, { color: theme.secondaryText }]}
           >
             {t("payment.depositsEmpty")}
           </Text>
@@ -354,7 +354,7 @@ export default function PaymentInfoScreen() {
           // [2026-09-11 사용자 지시] 내용이 없을 때의 문구는 앱 전체에서 11px·굵기
           // 없음으로 통일한다(components/EmptyState.tsx와 같은 규칙). 여기만
           // bodySmall(13px)이라 다른 화면의 빈 상태보다 커 보였다.
-          <Text style={[textStyles.bodySmall, { color: theme.secondaryText, fontSize: typography.size.xs }]}>
+          <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
             {t("payment.historyEmpty")}
           </Text>
         ) : (
@@ -385,7 +385,7 @@ export default function PaymentInfoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -440,4 +440,4 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginTop: spacing.sm,
   },
-});
+}));

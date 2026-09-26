@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import type { MockProperty } from "@/constants/mockData";
-import { radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
+import { createScaledStyles, radius, spacing, textStyles, type ThemeColors } from "@/constants/theme";
 
 /**
  * [STEP 04-지도] 매물 지도 뷰 — 웹/기본 구현.
@@ -34,7 +34,7 @@ export function PropertyMap({ theme, emptyLabel }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   placeholder: {
     height: 220,
     borderRadius: radius.md,
@@ -44,4 +44,4 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
   },
-});
+}));

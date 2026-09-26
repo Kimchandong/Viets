@@ -84,7 +84,8 @@
     "categoryLabel": "Category",
     "mapNoCoords": "No property locations available to show on the map.",
     "mapMissingCoords": "{{count}} listing(s) without location data are not shown on the map.",
-    "top10Title": "TOP10 listings"
+    "top10Title": "TOP10 listings",
+    "locationNeeded": "Allow location access to sort by distance."
   },
   "propertyDetail": {
     "descriptionTitle": "Description",
@@ -148,7 +149,8 @@
     "infoBody": "Pool your funds with other investors into a shared real estate product. Returns and risk depend on the specific product — always review the details before investing.",
     "categoryLabel": "Category",
     "riskLabel": "Risk",
-    "riskSelectAll": "All risk levels"
+    "riskSelectAll": "All risk levels",
+    "allInFeaturedDescription": "Every product is currently shown in the featured row above."
   },
   "investDetail": {
     "targetAmountLabel": "Target amount",
@@ -229,7 +231,7 @@
     },
     "submitButton": "Submit Application",
     "successTitle": "Your application has been submitted",
-    "successDescription": "This is a test screen, so nothing was actually submitted.\nIn the real service you would be notified of the review result.",
+    "successDescription": "Our team will review it and contact you at the number you provided.\nYou can track it under MY > My Investments.",
     "goToProduct": "Back to product details",
     "goToInvestList": "Go to investment list",
     "confirmBeforeApplyTitle": "Important Notice Before Applying to Invest",
@@ -390,7 +392,7 @@
       "google": "Continue with Google",
       "apple": "Continue with Apple",
       "oauthUnavailable": "Google/Apple sign-in isn't set up yet.",
-      "termsNotice": "By continuing, you agree to Viet's Terms of Service and Privacy Policy."
+      "termsNotice": "By continuing, you agree to {{brand}}'s Terms of Service and Privacy Policy."
     },
     "register": {
       "title": "Sign Up",
@@ -1135,7 +1137,9 @@
     "changeBid": "Change my bid",
     "lowerWarning": "Lowering the amount drops your rank; if you fall out of the visible slots, your ad stops showing.",
     "belowMin": "The minimum bid is {{amount}}.",
-    "outbid": "The ranking changed. This slot now needs at least {{amount}}."
+    "outbid": "The ranking changed. This slot now needs at least {{amount}}.",
+    "noPermissionTitle": "No advertising permission",
+    "noPermissionDescription": "Only accounts with an approved agency registration or property management permission can view and set ad rankings."
   },
   "adManage": {
     "title": "Paid ads",
@@ -1145,7 +1149,9 @@
     },
     "hint": "Choose the listing to advertise.",
     "emptyTitle": "No listings yet",
-    "emptyDescription": "Register a listing first, then set up ads."
+    "emptyDescription": "Register a listing first, then set up ads.",
+    "noPermissionTitle": "No advertising permission",
+    "noPermissionDescription": "Only accounts with an approved agency registration or property management permission can set up ads."
   },
   "propertyReport": {
     "button": "Report",
@@ -1220,6 +1226,10 @@
       "payment_requested": {
         "title": "New top-up request",
         "body": "{{agency}} reported a {{amount}} VND deposit."
+      },
+      "agency_applied": {
+        "title": "New agency application",
+        "body": "{{agency}} applied to register as an agency."
       }
     }
   },
@@ -1248,5 +1258,36 @@
     "emptyDescription": "Browse products open for fundraising in the Invest tab.",
     "signedOutTitle": "Sign in required",
     "signedOutDescription": "Sign in to see your investments."
+  },
+  "homeSearch": {
+    "region": "Region",
+    "regionPlaceholder": "Select city / province",
+    "regionCity": "Municipalities",
+    "regionProvince": "Provinces",
+    "listingKind": "Type",
+    "category": "Type",
+    "amount": "Amount",
+    "amountAny": "Any",
+    "dividend": "Payout",
+    "searchProperty": "Search listings",
+    "searchInvest": "Search funds",
+    "listing": {
+      "forSale": "For sale",
+      "forRent": "For rent",
+      "presale": "Pre-sale"
+    },
+    "dividendKind": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly",
+      "single": "One-off (%)"
+    },
+    "rentBuilding": "Retail / Office",
+    "price": "Price",
+    "listingPlaceholder": "Select deal type",
+    "categoryPlaceholder": "Select type",
+    "dividendPlaceholder": "Select payout",
+    "confirm": "Done",
+    "upTo": "Up to {{amount}}"
   }
 }

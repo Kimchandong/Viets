@@ -13,6 +13,7 @@ import { Toast } from "@/components/Toast";
 import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { AdPlacement } from "@/services/ads";
 import { listManagedProperties, type ManagedProperty } from "@/services/properties";
+import { canRegisterProperty } from "@/services/roles";
 
 /**
  * [2026-09-12 사용자 지시] 유료 노출광고 — 광고를 한곳에서 관리하는 화면.
@@ -44,10 +45,35 @@ export default function AdManageScreen() {
    */
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  /**
+   * [2026-09-16 웹 검증에서 발견 — 결함] 이 화면에도 권한 검사가 없었다.
+   *
+   * 일반 고객 계정으로 /ad-manage를 직접 열면 광고 자리 탭이 그대로 나오고,
+   * 매물이 없으니 "등록한 매물이 없습니다 — 매물을 먼저 등록한 뒤 광고를 설정할 수
+   * 있습니다"라고 안내한다. **고객에게 매물을 등록하라고 말하는 셈**이라 안내 자체가
+   * 틀렸다. my-properties와 같은 기준(canRegisterProperty)으로 막는다.
+   */
+  const [allowed, setAllowed] = useState(false);
+  const [checkingPermission, setCheckingPermission] = useState(true);
+
   useFocusEffect(
     useCallback(() => {
       let active = true;
       setSelectedId(null);
+      setCheckingPermission(true);
+      canRegisterProperty()
+        .then((ok) => {
+          if (!active) return;
+          setAllowed(ok);
+          setCheckingPermission(false);
+          if (!ok) setLoading(false);
+        })
+        .catch(() => {
+          if (!active) return;
+          setAllowed(false);
+          setCheckingPermission(false);
+          setLoading(false);
+        });
       listManagedProperties().then((list) => {
         if (!active) return;
         // [2026-09-12] 거래완료/보류 매물은 고객 화면에 나오지 않으므로 광고를 걸어도
@@ -61,6 +87,27 @@ export default function AdManageScreen() {
       };
     }, []),
   );
+
+  if (checkingPermission) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+        <Header title={t("adManage.title")} leftAction={<BackButton fallback="/my" />} />
+        <Loading />
+      </SafeAreaView>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+        <Header title={t("adManage.title")} leftAction={<BackButton fallback="/my" />} />
+        <EmptyState
+          title={t("adManage.noPermissionTitle")}
+          description={t("adManage.noPermissionDescription")}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>

@@ -2,20 +2,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
-import { colors, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { APP_NAME } from "@/constants/brand";
 import { mapAuthErrorToMessageKey, signUpWithPassword } from "@/services/auth";
 
 // STEP 4-9 범위: email/password 회원가입만 구현한다. profiles/user_roles row는
@@ -110,7 +104,7 @@ export default function RegisterScreen() {
             <View style={[styles.brandIcon, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <Ionicons name="business" size={22} color={theme.accent} />
             </View>
-            <Text style={[textStyles.screenTitle, { color: theme.accent }]}>Viet&apos;s</Text>
+            <Text style={[textStyles.screenTitle, { color: theme.accent }]}>{APP_NAME}</Text>
             <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
               {t("auth.tagline")}
             </Text>
@@ -170,7 +164,7 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -209,4 +203,4 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.sm,
   },
-});
+}));

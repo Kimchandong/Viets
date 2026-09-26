@@ -1,6 +1,6 @@
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleProp, Text, View, ViewStyle } from "react-native";
 
-import { colors, radius, shadow, spacing, ThemeColors, typography } from "@/constants/theme";
+import { createScaledStyles, colors, radius, shadow, spacing, ThemeColors, typography } from "@/constants/theme";
 
 export type ToastVariant = "info" | "success" | "danger";
 
@@ -49,7 +49,7 @@ function getVariantColors(variant: ToastVariant, theme: ThemeColors) {
   }
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   base: {
     position: "absolute",
     left: spacing.md,
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
     fontWeight: typography.weight.medium,
     textAlign: "center",
   },
-});
+}));

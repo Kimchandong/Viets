@@ -15,13 +15,14 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { Select } from "@/components/Select";
 import { Toast } from "@/components/Toast";
 import { MOCK_REGIONS } from "@/constants/mockData";
-import { colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography } from "@/constants/theme";
 import {
   getMyAgency,
   submitAgencyApplication,
   uploadAgencyDocument,
   type MyAgency,
 } from "@/services/agencies";
+import { sendNotificationPush } from "@/services/notifications";
 
 /**
  * [2026-09-11 사용자 지시] 부동산 등록신청 폼.
@@ -155,6 +156,13 @@ export default function AgencyApplyScreen() {
     }
 
     showToast(t("agencyApply.submitted"));
+    // [2026-09-16 실기기 제보 — 결함 수정] 관리자에게 푸시로 알린다.
+    //
+    // 지금까지 이 호출이 **없었다.** 수신함에 넣는 트리거도 없어서, 신청이 들어와도
+    // 관리자는 admin-agencies 화면을 직접 열기 전까지 알 수 없었다. 입금 신고와 같은
+    // 구조로 맞춘다 — 수신함은 트리거(agencies_notify_applied)가 채우고, 밖으로
+    // 내보내는 일만 여기서 한다. 실패해도 신청 자체는 이미 끝났으므로 무시한다.
+    if (result.agencyId) void sendNotificationPush("agency_applied", result.agencyId);
     const fresh = await getMyAgency();
     setAgency(fresh);
   }
@@ -364,7 +372,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -432,4 +440,4 @@ const styles = StyleSheet.create({
   submit: {
     marginTop: spacing.md,
   },
-});
+}));

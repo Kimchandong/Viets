@@ -1,6 +1,6 @@
-import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, Text, TextStyle, View, ViewStyle } from "react-native";
 
-import { colors, opacity, spacing, textStyles } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, spacing, textStyles } from "@/constants/theme";
 
 export type StatTileProps = {
   label: string;
@@ -56,10 +56,10 @@ export function StatTile({ label, value, onPress, style, valueStyle, labelStyle 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
     alignItems: "center",
     gap: spacing.xs / 2,
   },
-});
+}));

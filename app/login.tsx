@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Toast } from "@/components/Toast";
-import { colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
+import { createScaledStyles, colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
+import { APP_NAME } from "@/constants/brand";
 import { GOOGLE_ICON_URI } from "@/constants/icons";
 import { mapAuthErrorToMessageKey, signInWithApple, signInWithGoogle } from "@/services/auth";
 
@@ -77,7 +78,7 @@ export default function LoginScreen() {
           <View style={[styles.brandIcon, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <Ionicons name="business" size={22} color={theme.accent} />
           </View>
-          <Text style={[textStyles.screenTitle, { color: theme.accent }]}>Viet&apos;s</Text>
+          <Text style={[textStyles.screenTitle, { color: theme.accent }]}>{APP_NAME}</Text>
           <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>{t("auth.tagline")}</Text>
         </View>
 
@@ -108,7 +109,7 @@ export default function LoginScreen() {
         </View>
 
         <Text style={[textStyles.caption, { color: theme.secondaryText, textAlign: "center" }]}>
-          {t("auth.login.termsNotice")}
+          {t("auth.login.termsNotice", { brand: APP_NAME })}
         </Text>
       </ScrollView>
       <Toast visible={!!toast} message={toast ?? ""} variant="info" />
@@ -116,7 +117,7 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
   },
@@ -159,4 +160,4 @@ const styles = StyleSheet.create({
     height: 18,
     marginRight: spacing.sm,
   },
-});
+}));

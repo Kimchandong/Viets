@@ -84,7 +84,8 @@
     "categoryLabel": "カテゴリー",
     "mapNoCoords": "地図に表示できる物件の位置情報がありません。",
     "mapMissingCoords": "位置情報のない物件{{count}}件は地図に表示されていません。",
-    "top10Title": "TOP10 物件"
+    "top10Title": "TOP10 物件",
+    "locationNeeded": "距離順に並べるには位置情報の許可が必要です。"
   },
   "propertyDetail": {
     "descriptionTitle": "詳細説明",
@@ -148,7 +149,8 @@
     "infoBody": "他の投資家と資金を出し合い、共同で不動産商品に投資します。収益とリスクは商品ごとに異なるため、投資前に必ず詳細をご確認ください。",
     "categoryLabel": "カテゴリー",
     "riskLabel": "リスク",
-    "riskSelectAll": "すべてのリスク"
+    "riskSelectAll": "すべてのリスク",
+    "allInFeaturedDescription": "登録されている商品はすべて上のおすすめに表示されています。"
   },
   "investDetail": {
     "targetAmountLabel": "目標募集額",
@@ -229,7 +231,7 @@
     },
     "submitButton": "投資を申込む",
     "successTitle": "投資申込みを受け付けました",
-    "successDescription": "テスト画面のため、実際には送信されていません。\n実際のサービスでは審査後に結果をご案内します。",
+    "successDescription": "担当者が確認のうえ、ご入力の連絡先にご案内します。\n申込内容は MY > マイ投資 で確認できます。",
     "goToProduct": "商品詳細に戻る",
     "goToInvestList": "投資商品一覧へ",
     "confirmBeforeApplyTitle": "投資申込み前に必ずご確認ください",
@@ -390,7 +392,7 @@
       "google": "Googleで続ける",
       "apple": "Appleで続ける",
       "oauthUnavailable": "Google/Appleログインはまだ準備中です。",
-      "termsNotice": "続行すると、Viet'sの利用規約とプライバシーポリシーに同意したものとみなされます。"
+      "termsNotice": "続行すると、{{brand}}の利用規約とプライバシーポリシーに同意したものとみなされます。"
     },
     "register": {
       "title": "新規登録",
@@ -1135,7 +1137,9 @@
     "changeBid": "自分の広告費を変更",
     "lowerWarning": "金額を下げると順位が下がり、掲載枠から外れると表示が止まります。",
     "belowMin": "最低広告費は {{amount}} です。",
-    "outbid": "その間に順位が変わりました。この枠は {{amount}} 以上が必要です。"
+    "outbid": "その間に順位が変わりました。この枠は {{amount}} 以上が必要です。",
+    "noPermissionTitle": "広告の権限がありません",
+    "noPermissionDescription": "不動産登録申請が承認された、または物件管理権限を持つアカウントのみ広告順位の確認・設定ができます。"
   },
   "adManage": {
     "title": "有料掲載広告",
@@ -1145,7 +1149,9 @@
     },
     "hint": "掲載する物件を選択してください。",
     "emptyTitle": "登録した物件がありません",
-    "emptyDescription": "物件を登録してから広告を設定できます。"
+    "emptyDescription": "物件を登録してから広告を設定できます。",
+    "noPermissionTitle": "広告の権限がありません",
+    "noPermissionDescription": "不動産登録申請が承認された、または物件管理権限を持つアカウントのみ広告を設定できます。"
   },
   "propertyReport": {
     "button": "通報",
@@ -1220,6 +1226,10 @@
       "payment_requested": {
         "title": "入金申告が届きました",
         "body": "{{agency}} が {{amount}} VND の入金を申告しました。"
+      },
+      "agency_applied": {
+        "title": "業者登録の申請",
+        "body": "{{agency}} が仲介業者の登録を申請しました。"
       }
     }
   },
@@ -1248,5 +1258,36 @@
     "emptyDescription": "投資タブで募集中の商品をご覧ください。",
     "signedOutTitle": "ログインが必要です",
     "signedOutDescription": "ログインすると投資履歴を確認できます。"
+  },
+  "homeSearch": {
+    "region": "地域",
+    "regionPlaceholder": "市・省を選択",
+    "regionCity": "直轄市",
+    "regionProvince": "省",
+    "listingKind": "種別",
+    "category": "種別",
+    "amount": "投資額",
+    "amountAny": "すべて",
+    "dividend": "配当周期",
+    "searchProperty": "物件検索",
+    "searchInvest": "投資検索",
+    "listing": {
+      "forSale": "売買",
+      "forRent": "賃貸",
+      "presale": "分譲"
+    },
+    "dividendKind": {
+      "monthly": "毎月",
+      "quarterly": "四半期",
+      "yearly": "毎年",
+      "single": "一括(%)"
+    },
+    "rentBuilding": "店舗/ビル/オフィス",
+    "price": "金額",
+    "listingPlaceholder": "取引種別を選択",
+    "categoryPlaceholder": "種別を選択",
+    "dividendPlaceholder": "配当周期を選択",
+    "confirm": "決定",
+    "upTo": "{{amount}} 以下"
   }
 }

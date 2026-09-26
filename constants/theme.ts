@@ -179,6 +179,7 @@ function moderateScale(base: number, factor: number): number {
  * 동시에 기준값도 작았다(본문 14 < 안드로이드 표준 16).
  *
  * 그래서 ① 기준값을 한 단계씩 올리고 ② 계수를 키워 기기 차이가 실제로 드러나게 했다.
+ * [2026-09-26 2차] 실기기 확인 후 **한 치수 더** 올렸다(본문 16 → 18).
  * 다만 폰끼리의 폭 차이가 원래 작아 기기 간 차이는 1~2px에 머문다 — 큰 화면에서
  * 글자가 작아 보이는 주된 이유는 글자 크기가 아니라 같은 크기로 더 많은 내용이
  * 들어가기 때문이다.
@@ -219,30 +220,30 @@ export type ThemeColors = { [K in keyof typeof colors.light]: string };
 const SIZE_SCALE = {
   // caption/Bottom Tab label의 "가장 작은 계층". 하한을 지키려고 폭에 반응시키지
   // 않는다(navLabel 5개가 고정폭 탭 바에 들어가야 한다).
-  xs: { base: 12, factor: 0 },
-  sm: { base: 14, factor: FONT_FACTOR.BODY },
+  xs: { base: 13, factor: 0 },
+  sm: { base: 16, factor: FONT_FACTOR.BODY },
   // STEP 4-16-2(2026-09-08) 사용자 요청 — body/cardTitle/buttonLabel/price/
   // sectionTitle 기준값을 15→14로 축소.
-  md: { base: 16, factor: FONT_FACTOR.BODY },
-  lg: { base: 19, factor: FONT_FACTOR.TITLE },
+  md: { base: 18, factor: FONT_FACTOR.BODY },
+  lg: { base: 21, factor: FONT_FACTOR.TITLE },
   // STEP 4-16-2 사용자 요청 — screenTitle 기준값을 20→18로 축소.
-  xl: { base: 20, factor: FONT_FACTOR.TITLE },
-  xxl: { base: 28, factor: FONT_FACTOR.TITLE },
+  xl: { base: 22, factor: FONT_FACTOR.TITLE },
+  xxl: { base: 30, factor: FONT_FACTOR.TITLE },
   // 큰 숫자(수익률, 자산총액 등) 강조용. STEP 4-16-2 — 34→30.
-  display: { base: 32, factor: FONT_FACTOR.TITLE },
+  display: { base: 34, factor: FONT_FACTOR.TITLE },
   // 매물 가격/투자 예상수익률처럼 display보다는 작지만 본문보다 훨씬 강조되는
   // "히어로 숫자". STEP 4-16-2 — 28→24.
-  heroValue: { base: 26, factor: FONT_FACTOR.TITLE },
+  heroValue: { base: 28, factor: FONT_FACTOR.TITLE },
   // 알림 배지처럼 아주 작은 숫자 전용.
-  badge: { base: 10, factor: FONT_FACTOR.SMALL },
+  badge: { base: 11, factor: FONT_FACTOR.SMALL },
   // [2026-09-26] 홈 히어로의 브랜드 워드마크. 예전에는 home.tsx가
   // `typography.size.xl * 1.2`로 직접 계산해 썼다 — 곱셈이 화면 안에 들어가 있으면
   // 그 글자만 다른 규칙으로 움직인다.
-  brandLogo: { base: 24, factor: FONT_FACTOR.TITLE },
+  brandLogo: { base: 26, factor: FONT_FACTOR.TITLE },
   // [2026-09-26 사용자 지시] 워드마크 뒷부분("in VIETNAM")은 앞부분의 **절반 크기**다.
   // brandLogo와 같은 factor를 쓴다 — factor가 다르면 화면 폭이 바뀔 때 둘의 비율이
   // 절반에서 어긋난다. 22의 절반이라 base는 11.
-  brandLogoSmall: { base: 12, factor: FONT_FACTOR.TITLE },
+  brandLogoSmall: { base: 13, factor: FONT_FACTOR.TITLE },
 } as const;
 
 type SizeKey = keyof typeof SIZE_SCALE;
@@ -298,7 +299,7 @@ export const typography = {
  * 않았기 때문이다. 기준값을 표로 남겨 두면 몇 번이고 다시 계산할 수 있다.
  */
 const TYPE_SCALE = {
-  screenTitle: { base: 20, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
+  screenTitle: { base: 22, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
   // [2026-09-12 사용자 지시] 섹션 타이틀 한 치수 축소(16 → 15).
   //
   // 그동안 이 값을 고쳐도 화면이 바뀌지 않았던 이유: components/SectionHeader.tsx가
@@ -307,26 +308,26 @@ const TYPE_SCALE = {
   // [2026-09-14 웹 검증] 그 덮어쓰기를 없앤 뒤 실제로 재 보니 여전히 16px이었다.
   // 덮어쓰기만 걷어내고 base는 16 그대로 두었던 것이다 — base가 곧 기준폭(375dp)에서
   // 그려지는 픽셀 값이므로, 15px로 보이려면 base 자체가 15여야 한다.
-  sectionTitle: { base: 17, factor: FONT_FACTOR.TITLE, weight: typography.weight.semibold },
-  cardTitle: { base: 16, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
-  body: { base: 16, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
-  bodySmall: { base: 14, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
+  sectionTitle: { base: 19, factor: FONT_FACTOR.TITLE, weight: typography.weight.semibold },
+  cardTitle: { base: 18, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
+  body: { base: 18, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
+  bodySmall: { base: 16, factor: FONT_FACTOR.BODY, weight: typography.weight.regular },
   /** 안내·코멘트·부가설명 — 읽어도 되고 넘어가도 되는 글. 색은 secondaryText. */
-  caption: { base: 12, factor: FONT_FACTOR.SMALL, weight: typography.weight.regular },
+  caption: { base: 13, factor: FONT_FACTOR.SMALL, weight: typography.weight.regular },
   // [2026-09-26] caption과 **크기는 같고 색이 다른** 계층을 따로 둔다.
   //
   // 매물 카드의 상태 배지, 홈 카테고리 이름, 약관 동의 체크박스 라벨처럼 "작지만
   // 반드시 읽어야 하는 글"이 caption을 빌려 쓰면서 색만 theme.text로 덮고 있었다.
   // 그래서 caption의 색 규칙(secondaryText)이 앱 안에서 세 번 깨졌다. 역할을 나누면
   // 픽셀은 하나도 바뀌지 않으면서 규칙이 어긋나는 곳이 사라진다.
-  label: { base: 12, factor: FONT_FACTOR.SMALL, weight: typography.weight.regular },
-  buttonLabel: { base: 16, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
+  label: { base: 13, factor: FONT_FACTOR.SMALL, weight: typography.weight.regular },
+  buttonLabel: { base: 18, factor: FONT_FACTOR.BODY, weight: typography.weight.semibold },
   // 하단 탭 라벨 — 5개 라벨이 고정폭 탭 바 안에 들어가야 해서 폭에 반응시키지 않는다.
-  navLabel: { base: 12, factor: 0, weight: typography.weight.medium },
-  statValue: { base: 32, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
+  navLabel: { base: 13, factor: 0, weight: typography.weight.medium },
+  statValue: { base: 34, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
   // price는 body와 같은 크기, bold로만 구분한다(크기까지 줄이면 위계가 역전된다).
-  price: { base: 16, factor: FONT_FACTOR.BODY, weight: typography.weight.bold },
-  heroValue: { base: 26, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
+  price: { base: 18, factor: FONT_FACTOR.BODY, weight: typography.weight.bold },
+  heroValue: { base: 28, factor: FONT_FACTOR.TITLE, weight: typography.weight.bold },
 } as const;
 
 type TypeKey = keyof typeof TYPE_SCALE;

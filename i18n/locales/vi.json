@@ -1288,6 +1288,8 @@
     "categoryPlaceholder": "Chọn loại hình",
     "dividendPlaceholder": "Chọn kỳ chia cổ tức",
     "confirm": "Xong",
-    "upTo": "Tối đa {{amount}}"
+    "upTo": "Tối đa {{amount}}",
+    "priceOver": "Từ 100 triệu VND",
+    "atLeast": "Từ {{amount}}"
   }
 }

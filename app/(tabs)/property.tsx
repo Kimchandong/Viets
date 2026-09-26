@@ -122,6 +122,7 @@ export default function PropertyScreen() {
     region?: string;
     listing?: string;
     maxPrice?: string;
+    minPrice?: string;
   }>();
   const initialCategory =
     params.category && (PROPERTY_CATEGORIES as string[]).includes(params.category)
@@ -140,6 +141,12 @@ export default function PropertyScreen() {
   // [2026-09-26] 홈 검색의 금액 조건(이 금액 이하). 0/없음이면 제한 없음.
   const [maxPrice] = useState(() => {
     const n = Number(params.maxPrice);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  });
+  // [2026-09-26] 홈 검색의 "1억동 이상" 체크가 보내는 하한선. 상한(maxPrice)과
+  // 동시에 오지 않는다 — 보내는 쪽에서 둘 중 하나만 넣는다.
+  const [minPrice] = useState(() => {
+    const n = Number(params.minPrice);
     return Number.isFinite(n) && n > 0 ? n : null;
   });
   const [category, setCategory] = useState<PropertyImageCategory | null>(initialCategory);
@@ -303,7 +310,9 @@ export default function PropertyScreen() {
         property.location.includes(region);
       // 분양은 아직 데이터가 없다(위 params 주석 참고) — 고르면 0건이 맞다.
       const matchesStatus = presaleOnly ? false : status === "all" || property.status === status;
-      const matchesPrice = !maxPrice || property.priceValueVnd <= maxPrice;
+      const matchesPrice =
+        (!maxPrice || property.priceValueVnd <= maxPrice) &&
+        (!minPrice || property.priceValueVnd >= minPrice);
       const matchesCategory = !category || property.category === category;
       const matchesSearch =
         !isSearching ||
@@ -312,7 +321,7 @@ export default function PropertyScreen() {
       return matchesRegion && matchesStatus && matchesPrice && matchesCategory && matchesSearch;
     });
     return sortProperties(base, sort);
-  }, [properties, region, status, presaleOnly, maxPrice, category, normalizedSearch, isSearching, sort]);
+  }, [properties, region, status, presaleOnly, maxPrice, minPrice, category, normalizedSearch, isSearching, sort]);
 
   // 광고 자리를 산 매물만, DB가 준 순위 그대로. 광고가 하나도 없을 때만 예전처럼
   // featured 플래그(관리자 수동 큐레이션)를 쓴다.

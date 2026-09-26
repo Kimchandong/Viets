@@ -1288,6 +1288,8 @@
     "categoryPlaceholder": "เลือกประเภท",
     "dividendPlaceholder": "เลือกรอบจ่ายปันผล",
     "confirm": "ตกลง",
-    "upTo": "ไม่เกิน {{amount}}"
+    "upTo": "ไม่เกิน {{amount}}",
+    "priceOver": "ตั้งแต่ 100 ล้านดอง",
+    "atLeast": "ตั้งแต่ {{amount}}"
   }
 }

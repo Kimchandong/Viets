@@ -1288,6 +1288,8 @@
     "categoryPlaceholder": "Select type",
     "dividendPlaceholder": "Select payout",
     "confirm": "Done",
-    "upTo": "Up to {{amount}}"
+    "upTo": "Up to {{amount}}",
+    "priceOver": "100M VND and above",
+    "atLeast": "{{amount}} and above"
   }
 }

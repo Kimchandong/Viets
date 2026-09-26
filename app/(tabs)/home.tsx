@@ -208,6 +208,34 @@ export default function HomeScreen() {
    * 닫힌다) — 홈 맨 아래 섹션이라 여러 개가 동시에 펼쳐지면 페이지가 길어진다.
    */
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+
+  /**
+   * [2026-09-26 사용자 지시] FAQ를 펼치면 **답변이 보이는 위치까지 화면을 올린다.**
+   *
+   * 지금까지는 목록 아래쪽 질문을 누르면 답변이 화면 밖에서 펼쳐져, 눌러도 아무 일도
+   * 안 일어난 것처럼 보였다(스스로 스크롤해 내려야 보였다).
+   *
+   * 측정을 다음 프레임으로 미루는 이유: 같은 프레임에 재면 **펼치기 전** 높이가
+   * 잡혀서 답변만큼 덜 올라간다.
+   */
+  const pageScrollRef = useRef<ScrollView>(null);
+  const faqRowRefs = useRef<Record<string, View | null>>({});
+
+  function revealFaq(id: string) {
+    requestAnimationFrame(() => {
+      const row = faqRowRefs.current[id];
+      const scroll = pageScrollRef.current;
+      const inner = scroll?.getInnerViewNode();
+      if (!row || !scroll || inner == null) return;
+      row.measureLayout(
+        inner,
+        (_x, y) => scroll.scrollTo({ y: Math.max(0, y - FAQ_REVEAL_TOP_GAP), animated: true }),
+        () => {
+          // 측정 실패는 무시한다 — 스크롤이 안 될 뿐 펼침 자체는 이미 됐다.
+        },
+      );
+    });
+  }
   // [2026-09-11 사용자 지시] 상단 우측 알림 두 개 — 부동산(상담 미읽음) / 투자(신규 상품).
   // 숫자는 DB 함수가 센다(services/notifications.ts 주석 참고).
   const [unreadChats, setUnreadChats] = useState(0);
@@ -471,7 +499,11 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={pageScrollRef}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {/* [STEP: 2026-09-09-9] 사용자 요청 — 상단 배너를 정적 이미지에서 사용자가
             제공한 영상(무음 반복 재생)으로 교체. 기존 ImageBackground 대신 heroBanner
             View 안에 절대위치 VideoView를 깔고 그 위에 기존 로고/위치/알림/검색창을
@@ -956,9 +988,19 @@ export default function HomeScreen() {
               {faqs.map((faq) => {
                 const open = openFaqId === faq.id;
                 return (
-                  <View key={faq.id}>
+                  <View
+                    key={faq.id}
+                    ref={(node) => {
+                      faqRowRefs.current[faq.id] = node;
+                    }}
+                  >
                     <Pressable
-                      onPress={() => setOpenFaqId(open ? null : faq.id)}
+                      onPress={() => {
+                        const next = open ? null : faq.id;
+                        setOpenFaqId(next);
+                        // 접을 때는 움직이지 않는다 — 보던 자리가 흔들린다.
+                        if (next) revealFaq(faq.id);
+                      }}
                       accessibilityRole="button"
                       accessibilityState={{ expanded: open }}
                       style={({ pressed }) => [
@@ -994,7 +1036,14 @@ export default function HomeScreen() {
                           { backgroundColor: theme.card, borderColor: theme.border },
                         ]}
                       >
-                        <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
+                        {/* [2026-09-26 사용자 지시] 답변 글자 한 치수 작게 — bodySmall → caption 크기.
+                            잘림 방지를 위해 numberOfLines는 두지 않는다(전체가 다 나와야 한다). */}
+                        <Text
+                          style={[
+                            textStyles.bodySmall,
+                            { color: theme.secondaryText, fontSize: textStyles.caption.fontSize },
+                          ]}
+                        >
                           {faq.body}
                         </Text>
                       </View>
@@ -1051,7 +1100,18 @@ export default function HomeScreen() {
  */
 // [2026-09-26 사용자 지시] 롤링 글자를 한 치수 키우면서 창 높이도 함께 올린다.
 // 이 창은 overflow:"hidden"으로 한 줄만 잘라 보여 주므로, 글자만 키우면 위아래가 잘린다.
-const TICKER_LINE_HEIGHT = 20;
+const TICKER_LINE_HEIGHT = 22;
+
+/** FAQ를 펼쳤을 때 질문 줄 위에 남길 여백(px) — 화면 맨 위에 딱 붙으면 답답하다. */
+const FAQ_REVEAL_TOP_GAP = 16;
+
+/**
+ * FAQ 한 줄의 높이 — Q 글자와 질문 글자가 **같은 값을 써야** 첫 줄이 서로 맞는다.
+ *
+ * 함수인 이유: 화면 폭이 바뀌면 textStyles의 크기가 갱신되는데, 상수로 두면
+ * 앱이 처음 뜰 때의 값에 묶인다(이 파일의 다른 크기들과 같은 이유).
+ */
+const FAQ_LINE_HEIGHT = () => Math.round(textStyles.bodySmall.fontSize * 1.4);
 const TICKER_HOLD_MS = 3000;
 const TICKER_SLIDE_MS = 400;
 
@@ -1282,8 +1342,9 @@ function CategoryIconButton({
       <View style={styles.categoryIcon}>
         <Ionicons name={icon} size={22} color={theme.accent} />
       </View>
-      {/* [2026-09-26 사용자 지시] 카테고리 버튼 글자 한 치수 크게 — label → bodySmall. */}
-      <Text style={[textStyles.bodySmall, { color: textColor(theme, "label") }]} numberOfLines={1}>
+      {/* [2026-09-26 사용자 지시] label → bodySmall로 키웠다가 **다시 한 치수 작게** 되돌린다.
+          아이콘 간격만 좁힌 상태는 그대로 둔다(글자 크기와 별개 지시였다). */}
+      <Text style={[textStyles.label, { color: textColor(theme, "label") }]} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -1339,7 +1400,8 @@ const styles = createScaledStyles(() => ({
     borderStyle: "dashed",
   },
   noticeThumb: {
-    width: 64,
+    // [2026-09-26 사용자 지시] 가로만 20px 넓게(64 → 84). 세로는 그대로 둔다.
+    width: 84,
     height: 64,
     borderRadius: radius.sm,
   },
@@ -1384,8 +1446,8 @@ const styles = createScaledStyles(() => ({
     // [2026-09-11 사용자 지시] 롤링 글자 12px 기준.
     // [2026-09-12] 고정값이던 것을 scaleFont로 바꾼다 — 기기 폭에 따라 조정되지 않는
     // 글자가 화면마다 남아 있던 것이 "반응형이 일괄 적용되지 않았다"의 원인이었다.
-    // [2026-09-26 사용자 지시] 12 → 14.
-    fontSize: scaleFont(14),
+    // [2026-09-26 사용자 지시] 12 → 14 → 16(한 치수 더).
+    fontSize: scaleFont(16),
     lineHeight: TICKER_LINE_HEIGHT,
     // [2026-09-26 사용자 지시] 글자를 1px 위로.
     //
@@ -1632,7 +1694,12 @@ const styles = createScaledStyles(() => ({
     gap: spacing.xs,
   },
   lastSection: {
-    paddingBottom: spacing.lg,
+    // [2026-09-26 사용자 지시] FAQ 답변이 아래에서 잘리지 않도록 여백을 크게 잡는다.
+    //
+    // 답변 Text에는 numberOfLines도 maxHeight도 없어 글자 자체는 다 그려진다 —
+    // 잘려 보인 것은 **화면 맨 아래에서 하단 탭에 가려졌기 때문**이다. 긴 답변을
+    // 목록 마지막 질문에서 펼치면 그 아래로 스크롤할 공간이 없어 끝부분을 못 본다.
+    paddingBottom: spacing.xxl,
   },
   // STEP 4-12-1 — 가로 스크롤 캐러셀 전용: 부모(content)의 좌우 padding을 상쇄해
   // 화면 끝까지 카드가 이어지도록 한다. 캐러셀이 아닌 다른 영역(Section Header/
@@ -1667,7 +1734,8 @@ const styles = createScaledStyles(() => ({
   },
   categoryRow: {
     // 사용자 요청(2026-09-08): 아이콘 간 가로 간격을 lg(24)에서 sm(8)으로 좁혔다.
-    gap: spacing.sm,
+    // [2026-09-26 사용자 지시] 조금 더 좁힌다 — 8 → 4.
+    gap: spacing.xs,
     paddingRight: spacing.md,
   },
   categoryItem: {
@@ -1735,7 +1803,12 @@ const styles = createScaledStyles(() => ({
   },
   faqRow: {
     flexDirection: "row",
-    alignItems: "center",
+    // [2026-09-26 사용자 지시] Q와 질문 글자의 상하 위치를 맞춘다.
+    //
+    // "center"였다. 질문이 한 줄일 때는 맞아 보이지만, 두 줄이 되면 Q가 두 줄
+    // 전체의 가운데로 내려가 첫 줄과 어긋났다. 위 끝을 맞추고, 아래 faqMark와
+    // faqTitle에 **같은 lineHeight**를 줘서 첫 줄끼리 정확히 겹치게 한다.
+    alignItems: "flex-start",
     gap: spacing.sm,
     paddingVertical: spacing.xs,
   },
@@ -1743,10 +1816,12 @@ const styles = createScaledStyles(() => ({
   faqMark: {
     fontSize: scaleFont(20, FONT_FACTOR.TITLE),
     fontWeight: "700",
-    lineHeight: scaleFont(24, FONT_FACTOR.TITLE),
+    // 질문 글자와 같은 줄높이 — 이 값이 어긋나면 첫 줄이 서로 위아래로 밀린다.
+    lineHeight: FAQ_LINE_HEIGHT(),
   },
   faqTitle: {
     flex: 1,
+    lineHeight: FAQ_LINE_HEIGHT(),
   },
   faqAnswer: {
     borderWidth: 1,

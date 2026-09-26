@@ -1288,6 +1288,8 @@
     "categoryPlaceholder": "種別を選択",
     "dividendPlaceholder": "配当周期を選択",
     "confirm": "決定",
-    "upTo": "{{amount}} 以下"
+    "upTo": "{{amount}} 以下",
+    "priceOver": "1億ドン以上",
+    "atLeast": "{{amount}} 以上"
   }
 }

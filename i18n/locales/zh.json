@@ -1288,6 +1288,8 @@
     "categoryPlaceholder": "选择类型",
     "dividendPlaceholder": "选择分红周期",
     "confirm": "确定",
-    "upTo": "{{amount}} 以内"
+    "upTo": "{{amount}} 以内",
+    "priceOver": "1亿越南盾以上",
+    "atLeast": "{{amount}} 以上"
   }
 }

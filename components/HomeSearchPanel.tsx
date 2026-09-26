@@ -118,12 +118,20 @@ const AMOUNT_STEP = 100_000_000; // 1억 단위로 끊는다 — 1 VND씩 움직
 type AmountRange = { min: number; max: number; step: number };
 
 const AMOUNT_RANGES: Record<string, AmountRange> = {
-  forRent: { min: 0, max: 1_000_000_000, step: 10_000_000 },
+  // [2026-09-26 사용자 지시] 임대는 0~1억동. 그 위는 바로 고르지 않고 체크로 넘긴다
+  // (바를 100억까지 늘리면 실제 월세 구간이 바 왼쪽 1%에 뭉쳐 손가락으로 못 고른다).
+  forRent: { min: 0, max: 100_000_000, step: 1_000_000 },
   forSale: { min: 100_000_000, max: 10_000_000_000, step: 100_000_000 },
   presale: { min: 100_000_000, max: 10_000_000_000, step: 100_000_000 },
 };
 
 const AMOUNT_RANGE_ANY: AmountRange = { min: 0, max: AMOUNT_MAX, step: AMOUNT_STEP };
+
+/**
+ * [2026-09-26 사용자 지시] 임대에서 "1억동 이상"을 고르는 기준선.
+ * 바의 오른쪽 끝(1억)과 같은 값이라, 체크하면 그 위쪽 전부를 뜻한다.
+ */
+const PRICE_OVER_THRESHOLD = 100_000_000;
 
 /** 투자액 바는 거래 종류와 무관하다 — 기존 범위를 그대로 쓴다. */
 const INVEST_RANGE: AmountRange = { min: 0, max: AMOUNT_MAX, step: AMOUNT_STEP };
@@ -144,6 +152,8 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
   const [listing, setListing] = useState<ListingKind | null>(null);
   const [propertyCategory, setPropertyCategory] = useState<string | null>(null);
   const [maxPrice, setMaxPrice] = useState(0);
+  /** 임대 전용 — "1억동 이상". 켜면 바 대신 하한선으로 검색한다. */
+  const [priceOver, setPriceOver] = useState(false);
   // 지금 거래 종류에 맞는 금액 범위. 종류를 바꾸면 범위 밖으로 나간 값은 버린다
   // (임대 5억을 고른 뒤 매매로 바꾸면 그 값이 새 범위의 최솟값 아래일 수 있다).
   const priceRange = (listing && AMOUNT_RANGES[listing]) || AMOUNT_RANGE_ANY;
@@ -155,7 +165,7 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
 
   // 하나라도 고른 것이 있어야 검색 버튼이 살아난다 — 아무 조건 없이 누르면
   // 그냥 목록 전체를 여는 것이라 "검색"이라는 이름이 거짓이 된다.
-  const propertyReady = !!region || !!listing || maxPrice > 0;
+  const propertyReady = !!region || !!listing || maxPrice > 0 || priceOver;
   const investReady = !!investCategory || amount > 0 || !!dividend;
 
   function submitProperty() {
@@ -166,7 +176,12 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
         ...(region ? { region } : {}),
         ...(listing ? { listing } : {}),
         ...(propertyCategory ? { category: propertyCategory } : {}),
-        ...(maxPrice > 0 ? { maxPrice: String(maxPrice) } : {}),
+        // 체크가 켜져 있으면 상한이 아니라 **하한**으로 보낸다.
+        ...(priceOver
+          ? { minPrice: String(PRICE_OVER_THRESHOLD) }
+          : maxPrice > 0
+            ? { maxPrice: String(maxPrice) }
+            : {}),
       },
     });
   }
@@ -218,7 +233,13 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
           <FieldButton
             icon="cash-outline"
             label={t("homeSearch.price")}
-            value={maxPrice > 0 ? t("homeSearch.upTo", { amount: formatVndAmount(maxPrice) }) : null}
+            value={
+              priceOver
+                ? t("homeSearch.atLeast", { amount: formatVndAmount(PRICE_OVER_THRESHOLD) })
+                : maxPrice > 0
+                  ? t("homeSearch.upTo", { amount: formatVndAmount(maxPrice) })
+                  : null
+            }
             placeholder={t("homeSearch.amountAny")}
             last
             onPress={() => setSheet("price")}
@@ -320,6 +341,7 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
             // 달라, 임대에서 고른 값이 매매 범위 밖일 수 있다. 남겨 두면 바의 손잡이가
             // 엉뚱한 자리에 붙는다.
             setMaxPrice(0);
+            setPriceOver(false);
           }}
         />
         {listing ? (
@@ -347,10 +369,26 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
       </BottomSheet>
 
       <BottomSheet open={sheet === "price"} title={t("homeSearch.price")} onClose={() => setSheet(null)}>
-        <AmountSlider value={maxPrice} range={priceRange} accent={accent} onChange={setMaxPrice} />
+        {/* 체크가 켜지면 바는 의미가 없다 — 흐리게 하고 조작도 막는다. */}
+        <View pointerEvents={priceOver ? "none" : "auto"} style={priceOver ? styles.dimmed : null}>
+          <AmountSlider value={maxPrice} range={priceRange} accent={accent} onChange={setMaxPrice} />
+        </View>
+        {listing === "forRent" ? (
+          <CheckRow
+            label={t("homeSearch.priceOver")}
+            checked={priceOver}
+            accent={accent}
+            onToggle={() => {
+              const next = !priceOver;
+              setPriceOver(next);
+              // 켜면 바의 값은 버린다 — 둘 다 켜져 있으면 무엇으로 검색했는지 알 수 없다.
+              if (next) setMaxPrice(0);
+            }}
+          />
+        ) : null}
         <SheetConfirm
           label={t("homeSearch.confirm")}
-          enabled={maxPrice > 0}
+          enabled={maxPrice > 0 || priceOver}
           accent={accent}
           onPress={() => setSheet(null)}
         />
@@ -614,6 +652,43 @@ function SheetOption({
  * (매물 파랑 / 투자 빨강)으로 바뀐다. 슬라이더는 0에서 시작하므로 "아직 안 골랐다"와
  * "0을 골랐다"가 눈으로 구분되지 않는데, 버튼 색이 그 구분을 대신한다.
  */
+/**
+ * [2026-09-26 사용자 지시] 바로 고를 수 없는 구간("1억동 이상")을 위한 체크 줄.
+ *
+ * 왜 바를 늘리지 않았나: 임대 월세는 대부분 1억동 아래에 몰려 있다. 바를 100억까지
+ * 늘리면 실제로 쓰는 구간이 왼쪽 1%에 뭉쳐 손가락으로는 구분해 고를 수 없다.
+ * 그래서 바는 흔한 구간만 담당하고, 그 위는 "이상" 한 칸으로 넘긴다.
+ */
+function CheckRow({
+  label,
+  checked,
+  accent,
+  onToggle,
+}: {
+  label: string;
+  checked: boolean;
+  accent: string;
+  onToggle: () => void;
+}) {
+  const theme = colors.light;
+  return (
+    <Pressable
+      testID="price-over-check"
+      onPress={onToggle}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      style={({ pressed }) => [styles.checkRow, { opacity: pressed ? opacity.pressed : 1 }]}
+    >
+      <Ionicons
+        name={checked ? "checkbox" : "square-outline"}
+        size={22}
+        color={checked ? accent : theme.secondaryText}
+      />
+      <Text style={[textStyles.body, { color: theme.text, flex: 1 }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 function SheetConfirm({
   label,
   enabled,
@@ -849,6 +924,16 @@ const styles = createScaledStyles(() => ({
     paddingBottom: spacing.xl,
     gap: spacing.sm,
   },
+  checkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  // 체크가 켜졌을 때 금액 바를 흐리게 — 지금 무엇으로 검색되는지 헷갈리지 않게.
+  dimmed: {
+    opacity: 0.35,
+  },
   sheetHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -871,15 +956,21 @@ const styles = createScaledStyles(() => ({
     justifyContent: "center",
     gap: spacing.xs,
     marginBottom: spacing.xs,
+    // [2026-09-26 사용자 지시] 글자가 잘리는 대신 다음 줄로 넘어가게 한다.
+    // "상가/빌딩/오피스"처럼 긴 항목이 한 줄에 억지로 끼면 말줄임으로 잘려
+    // 무엇인지 읽을 수 없었다. 줄바꿈을 허용하면 칸이 모자랄 때만 아래로 내려간다.
+    flexWrap: "wrap",
   },
   chip: {
-    flex: 1,
+    // flex: 1을 뺀다 — 모든 칩을 같은 폭으로 늘리면 가장 긴 글자가 잘린다.
+    // 이제 칩은 글자 길이만큼만 차지하고, 줄이 모자라면 위 flexWrap이 내려 준다.
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
-    paddingHorizontal: 2,
+    // 글자가 테두리에 닿지 않도록 좌우 여백을 준다(예전 2px는 flex로 늘어나는 것이 전제였다).
+    paddingHorizontal: spacing.sm,
   },
   sheetOption: {
     flexDirection: "row",

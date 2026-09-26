@@ -1288,6 +1288,8 @@
     "categoryPlaceholder": "종류 선택",
     "dividendPlaceholder": "배당주기 선택",
     "confirm": "확인",
-    "upTo": "{{amount}} 이하"
+    "upTo": "{{amount}} 이하",
+    "priceOver": "1억동 이상",
+    "atLeast": "{{amount}} 이상"
   }
 }

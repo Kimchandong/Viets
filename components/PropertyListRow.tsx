@@ -34,7 +34,9 @@ const THUMB_WIDTH = Math.round(THUMB_HEIGHT * 1.5);
 function metaSize(): number {
   // [2026-09-26] 모듈 상수였던 것을 함수로 바꿨다 — 상수는 모듈이 처음 읽힐 때 한 번
   // 계산되어, 앱을 켠 뒤 폭이 바뀌면(폴더블/회전) 이 글자와 아이콘만 옛 크기로 굳었다.
-  return scaleFont(12);
+  // [2026-09-26 사용자 지시] 면적·방수·화장실수 두 치수 크게(12 → 16).
+  // 이 함수 하나를 글자와 아이콘이 함께 쓰므로 둘이 어긋날 일이 없다.
+  return scaleFont(16);
 }
 
 export function PropertyListRow({
@@ -92,7 +94,16 @@ export function PropertyListRow({
           <Text style={[textStyles.body, styles.title, { color: theme.text }]} numberOfLines={2}>
             {property.title}
           </Text>
-          <Text style={[textStyles.price, { color: theme.accent }]} numberOfLines={1}>
+          {/* [2026-09-26 사용자 지시] 금액·단위(k/tháng) 한 치수 작게 — price → bodySmall 크기.
+              굵기와 색은 그대로 두고 크기만 내린다. 이 컴포넌트를 추천·최근 TOP10·
+              부동산 탭이 함께 쓰므로 여기 한 곳이면 같은 썸네일 스타일 전체에 적용된다. */}
+          <Text
+            style={[
+              textStyles.price,
+              { color: theme.accent, fontSize: textStyles.bodySmall.fontSize },
+            ]}
+            numberOfLines={1}
+          >
             {priceParts.rate}
             {priceParts.suffix ? (
               <Text style={{ fontWeight: typography.weight.regular }}>{priceParts.suffix}</Text>

@@ -1049,7 +1049,9 @@ export default function HomeScreen() {
  * 모듈이 없어 켜 두면 콘솔에 경고를 남기고 JS 구동으로 되돌아간다 — 동작은 같지만
  * 경고가 쌓여 실제 문제를 가린다.
  */
-const TICKER_LINE_HEIGHT = 18;
+// [2026-09-26 사용자 지시] 롤링 글자를 한 치수 키우면서 창 높이도 함께 올린다.
+// 이 창은 overflow:"hidden"으로 한 줄만 잘라 보여 주므로, 글자만 키우면 위아래가 잘린다.
+const TICKER_LINE_HEIGHT = 20;
 const TICKER_HOLD_MS = 3000;
 const TICKER_SLIDE_MS = 400;
 
@@ -1373,13 +1375,22 @@ const styles = createScaledStyles(() => ({
     height: TICKER_LINE_HEIGHT,
     overflow: "hidden",
     justifyContent: "center",
+    // [2026-09-26 사용자 지시] 글자 노출 위치를 1px 위로.
+    // 글자가 아니라 창을 올린다 — 글자 쪽 transform은 롤링 애니메이션이 쓰고 있다.
+    marginTop: -1,
   },
   tickerText: {
     // [2026-09-11 사용자 지시] 롤링 글자 12px 기준.
     // [2026-09-12] 고정값이던 것을 scaleFont로 바꾼다 — 기기 폭에 따라 조정되지 않는
     // 글자가 화면마다 남아 있던 것이 "반응형이 일괄 적용되지 않았다"의 원인이었다.
-    fontSize: scaleFont(12),
+    // [2026-09-26 사용자 지시] 12 → 14.
+    fontSize: scaleFont(14),
     lineHeight: TICKER_LINE_HEIGHT,
+    // [2026-09-26 사용자 지시] 글자를 1px 위로.
+    //
+    // marginTop이 아니라 translateY를 쓴다 — 이 Text에는 이미 등장/퇴장 애니메이션의
+    // translateY가 인라인으로 걸리는데, RN의 transform은 배열 전체가 통째로 덮어써지므로
+    // 여기에 적으면 애니메이션이 지워진다. 그래서 위치 보정은 **창(viewport) 쪽**에서 한다.
   },
   heroBanner: {
     // STEP: PropertyCard.tsx/InvestmentCard.tsx와 동일한 이유로 명시적

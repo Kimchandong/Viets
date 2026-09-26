@@ -78,11 +78,16 @@ export default function TabsLayout() {
         tabBarActiveTintColor: theme.accent,
         tabBarInactiveTintColor: theme.secondaryText,
         tabBarLabelStyle: {
-          fontSize: textStyles.navLabel.fontSize,
+          // [2026-09-26 사용자 지시] 한 치수 크게.
+          fontSize: textStyles.navLabel.fontSize + 2,
           fontWeight: textStyles.navLabel.fontWeight,
-          // 위 TAB_BAR_CONTENT_HEIGHT 주석 참고 — 1.8배(20px)로도 부족해서
-          // (이번엔 반대쪽이 잘림) 훨씬 더 넉넉한 배율로 올린다.
-          lineHeight: Math.round(textStyles.navLabel.fontSize * 2.7),
+          // [2026-09-26 사용자 지시] 아이콘과 글자 사이 여백 줄임.
+          //
+          // 그 여백의 정체는 **이 lineHeight**였다. 글자를 안 잘리게 하려고 2.7배까지
+          // 올려 둔 것이라, 글자 위아래에 빈 줄만큼의 공간이 생기고 그게 아이콘과의
+          // 간격으로 보였다. 잘림은 lineHeight가 아니라 탭바 높이(TAB_BAR_CONTENT_HEIGHT)로
+          // 해결할 문제다. 1.25배면 글자는 온전히 들어가고 군더더기 공간은 사라진다.
+          lineHeight: Math.round((textStyles.navLabel.fontSize + 2) * 1.25),
         },
         tabBarStyle: {
           backgroundColor: theme.background,

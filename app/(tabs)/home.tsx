@@ -1282,7 +1282,8 @@ function CategoryIconButton({
       <View style={styles.categoryIcon}>
         <Ionicons name={icon} size={22} color={theme.accent} />
       </View>
-      <Text style={[textStyles.label, { color: textColor(theme, "label") }]} numberOfLines={1}>
+      {/* [2026-09-26 사용자 지시] 카테고리 버튼 글자 한 치수 크게 — label → bodySmall. */}
+      <Text style={[textStyles.bodySmall, { color: textColor(theme, "label") }]} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -1672,14 +1673,20 @@ const styles = createScaledStyles(() => ({
   categoryItem: {
     alignItems: "center",
     // 사용자 요청: 아이콘-텍스트 간 간격을 xs(4)보다 더 좁게(2px) 줄였다.
-    gap: 2,
+    // [2026-09-26 사용자 지시] 더 줄임 — 0.
+    gap: 0,
     width: 64,
   },
   categoryIcon: {
     // 사용자 요청: 아이콘 원의 회색 배경/테두리를 삭제했다(더 이상 backgroundColor/
     // borderColor/borderWidth를 주지 않는다) — 아이콘만 남는다.
+    //
+    // [2026-09-26 사용자 지시] 아이콘과 메뉴명 사이 여백 줄임.
+    // gap(2)이 아니라 **이 상자 높이**가 진짜 여백이었다 — 22px 아이콘을 52px 상자
+    // 가운데에 두니 아이콘 아래에 15px의 빈 공간이 생기고, 그게 글자와의 간격으로 보였다.
+    // 상자를 아이콘에 맞게 좁힌다(배경이 없으므로 상자 크기는 시각적으로 의미가 없다).
     width: 52,
-    height: 52,
+    height: 30,
     borderRadius: radius.full,
     alignItems: "center",
     justifyContent: "center",

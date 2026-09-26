@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import {
   LayoutChangeEvent,
@@ -103,6 +104,30 @@ const DIVIDEND_KINDS = ["monthly", "quarterly", "yearly", "single"];
 const AMOUNT_MAX = 10_000_000_000;
 const AMOUNT_STEP = 100_000_000; // 1억 단위로 끊는다 — 1 VND씩 움직이면 못 맞춘다.
 
+/**
+ * [2026-09-26 사용자 지시] 금액 바의 범위를 **거래 종류에 따라** 다르게 둔다.
+ *
+ * 임대와 매매는 자릿수가 다르다. 하나의 0~100억 바로 둘 다 다루면 임대 쪽은
+ * 바의 맨 왼쪽 1%에 몰려 손가락으로는 고를 수가 없다.
+ *
+ * - 임대: 0 ~ 10억동 (월세이므로 0에서 시작)
+ * - 매매: 1억 ~ 100억동 (0원짜리 매매는 없다)
+ * - 분양: 매매와 같다 — 사는 거래라 자릿수가 같다.
+ * - 거래 종류를 아직 안 골랐을 때: 전체를 덮는 0~100억.
+ */
+type AmountRange = { min: number; max: number; step: number };
+
+const AMOUNT_RANGES: Record<string, AmountRange> = {
+  forRent: { min: 0, max: 1_000_000_000, step: 10_000_000 },
+  forSale: { min: 100_000_000, max: 10_000_000_000, step: 100_000_000 },
+  presale: { min: 100_000_000, max: 10_000_000_000, step: 100_000_000 },
+};
+
+const AMOUNT_RANGE_ANY: AmountRange = { min: 0, max: AMOUNT_MAX, step: AMOUNT_STEP };
+
+/** 투자액 바는 거래 종류와 무관하다 — 기존 범위를 그대로 쓴다. */
+const INVEST_RANGE: AmountRange = { min: 0, max: AMOUNT_MAX, step: AMOUNT_STEP };
+
 /** 지금 열려 있는 팝업. null이면 닫힘. */
 type SheetKind = "region" | "listing" | "price" | "investCategory" | "investAmount" | "dividend";
 
@@ -119,6 +144,9 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
   const [listing, setListing] = useState<ListingKind | null>(null);
   const [propertyCategory, setPropertyCategory] = useState<string | null>(null);
   const [maxPrice, setMaxPrice] = useState(0);
+  // 지금 거래 종류에 맞는 금액 범위. 종류를 바꾸면 범위 밖으로 나간 값은 버린다
+  // (임대 5억을 고른 뒤 매매로 바꾸면 그 값이 새 범위의 최솟값 아래일 수 있다).
+  const priceRange = (listing && AMOUNT_RANGES[listing]) || AMOUNT_RANGE_ANY;
 
   // ── 투자 ──────────────────────────────────────────────────────────────
   const [investCategory, setInvestCategory] = useState<string | null>(null);
@@ -288,6 +316,10 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
             // 거래 종류를 바꾸면 매물 종류는 초기화한다 — 분양에 없는 '공장'이
             // 선택된 채 남아 있으면 결과가 0건인 이유를 알 수 없다.
             setPropertyCategory(null);
+            // [2026-09-26] 금액도 초기화한다. 임대(0~10억)와 매매(1억~100억)는 범위가
+            // 달라, 임대에서 고른 값이 매매 범위 밖일 수 있다. 남겨 두면 바의 손잡이가
+            // 엉뚱한 자리에 붙는다.
+            setMaxPrice(0);
           }}
         />
         {listing ? (
@@ -315,7 +347,7 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
       </BottomSheet>
 
       <BottomSheet open={sheet === "price"} title={t("homeSearch.price")} onClose={() => setSheet(null)}>
-        <AmountSlider value={maxPrice} accent={accent} onChange={setMaxPrice} />
+        <AmountSlider value={maxPrice} range={priceRange} accent={accent} onChange={setMaxPrice} />
         <SheetConfirm
           label={t("homeSearch.confirm")}
           enabled={maxPrice > 0}
@@ -345,7 +377,7 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
         title={t("homeSearch.amount")}
         onClose={() => setSheet(null)}
       >
-        <AmountSlider value={amount} accent={accent} onChange={setAmount} />
+        <AmountSlider value={amount} range={INVEST_RANGE} accent={accent} onChange={setAmount} />
         <SheetConfirm
           label={t("homeSearch.confirm")}
           enabled={amount > 0}
@@ -418,14 +450,16 @@ function FieldButton({
     >
       {/* [2026-09-26 사용자 지시] 항목마다 흰색 아이콘. */}
       <Ionicons name={icon} size={16} color={theme.onAccent} />
-      <Text style={[textStyles.caption, { color: theme.onAccent, fontWeight: typography.weight.semibold }]}>
+      {/* [2026-09-26 사용자 지시] 항목 이름 한 치수 크게 — caption → bodySmall. */}
+      <Text style={[textStyles.bodySmall, { color: theme.onAccent, fontWeight: typography.weight.semibold }]}>
         {label}
       </Text>
       {/* 고른 값은 굵게, 아직 안 고른 안내 문구는 흐리게 — 색을 칠하지 않고도
           "이 줄은 정해졌다"가 한눈에 보인다. */}
       <Text
         style={[
-          textStyles.bodySmall,
+          // [2026-09-26 사용자 지시] 선택값도 한 치수 크게 — bodySmall → body.
+          textStyles.body,
           {
             color: picked ? theme.onAccent : GLASS_BORDER,
             fontWeight: picked ? typography.weight.bold : typography.weight.regular,
@@ -501,11 +535,21 @@ function BottomSheet({
   children: React.ReactNode;
 }) {
   const theme = colors.light;
+  // [2026-09-26 사용자 지시] 시트 하단 여백.
+  //
+  // 이 시트는 Modal이라 화면 맨 아래에서 시작한다. 고정 padding(spacing.xl)만 두면
+  // 제스처 바가 있는 기기에서 마지막 선택지와 확인 버튼이 그 아래에 깔려 눌리지 않는다.
+  // 기기가 알려 주는 실제 하단 안전영역을 더한다 — 기기마다 값이 다르므로 고정 숫자로는
+  // 맞출 수 없다.
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={[styles.backdrop, { backgroundColor: theme.overlay }]} onPress={onClose}>
         <Pressable
-          style={[styles.sheet, { backgroundColor: theme.background }]}
+          style={[
+            styles.sheet,
+            { backgroundColor: theme.background, paddingBottom: spacing.xl + insets.bottom },
+          ]}
           onPress={(e) => e.stopPropagation()}
         >
           <View style={styles.sheetHeader}>
@@ -665,7 +709,17 @@ function SheetChipRow({
  *
  * 팝업 안에 들어가므로 여기서는 테마 색을 쓴다(영상 위가 아니다).
  */
-function AmountSlider({ value, accent, onChange }: { value: number; accent: string; onChange: (next: number) => void }) {
+function AmountSlider({
+  value,
+  range,
+  accent,
+  onChange,
+}: {
+  value: number;
+  range: AmountRange;
+  accent: string;
+  onChange: (next: number) => void;
+}) {
   const theme = colors.light;
   const { t } = useTranslation();
   const [trackWidth, setTrackWidth] = useState(0);
@@ -678,11 +732,19 @@ function AmountSlider({ value, accent, onChange }: { value: number; accent: stri
     setTrackWidth(w);
   }
 
+  // range는 렌더마다 새 객체일 수 있으므로 ref로 읽는다 — PanResponder는 한 번만
+  // 만들어지고 그 안에 잡힌 값은 갱신되지 않는다(trackWidth와 같은 이유).
+  const rangeRef = useRef(range);
+  rangeRef.current = range;
+
   function valueFromX(x: number): number {
     const w = widthRef.current;
-    if (w <= 0) return 0;
+    const { min, max, step } = rangeRef.current;
+    if (w <= 0) return min;
     const ratio = Math.max(0, Math.min(1, x / w));
-    return Math.round((ratio * AMOUNT_MAX) / AMOUNT_STEP) * AMOUNT_STEP;
+    const raw = min + ratio * (max - min);
+    const snapped = Math.round(raw / step) * step;
+    return Math.max(min, Math.min(max, snapped));
   }
 
   const pan = useMemo(
@@ -698,7 +760,10 @@ function AmountSlider({ value, accent, onChange }: { value: number; accent: stri
     [],
   );
 
-  const fillWidth = Math.round(trackWidth * (value / AMOUNT_MAX));
+  // 값이 아직 0(미선택)이고 범위의 최솟값이 0보다 크면 손잡이를 맨 왼쪽에 둔다.
+  const span = range.max - range.min;
+  const filled = value > 0 ? Math.max(0, Math.min(1, (value - range.min) / span)) : 0;
+  const fillWidth = Math.round(trackWidth * filled);
 
   return (
     <View style={styles.sliderBlock}>
@@ -726,9 +791,11 @@ function AmountSlider({ value, accent, onChange }: { value: number; accent: stri
         />
       </View>
       <View style={styles.sliderEnds}>
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>0</Text>
         <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-          {formatVndAmount(AMOUNT_MAX)}
+          {range.min > 0 ? formatVndAmount(range.min) : "0"}
+        </Text>
+        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+          {formatVndAmount(range.max)}
         </Text>
       </View>
     </View>

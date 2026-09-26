@@ -226,12 +226,14 @@ const styles = createScaledStyles(() => ({
     color: colors.light.secondaryText,
   },
   metricLabel: {
-    fontSize: scaleFont(11),
+    // [2026-09-26 사용자 지시] 두 치수 크게(11 → 15).
+    fontSize: scaleFont(15),
     fontWeight: typography.weight.regular,
     color: colors.light.secondaryText,
   },
   metricValue: {
-    fontSize: scaleFont(11),
+    // [2026-09-26 사용자 지시] 수치도 두 치수 크게(11 → 15).
+    fontSize: scaleFont(15),
     fontWeight: typography.weight.semibold,
   },
   metricsRow: {

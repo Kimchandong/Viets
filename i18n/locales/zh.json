@@ -308,8 +308,8 @@
       "favorites": "收藏"
     },
     "favoritesTitle": "收藏",
-    "favoritePropertiesTitle": "收藏的房产",
-    "favoriteInvestmentsTitle": "收藏的投资产品",
+    "favoritePropertiesTitle": "收藏房源",
+    "favoriteInvestmentsTitle": "收藏投资",
     "noFavoriteProperties": "暂无收藏的房产",
     "noFavoriteInvestments": "暂无收藏的投资产品",
     "settingsTitle": "设置",
@@ -342,7 +342,8 @@
       "idPlaceholder": "账号或邮箱",
       "passwordLabel": "密码",
       "missingFields": "请输入账号和密码",
-      "signUpLink": "使用邮箱注册"
+      "signUpLink": "使用邮箱注册",
+      "passwordPlaceholder": "密码"
     },
     "chatInbox": "咨询列表",
     "myProperties": "房源信息",
@@ -1230,6 +1231,10 @@
       "agency_applied": {
         "title": "收到中介注册申请",
         "body": "{{agency}} 提交了中介注册申请。"
+      },
+      "admin_message": {
+        "title": "新消息",
+        "body": "{{title}}"
       }
     }
   },
@@ -1291,5 +1296,35 @@
     "upTo": "{{amount}} 以内",
     "priceOver": "1亿越南盾以上",
     "atLeast": "{{amount}} 以上"
+  },
+  "pushMessage": {
+    "title": "推送消息",
+    "menu": "推送（通知）消息",
+    "fieldTitle": "标题",
+    "fieldTitlePlaceholder": "通知标题",
+    "fieldTopic": "分类",
+    "topicProperty": "房源",
+    "topicInvest": "投资",
+    "fieldBody": "内容",
+    "fieldBodyPlaceholder": "请输入要发送的内容",
+    "fieldImages": "照片 ({{count}}/{{max}})",
+    "addImage": "添加照片",
+    "fieldYoutube": "YouTube 链接",
+    "fieldYoutubePlaceholder": "https://youtu.be/...",
+    "fieldLink": "链接",
+    "fieldLinkPlaceholder": "https://",
+    "fieldAudience": "发送对象",
+    "audienceAll": "全部",
+    "audienceInterest": "收藏用户",
+    "audienceInvestors": "实际投资者",
+    "audienceCount": "可发送 {{count}} 人",
+    "send": "发送",
+    "sending": "发送中…",
+    "sentToast": "已发送给 {{count}} 人",
+    "failToast": "发送失败",
+    "missingFields": "请输入标题和内容",
+    "missingTopics": "请至少选择一种关注类型",
+    "openLink": "打开链接",
+    "noPermission": "没有访问权限"
   }
 }

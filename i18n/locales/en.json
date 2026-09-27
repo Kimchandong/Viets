@@ -308,8 +308,8 @@
       "favorites": "Saved"
     },
     "favoritesTitle": "Favorites",
-    "favoritePropertiesTitle": "Favorite properties",
-    "favoriteInvestmentsTitle": "Favorite investments",
+    "favoritePropertiesTitle": "Saved properties",
+    "favoriteInvestmentsTitle": "Saved investments",
     "noFavoriteProperties": "No favorite properties yet",
     "noFavoriteInvestments": "No favorite investments yet",
     "settingsTitle": "Settings",
@@ -342,7 +342,8 @@
       "idPlaceholder": "ID or email",
       "passwordLabel": "Password",
       "missingFields": "Enter your ID and password",
-      "signUpLink": "Sign up with email"
+      "signUpLink": "Sign up with email",
+      "passwordPlaceholder": "Password"
     },
     "chatInbox": "Inquiries",
     "myProperties": "Listings",
@@ -1230,6 +1231,10 @@
       "agency_applied": {
         "title": "New agency application",
         "body": "{{agency}} applied to register as an agency."
+      },
+      "admin_message": {
+        "title": "Announcement",
+        "body": "{{title}}"
       }
     }
   },
@@ -1291,5 +1296,35 @@
     "upTo": "Up to {{amount}}",
     "priceOver": "100M VND and above",
     "atLeast": "{{amount}} and above"
+  },
+  "pushMessage": {
+    "title": "Push message",
+    "menu": "Push notifications",
+    "fieldTitle": "Title",
+    "fieldTitlePlaceholder": "Notification title",
+    "fieldTopic": "Category",
+    "topicProperty": "Property",
+    "topicInvest": "Investment",
+    "fieldBody": "Message",
+    "fieldBodyPlaceholder": "Write the message to send",
+    "fieldImages": "Photos ({{count}}/{{max}})",
+    "addImage": "Add photo",
+    "fieldYoutube": "YouTube link",
+    "fieldYoutubePlaceholder": "https://youtu.be/...",
+    "fieldLink": "Link",
+    "fieldLinkPlaceholder": "https://",
+    "fieldAudience": "Audience",
+    "audienceAll": "Everyone",
+    "audienceInterest": "Saved-item accounts",
+    "audienceInvestors": "Actual investors",
+    "audienceCount": "{{count}} recipients",
+    "send": "Send",
+    "sending": "Sending…",
+    "sentToast": "Sent to {{count}} people",
+    "failToast": "Sending failed",
+    "missingFields": "Enter a title and message",
+    "missingTopics": "Choose at least one interest type",
+    "openLink": "Open link",
+    "noPermission": "You don't have permission"
   }
 }

@@ -13,7 +13,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { Modal } from "@/components/Modal";
-import { PropertyCard } from "@/components/PropertyCard";
+import { PropertyListRow } from "@/components/PropertyListRow";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StatTile } from "@/components/StatTile";
 import { Toast } from "@/components/Toast";
@@ -118,6 +118,11 @@ export default function MyScreen() {
    * 늘 펼쳐 두면 두 방법이 같은 무게로 보여 무엇을 눌러야 할지 한 번 더 생각하게 된다.
    */
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
+  /**
+   * [2026-09-26 사용자 지시] 관심 매물 / 관심 투자를 **메뉴로** 만들고, 눌렀을 때만
+   * 목록을 펼친다. 늘 펼쳐 두면 찜한 것이 없어도 두 개의 빈 줄이 자리를 차지한다.
+   */
+  const [openFavorites, setOpenFavorites] = useState<"property" | "invest" | null>(null);
 
   /**
    * [2026-09-26 사용자 지시] "관심목록" 타일을 누르면 관심목록이 보이게 한다.
@@ -503,7 +508,13 @@ export default function MyScreen() {
   const isLoggedIn = !!session;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} /* [2026-09-26 사용자 지시] 하단 탭과 내용 사이에 흰 띠가 생기던 문제.
+         edges에 "bottom"이 있으면 기기 하단 안전영역만큼 **한 번 더** 여백이 붙는다.
+         그런데 탭바가 이미 그만큼 확보하고 있다(app/(tabs)/_layout.tsx의
+         height: TAB_BAR_CONTENT_HEIGHT + bottomInset, paddingBottom: bottomInset).
+         같은 공간을 두 번 잡아 그 차이가 빈 흰 칸으로 보였다.
+         boards.tsx는 처음부터 edges={[]}였고 그 화면에는 이 증상이 없었다. */
+      edges={[]}>
       <Header title={t("my.title")} />
       <ScrollView
         ref={pageScrollRef}
@@ -668,7 +679,7 @@ export default function MyScreen() {
                   그래서 이메일 로그인은 **출시본에 남는다**. 아래 가입 줄도 같은
                   이유로 함께 노출한다 — 로그인은 되는데 가입할 길이 없으면 앞뒤가
                   맞지 않는다(A2 화면은 완성돼 있었으나 진입 경로가 없었다). */}
-              <View style={[styles.passwordLogin, { borderColor: theme.border }]}>
+              <View style={styles.passwordLogin}>
                 {/* [2026-09-26 사용자 지시] 이 줄을 눌러야 아래 입력칸이 펼쳐진다.
                     글자는 한 치수 크게, 오른쪽 화살표로 접힘/펼침을 알린다. */}
                 <Pressable
@@ -691,9 +702,11 @@ export default function MyScreen() {
                   />
                 </Pressable>
                 {showPasswordLogin ? (
-                <>
+                <View style={[styles.passwordFields, { borderColor: theme.border }]}>
+                {/* [2026-09-26 사용자 지시] 타이틀(아이디/비밀번호) 삭제 — 안내는
+                    입력창 안 placeholder로만 둔다. Input은 label이 없으면
+                    placeholder를 접근성 라벨로 대신 쓴다(components/Input.tsx). */}
                 <Input
-                  label={t("my.passwordLogin.idLabel")}
                   value={loginId}
                   onChangeText={setLoginId}
                   autoCapitalize="none"
@@ -702,12 +715,12 @@ export default function MyScreen() {
                   placeholder={t("my.passwordLogin.idPlaceholder")}
                 />
                 <Input
-                  label={t("my.passwordLogin.passwordLabel")}
                   value={loginPassword}
                   onChangeText={setLoginPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
                   secureTextEntry
+                  placeholder={t("my.passwordLogin.passwordPlaceholder")}
                 />
                 {/* [2026-09-26 사용자 지시] 아이디·비번을 둘 다 넣기 전에는 회색,
                     넣으면 파란 배경 + 흰 글자. 지금 눌러도 되는지가 색으로 보인다. */}
@@ -737,7 +750,7 @@ export default function MyScreen() {
                     {t("my.passwordLogin.signUpLink")}
                   </Text>
                 </Pressable>
-                </>
+                </View>
                 ) : null}
               </View>
             </View>
@@ -900,6 +913,16 @@ export default function MyScreen() {
                   theme={theme}
                 />
               ) : null}
+              {/* [2026-09-27 사용자 지시] 푸시(알림) 메시지 — admin 전용.
+                  전체/관심 계정/실제 투자자에게 제목·본문·사진·영상·링크를 보낸다. */}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="paper-plane-outline"
+                  label={t("pushMessage.menu")}
+                  onPress={() => router.push("/admin-push")}
+                  theme={theme}
+                />
+              ) : null}
               {/* [2026-09-12 사용자 지시] 허위매물 신고 목록 — admin 전용. */}
               {isAdminUser ? (
                 <SettingsRow
@@ -959,51 +982,65 @@ export default function MyScreen() {
 
         <View ref={favoritesSectionRef} style={styles.section}>
           <SectionHeader title={t("my.favoritesTitle")} />
-          <View style={styles.favoritesStack}>
-            <View style={styles.favoritesBlock}>
-              <Text style={[textStyles.bodySmall, { color: theme.secondaryText, fontWeight: "600" }]}>
-                {t("my.favoritePropertiesTitle")}
-              </Text>
-              {favoriteProperties.length === 0 ? (
-                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+          {/* [2026-09-26 사용자 지시] 두 줄을 **메뉴**로 바꾼다 — 누르면 그 아래로
+              목록이 펼쳐진다. 목록 모양은 홈의 매물 목록과 같은 PropertyListRow를
+              쓴다(가로 카드에서 바꿨다) — 같은 것을 화면마다 다른 모양으로 보여 주지
+              않기 위해서다. */}
+          <Card style={styles.rowsCard}>
+            <SettingsRow
+              icon="heart-outline"
+              label={t("my.favoritePropertiesTitle")}
+              valueLabel={String(favoriteProperties.length)}
+              onPress={() =>
+                setOpenFavorites((prev) => (prev === "property" ? null : "property"))
+              }
+              theme={theme}
+            />
+            {openFavorites === "property" ? (
+              favoriteProperties.length === 0 ? (
+                <Text style={[textStyles.caption, styles.favoritesEmpty, { color: theme.secondaryText }]}>
                   {t("my.noFavoriteProperties")}
                 </Text>
               ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.favoritesRow}>
-                  {favoriteProperties.map((property) => (
-                    <PropertyCard
+                <View style={styles.favoritesList}>
+                  {favoriteProperties.map((property, index) => (
+                    <PropertyListRow
                       key={property.id}
                       property={property}
-                      variant="featured"
+                      showDivider={index > 0}
                       onPress={() => router.push(`/property-detail/${property.id}`)}
                     />
                   ))}
-                </ScrollView>
-              )}
-            </View>
+                </View>
+              )
+            ) : null}
 
-            <View style={styles.favoritesBlock}>
-              <Text style={[textStyles.bodySmall, { color: theme.secondaryText, fontWeight: "600" }]}>
-                {t("my.favoriteInvestmentsTitle")}
-              </Text>
-              {favoriteInvestments.length === 0 ? (
-                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+            <SettingsRow
+              icon="trending-up-outline"
+              label={t("my.favoriteInvestmentsTitle")}
+              valueLabel={String(favoriteInvestments.length)}
+              onPress={() => setOpenFavorites((prev) => (prev === "invest" ? null : "invest"))}
+              theme={theme}
+            />
+            {openFavorites === "invest" ? (
+              favoriteInvestments.length === 0 ? (
+                <Text style={[textStyles.caption, styles.favoritesEmpty, { color: theme.secondaryText }]}>
                   {t("my.noFavoriteInvestments")}
                 </Text>
               ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.favoritesRow}>
+                <View style={styles.favoritesList}>
                   {favoriteInvestments.map((product) => (
                     <InvestmentCard
                       key={product.id}
                       product={product}
-                      variant="featured"
+                      variant="list"
                       onPress={() => router.push(`/invest-detail/${product.id}`)}
                     />
                   ))}
-                </ScrollView>
-              )}
-            </View>
-          </View>
+                </View>
+              )
+            ) : null}
+          </Card>
         </View>
 
         <View style={[styles.section, styles.lastSection]}>
@@ -1343,9 +1380,22 @@ const styles = createScaledStyles(() => ({
   },
   passwordLogin: {
     marginTop: spacing.md,
-    // [2026-09-26 사용자 지시] 아이디/비밀번호 영역을 **흰 상자**로 감싼다
-    // (회색 테두리 + 라운딩). 예전에는 윗선 하나로만 구분해 어디까지가 한 묶음인지
-    // 알기 어려웠다. 윗선은 상자와 역할이 겹치므로 없앤다.
+    // [2026-09-26 사용자 지시 2차] 바깥에서 흰 배경·테두리를 뺀다.
+    // 접혀 있을 때는 "아이디로 로그인" 한 줄만 보여야 하는데, 상자가 있으면
+    // 내용이 없는 빈 상자가 덩그러니 남았다. 상자는 **펼친 내용 쪽**으로 옮겼다.
+    gap: spacing.sm,
+  },
+  // 펼쳤을 때 아이디·비밀번호·로그인 버튼을 담는 흰 상자.
+  favoritesList: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  favoritesEmpty: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  passwordFields: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderRadius: radius.md,

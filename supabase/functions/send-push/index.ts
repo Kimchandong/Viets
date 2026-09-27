@@ -41,22 +41,31 @@ function json(body: unknown, status = 200): Response {
 
 type TokenRow = { token: string; lang: string | null };
 
+type ExpoMessage = {
+  to: string;
+  sound: string;
+  title: string;
+  body: string;
+  data: { route: string; kind: string };
+};
+
 /**
- * Expo 푸시 발송.
+ * 기기 목록 → Expo 메시지 목록.
  *
- * 한 번에 보내되 문구는 기기 언어별로 다르다 — Expo는 메시지 배열을 받으므로 기기마다
+ * 문구는 기기 언어별로 다르다(push_tokens.lang). Expo는 메시지 배열을 받으므로 기기마다
  * 다른 문구를 한 요청에 담을 수 있다.
  *
- * 실패해도 예외를 던지지 않는다. 알림은 이미 수신함에 들어가 있고, 푸시가 실패했다고
- * 승인 자체를 되돌릴 수는 없다 — 로그만 남긴다.
+ * [2026-09-27] 발송(sendExpoPush)에서 **만들기만** 떼어냈다. 받는 사람이 수백 명일 수
+ * 있어(관리자 푸시) 여러 사람의 메시지를 모아 한 번에 보내야 하는데, 예전 구조는
+ * "한 사람의 기기들"만 받아 바로 보냈다.
  */
-async function sendExpoPush(
+function buildExpoMessages(
   tokens: TokenRow[],
   kind: string,
   params: Record<string, unknown>,
   route: string | null,
-): Promise<boolean> {
-  const messages = tokens
+): ExpoMessage[] {
+  return tokens
     .map((row) => {
       const text = pushMessage(kind, row.lang, params);
       if (!text) return null;
@@ -69,25 +78,43 @@ async function sendExpoPush(
         data: { route: route ?? "/notifications", kind },
       };
     })
-    .filter((message): message is NonNullable<typeof message> => message !== null);
+    .filter((message): message is ExpoMessage => message !== null);
+}
 
+/**
+ * Expo 푸시 발송.
+ *
+ * 실패해도 예외를 던지지 않는다. 알림은 이미 수신함에 들어가 있고, 푸시가 실패했다고
+ * 승인 자체를 되돌릴 수는 없다 — 로그만 남긴다.
+ *
+ * [2026-09-27] **100건씩 나눠 보낸다.** Expo가 한 요청에 받는 메시지 수 상한이 100이고,
+ * 넘기면 요청 전체가 거부된다 — 관리자 푸시가 전체 계정을 대상으로 하면 바로 걸린다.
+ */
+async function sendExpoPush(messages: ExpoMessage[]): Promise<boolean> {
   if (messages.length === 0) return false;
 
-  try {
-    const response = await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(messages),
-    });
-    if (!response.ok) {
-      console.warn("[send-push] expo push failed:", response.status, await response.text());
-      return false;
+  const CHUNK = 100;
+  let anySent = false;
+
+  for (let start = 0; start < messages.length; start += CHUNK) {
+    const chunk = messages.slice(start, start + CHUNK);
+    try {
+      const response = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(chunk),
+      });
+      if (!response.ok) {
+        console.warn("[send-push] expo push failed:", response.status, await response.text());
+        continue;
+      }
+      anySent = true;
+    } catch (err) {
+      console.warn("[send-push] expo push threw:", err instanceof Error ? err.message : err);
     }
-    return true;
-  } catch (err) {
-    console.warn("[send-push] expo push threw:", err instanceof Error ? err.message : err);
-    return false;
   }
+
+  return anySent;
 }
 
 Deno.serve(async (req: Request) => {
@@ -180,47 +207,90 @@ Deno.serve(async (req: Request) => {
   // [2026-09-12] **여러 건**을 처리한다. 예전에는 한 건만 보냈는데, 받는 사람이 여럿인
   // 알림(입금 신고 → 관리자 전원, 신고 처리 → 신고자 전원)에서는 첫 사람만 받고 나머지는
   // 영영 못 받았다. 같은 kind + dedupe_key는 "같은 사건"이므로 한 번에 다 보낸다.
-  const { data: rows, error: rowError } = await admin
-    .from("user_notifications")
-    .select("id,user_id,kind,params,link")
-    .eq("kind", body.kind)
-    .eq("dedupe_key", body.dedupeKey)
-    .is("pushed_at", null)
-    .limit(50);
-
-  if (rowError) {
-    console.warn("[send-push] lookup failed:", rowError.message);
-    return json({ result: "failed" });
-  }
-
-  if (!rows || rows.length === 0) {
-    return json({ result: "nothing-to-send" });
-  }
+  //
+  // [2026-09-27] **50명 상한을 없앴다.**
+  //
+  // 관리자 푸시 메시지(admin_message)가 생기면서 대상이 전체 가입 계정이 될 수 있다.
+  // .limit(50) 그대로였다면 51번째부터는 알림함에만 쌓이고 푸시는 영영 안 갔다 —
+  // 게다가 실패가 아니라 "성공"으로 끝나 아무도 눈치채지 못했을 것이다.
+  //
+  // 세 가지를 바꿨다:
+  //   1. **id 커서로 페이지를 넘긴다.** pushed_at is null로 다시 읽는 방식은 쓸 수 없다 —
+  //      기기가 없는 사용자의 행은 일부러 NULL로 남기므로(아래 참고) 같은 행을 끝없이
+  //      다시 읽게 된다.
+  //   2. **토큰을 한 번에 조회한다.** 행마다 push_tokens를 따로 읽으면 사용자 수만큼
+  //      왕복이 생겨 함수 실행 시간 안에 끝나지 않는다.
+  //   3. **Expo에 100건씩 나눠 보낸다.** Expo가 한 요청에 받는 메시지 수 상한이 100이다.
+  const BATCH_ROWS = 500;
+  const MAX_ROUNDS = 40; // 안전 상한 — 500 × 40 = 20,000건에서 멈춘다.
 
   let sentCount = 0;
+  let cursor = "";
 
-  for (const row of rows) {
-    const { data: tokens } = await admin
+  for (let round = 0; round < MAX_ROUNDS; round += 1) {
+    let query = admin
+      .from("user_notifications")
+      .select("id,user_id,kind,params,link")
+      .eq("kind", body.kind)
+      .eq("dedupe_key", body.dedupeKey)
+      .is("pushed_at", null)
+      .order("id")
+      .limit(BATCH_ROWS);
+    if (cursor) query = query.gt("id", cursor);
+
+    const { data: rows, error: rowError } = await query;
+    if (rowError) {
+      console.warn("[send-push] lookup failed:", rowError.message);
+      return json({ result: "failed", sent: sentCount });
+    }
+    if (!rows || rows.length === 0) break;
+
+    cursor = rows[rows.length - 1].id as string;
+
+    // 이 묶음의 토큰을 한 번에 가져와 사용자별로 나눈다.
+    const userIds = [...new Set(rows.map((row) => row.user_id as string))];
+    const { data: tokenRows } = await admin
       .from("push_tokens")
-      .select("token,lang")
-      .eq("user_id", row.user_id);
+      .select("user_id,token,lang")
+      .in("user_id", userIds);
 
-    const sent = await sendExpoPush(
-      (tokens ?? []) as TokenRow[],
-      row.kind,
-      (row.params ?? {}) as Record<string, unknown>,
-      row.link,
-    );
+    const tokensByUser = new Map<string, TokenRow[]>();
+    for (const row of (tokenRows ?? []) as { user_id: string; token: string; lang: string | null }[]) {
+      const list = tokensByUser.get(row.user_id) ?? [];
+      list.push({ token: row.token, lang: row.lang });
+      tokensByUser.set(row.user_id, list);
+    }
+
+    const messages: ExpoMessage[] = [];
+    const deliveredRowIds: string[] = [];
+
+    for (const row of rows) {
+      const tokens = tokensByUser.get(row.user_id as string) ?? [];
+      const built = buildExpoMessages(
+        tokens,
+        row.kind as string,
+        (row.params ?? {}) as Record<string, unknown>,
+        (row.link ?? null) as string | null,
+      );
+      if (built.length === 0) continue; // 기기가 없는 사용자 — 아래 참고.
+      messages.push(...built);
+      deliveredRowIds.push(row.id as string);
+    }
+
+    if (messages.length === 0) continue;
+
+    const ok = await sendExpoPush(messages);
+    if (!ok) continue;
 
     // 보낸 표시는 실제로 보낸 경우에만. 기기가 하나도 없는 사용자(웹만 쓰는 계정)는
     // NULL로 남겨 둔다 — 나중에 앱을 깔면 그때 받을 수 있어야 한다.
-    if (sent) {
-      sentCount += 1;
+    for (let start = 0; start < deliveredRowIds.length; start += 200) {
       await admin
         .from("user_notifications")
         .update({ pushed_at: new Date().toISOString() })
-        .eq("id", row.id);
+        .in("id", deliveredRowIds.slice(start, start + 200));
     }
+    sentCount += deliveredRowIds.length;
   }
 
   return json({ result: sentCount > 0 ? "ok" : "no-device", sent: sentCount });

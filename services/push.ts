@@ -181,10 +181,29 @@ const PUSH_ROUTES = [
   "/chat-inbox",
 ] as const;
 
+/**
+ * [2026-09-27] 뒤에 id가 붙는 경로는 **접두사로** 허용한다.
+ *
+ * 관리자 푸시 메시지는 /push-message/<uuid>로 간다 — 목록에 정확히 적어 둘 수 없는
+ * 형태다. 그렇다고 아무 문자열이나 통과시키면 없는 화면으로 가서 앱이 죽으므로,
+ * 허용된 접두사 + 그 뒤에 한 조각만 더 오는 경우로 좁힌다.
+ */
+const PUSH_ROUTE_PREFIXES = ["/push-message/"] as const;
+
+function isAllowedRoute(route: string): boolean {
+  if ((PUSH_ROUTES as readonly string[]).includes(route)) return true;
+  return PUSH_ROUTE_PREFIXES.some((prefix) => {
+    if (!route.startsWith(prefix)) return false;
+    const rest = route.slice(prefix.length);
+    // 한 조각만 — 슬래시가 더 있으면 우리가 아는 경로가 아니다.
+    return rest.length > 0 && !rest.includes("/");
+  });
+}
+
 export function routeFromNotification(response: Notifications.NotificationResponse): string | null {
   const data = response.notification.request.content.data as { route?: unknown } | undefined;
   const route = typeof data?.route === "string" ? data.route : null;
-  return route && (PUSH_ROUTES as readonly string[]).includes(route) ? route : null;
+  return route && isAllowedRoute(route) ? route : null;
 }
 
 /** 알림 탭 구독. 해제 함수를 돌려준다. */

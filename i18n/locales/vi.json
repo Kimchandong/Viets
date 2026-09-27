@@ -308,8 +308,8 @@
       "favorites": "Đã lưu"
     },
     "favoritesTitle": "Yêu thích",
-    "favoritePropertiesTitle": "Bất động sản yêu thích",
-    "favoriteInvestmentsTitle": "Sản phẩm đầu tư yêu thích",
+    "favoritePropertiesTitle": "BĐS đã lưu",
+    "favoriteInvestmentsTitle": "Đầu tư đã lưu",
     "noFavoriteProperties": "Chưa có bất động sản yêu thích",
     "noFavoriteInvestments": "Chưa có sản phẩm đầu tư yêu thích",
     "settingsTitle": "Cài đặt",
@@ -342,7 +342,8 @@
       "idPlaceholder": "ID hoặc email",
       "passwordLabel": "Mật khẩu",
       "missingFields": "Vui lòng nhập ID và mật khẩu",
-      "signUpLink": "Đăng ký bằng email"
+      "signUpLink": "Đăng ký bằng email",
+      "passwordPlaceholder": "Mật khẩu"
     },
     "chatInbox": "Danh sách tư vấn",
     "myProperties": "Tin đăng",
@@ -1230,6 +1231,10 @@
       "agency_applied": {
         "title": "Có đơn đăng ký môi giới",
         "body": "{{agency}} đã nộp đơn đăng ký làm đại lý."
+      },
+      "admin_message": {
+        "title": "Thông báo",
+        "body": "{{title}}"
       }
     }
   },
@@ -1291,5 +1296,35 @@
     "upTo": "Tối đa {{amount}}",
     "priceOver": "Từ 100 triệu VND",
     "atLeast": "Từ {{amount}}"
+  },
+  "pushMessage": {
+    "title": "Tin đẩy",
+    "menu": "Tin đẩy (thông báo)",
+    "fieldTitle": "Tiêu đề",
+    "fieldTitlePlaceholder": "Tiêu đề thông báo",
+    "fieldTopic": "Phân loại",
+    "topicProperty": "BĐS",
+    "topicInvest": "Đầu tư",
+    "fieldBody": "Nội dung",
+    "fieldBodyPlaceholder": "Nhập nội dung cần gửi",
+    "fieldImages": "Ảnh ({{count}}/{{max}})",
+    "addImage": "Thêm ảnh",
+    "fieldYoutube": "Liên kết YouTube",
+    "fieldYoutubePlaceholder": "https://youtu.be/...",
+    "fieldLink": "Liên kết",
+    "fieldLinkPlaceholder": "https://",
+    "fieldAudience": "Người nhận",
+    "audienceAll": "Tất cả",
+    "audienceInterest": "Tài khoản đã lưu",
+    "audienceInvestors": "Nhà đầu tư thực tế",
+    "audienceCount": "{{count}} người nhận",
+    "send": "Gửi",
+    "sending": "Đang gửi…",
+    "sentToast": "Đã gửi cho {{count}} người",
+    "failToast": "Gửi thất bại",
+    "missingFields": "Vui lòng nhập tiêu đề và nội dung",
+    "missingTopics": "Chọn ít nhất một loại quan tâm",
+    "openLink": "Mở liên kết",
+    "noPermission": "Bạn không có quyền truy cập"
   }
 }

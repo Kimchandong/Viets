@@ -102,6 +102,19 @@ const CATALOG: Record<string, Record<PushLang, Entry>> = {
     zh: { title: "举报已处理", body: "您举报的房源已完成核查。" },
     th: { title: "ตรวจสอบรายงานแล้ว", body: "ประกาศที่คุณรายงานได้รับการตรวจสอบแล้ว" },
   },
+  // [2026-09-27] 관리자가 직접 보내는 메시지.
+  //
+  // 다른 종류와 달리 **본문이 관리자가 쓴 글**이라, 여기 문구는 고정 제목뿐이고
+  // 실제 내용은 params.title로 들어온다. 사진·영상·링크는 알림창에 담을 수 없어
+  // 앱 안의 /push-message/<id> 화면에서 본다.
+  admin_message: {
+    ko: { title: "새 소식", body: "{{title}}" },
+    en: { title: "Announcement", body: "{{title}}" },
+    vi: { title: "Thông báo", body: "{{title}}" },
+    ja: { title: "お知らせ", body: "{{title}}" },
+    zh: { title: "新消息", body: "{{title}}" },
+    th: { title: "ประกาศ", body: "{{title}}" },
+  },
 };
 
 function normalizeLang(lang: string | null | undefined): PushLang {

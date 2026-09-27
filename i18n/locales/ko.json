@@ -309,7 +309,7 @@
     },
     "favoritesTitle": "관심 목록",
     "favoritePropertiesTitle": "관심 매물",
-    "favoriteInvestmentsTitle": "관심 투자상품",
+    "favoriteInvestmentsTitle": "관심 투자",
     "noFavoriteProperties": "관심 매물이 없습니다",
     "noFavoriteInvestments": "관심 투자상품이 없습니다",
     "settingsTitle": "설정",
@@ -342,7 +342,8 @@
       "idPlaceholder": "아이디 또는 이메일",
       "passwordLabel": "비밀번호",
       "missingFields": "아이디와 비밀번호를 입력해 주세요",
-      "signUpLink": "이메일로 회원가입"
+      "signUpLink": "이메일로 회원가입",
+      "passwordPlaceholder": "비밀번호"
     },
     "chatInbox": "상담 목록",
     "myProperties": "매물 정보",
@@ -1230,6 +1231,10 @@
       "agency_applied": {
         "title": "업체 등록 신청 도착",
         "body": "{{agency}} 님이 중개업체 등록을 신청했습니다."
+      },
+      "admin_message": {
+        "title": "새 소식",
+        "body": "{{title}}"
       }
     }
   },
@@ -1291,5 +1296,35 @@
     "upTo": "{{amount}} 이하",
     "priceOver": "1억동 이상",
     "atLeast": "{{amount}} 이상"
+  },
+  "pushMessage": {
+    "title": "푸시 메시지",
+    "menu": "푸시(알림) 메시지",
+    "fieldTitle": "제목",
+    "fieldTitlePlaceholder": "알림 제목",
+    "fieldTopic": "분류",
+    "topicProperty": "매물",
+    "topicInvest": "투자",
+    "fieldBody": "푸시 정보",
+    "fieldBodyPlaceholder": "보낼 내용을 적어 주세요",
+    "fieldImages": "사진 첨부 ({{count}}/{{max}})",
+    "addImage": "사진 추가",
+    "fieldYoutube": "유튜브 링크",
+    "fieldYoutubePlaceholder": "https://youtu.be/...",
+    "fieldLink": "링크",
+    "fieldLinkPlaceholder": "https://",
+    "fieldAudience": "발송 대상",
+    "audienceAll": "전체",
+    "audienceInterest": "관심 계정",
+    "audienceInvestors": "실제 투자자",
+    "audienceCount": "발송가능인원 {{count}}명",
+    "send": "전송",
+    "sending": "전송 중…",
+    "sentToast": "{{count}}명에게 보냈습니다",
+    "failToast": "전송에 실패했습니다",
+    "missingFields": "제목과 내용을 입력해 주세요",
+    "missingTopics": "관심 종류를 하나 이상 고르세요",
+    "openLink": "링크 열기",
+    "noPermission": "접근 권한이 없습니다"
   }
 }

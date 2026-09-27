@@ -87,6 +87,9 @@ export const NOTIFICATION_KINDS = [
   "payment_rejected",
   "qa_answered",
   "report_resolved",
+  // [2026-09-27] 관리자가 직접 보내는 메시지. 이 목록에 없으면 알림 설정 화면에
+  // 종류가 뜨지 않아 사용자가 끄고 켤 수 없다.
+  "admin_message",
 ] as const;
 
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];

@@ -308,8 +308,8 @@
       "favorites": "ที่บันทึก"
     },
     "favoritesTitle": "รายการโปรด",
-    "favoritePropertiesTitle": "อสังหาริมทรัพย์ที่ชื่นชอบ",
-    "favoriteInvestmentsTitle": "การลงทุนที่ชื่นชอบ",
+    "favoritePropertiesTitle": "อสังหาฯ ที่บันทึก",
+    "favoriteInvestmentsTitle": "การลงทุนที่บันทึก",
     "noFavoriteProperties": "ยังไม่มีอสังหาริมทรัพย์ที่ชื่นชอบ",
     "noFavoriteInvestments": "ยังไม่มีการลงทุนที่ชื่นชอบ",
     "settingsTitle": "การตั้งค่า",
@@ -342,7 +342,8 @@
       "idPlaceholder": "ID หรืออีเมล",
       "passwordLabel": "รหัสผ่าน",
       "missingFields": "กรุณากรอก ID และรหัสผ่าน",
-      "signUpLink": "สมัครด้วยอีเมล"
+      "signUpLink": "สมัครด้วยอีเมล",
+      "passwordPlaceholder": "รหัสผ่าน"
     },
     "chatInbox": "รายการสอบถาม",
     "myProperties": "ข้อมูลประกาศ",
@@ -1230,6 +1231,10 @@
       "agency_applied": {
         "title": "มีคำขอลงทะเบียนตัวแทน",
         "body": "{{agency}} ยื่นคำขอลงทะเบียนเป็นตัวแทน"
+      },
+      "admin_message": {
+        "title": "ประกาศ",
+        "body": "{{title}}"
       }
     }
   },
@@ -1291,5 +1296,35 @@
     "upTo": "ไม่เกิน {{amount}}",
     "priceOver": "ตั้งแต่ 100 ล้านดอง",
     "atLeast": "ตั้งแต่ {{amount}}"
+  },
+  "pushMessage": {
+    "title": "ข้อความแจ้งเตือน",
+    "menu": "ข้อความแจ้งเตือน (พุช)",
+    "fieldTitle": "หัวข้อ",
+    "fieldTitlePlaceholder": "หัวข้อการแจ้งเตือน",
+    "fieldTopic": "ประเภท",
+    "topicProperty": "อสังหาฯ",
+    "topicInvest": "การลงทุน",
+    "fieldBody": "เนื้อหา",
+    "fieldBodyPlaceholder": "กรอกเนื้อหาที่จะส่ง",
+    "fieldImages": "รูปภาพ ({{count}}/{{max}})",
+    "addImage": "เพิ่มรูป",
+    "fieldYoutube": "ลิงก์ YouTube",
+    "fieldYoutubePlaceholder": "https://youtu.be/...",
+    "fieldLink": "ลิงก์",
+    "fieldLinkPlaceholder": "https://",
+    "fieldAudience": "ผู้รับ",
+    "audienceAll": "ทั้งหมด",
+    "audienceInterest": "บัญชีที่บันทึกไว้",
+    "audienceInvestors": "นักลงทุนจริง",
+    "audienceCount": "ส่งได้ {{count}} คน",
+    "send": "ส่ง",
+    "sending": "กำลังส่ง…",
+    "sentToast": "ส่งให้ {{count}} คนแล้ว",
+    "failToast": "ส่งไม่สำเร็จ",
+    "missingFields": "กรุณากรอกหัวข้อและเนื้อหา",
+    "missingTopics": "เลือกประเภทความสนใจอย่างน้อยหนึ่งอย่าง",
+    "openLink": "เปิดลิงก์",
+    "noPermission": "คุณไม่มีสิทธิ์เข้าถึง"
   }
 }

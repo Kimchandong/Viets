@@ -274,7 +274,13 @@ export default function AiScreen() {
     !!result && (result.properties.length > 0 || result.investments.length > 0);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} /* [2026-09-26 사용자 지시] 하단 탭과 내용 사이에 흰 띠가 생기던 문제.
+         edges에 "bottom"이 있으면 기기 하단 안전영역만큼 **한 번 더** 여백이 붙는다.
+         그런데 탭바가 이미 그만큼 확보하고 있다(app/(tabs)/_layout.tsx의
+         height: TAB_BAR_CONTENT_HEIGHT + bottomInset, paddingBottom: bottomInset).
+         같은 공간을 두 번 잡아 그 차이가 빈 흰 칸으로 보였다.
+         boards.tsx는 처음부터 edges={[]}였고 그 화면에는 이 증상이 없었다. */
+      edges={[]}>
       <Header title={t("ai.title")} />
       <ScrollView
         contentContainerStyle={styles.content}

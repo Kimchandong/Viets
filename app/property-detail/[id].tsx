@@ -392,7 +392,14 @@ export default function PropertyDetailScreen() {
 
           {/* [STEP: 2026-09-09] 사용자 요청 — 가격 단위(tỷ/tháng) bold 없앰 —
               PropertyCard.tsx와 동일하게 splitYieldText로 숫자/단위를 분리한다. */}
-          <Text style={[textStyles.heroValue, { color: theme.accent }]}>
+          {/* [2026-09-26 사용자 지시] 금액·단위 두 치수 작게 — heroValue(30) 대신
+              sectionTitle 크기를 쓴다. 굵기·색은 그대로. */}
+          <Text
+            style={[
+              textStyles.heroValue,
+              { color: theme.accent, fontSize: textStyles.sectionTitle.fontSize },
+            ]}
+          >
             {splitYieldText(property.price).rate}
             {/* [2026-09-11 사용자 지시] 단위 크기를 금액과 같게 — fontSize를 지정하지
                 않으면 바깥 heroValue 크기를 그대로 상속한다. 굵기만 다르게 둔다. */}
@@ -505,7 +512,8 @@ export default function PropertyDetailScreen() {
             <SectionHeader title={t("propertyDetail.optionsTitle")} />
             {optionGroups.map((group) => (
               <View key={group.id} style={styles.optionGroup}>
-                <Text style={[textStyles.caption, styles.optionGroupTitle, { color: theme.text }]}>
+                {/* [2026-09-26 사용자 지시] 옵션명 한 치수 크게 — caption → bodySmall. */}
+                <Text style={[textStyles.bodySmall, styles.optionGroupTitle, { color: theme.text }]}>
                   {t(`propertyOptions.groups.${listingKind}.${group.id}`)}
                 </Text>
                 <View style={styles.optionsGrid}>
@@ -713,8 +721,14 @@ function MetaChip({
 }) {
   return (
     <View style={[styles.metaChip, { backgroundColor: theme.card, borderColor: theme.border }]}>
-      <Ionicons name={icon} size={14} color={tone === "success" ? theme.success : theme.secondaryText} />
-      <Text style={[textStyles.caption, { color: tone === "success" ? theme.success : theme.text }]}>{label}</Text>
+      {/* [2026-09-26 사용자 지시] 면적·방수·욕실수 한 치수 크게 — 글자와 아이콘을
+          같이 올린다(아이콘만 두면 글자보다 작아 보인다). */}
+      <Ionicons
+        name={icon}
+        size={Math.round(textStyles.bodySmall.fontSize)}
+        color={tone === "success" ? theme.success : theme.secondaryText}
+      />
+      <Text style={[textStyles.bodySmall, { color: tone === "success" ? theme.success : theme.text }]}>{label}</Text>
     </View>
   );
 }
@@ -786,7 +800,8 @@ const styles = createScaledStyles(() => ({
     flexShrink: 1,
   },
   optionText: {
-    fontSize: scaleFont(11),
+    // [2026-09-26 사용자 지시] 옵션 항목 두 치수 크게(11 → 15).
+    fontSize: scaleFont(15),
     fontWeight: typography.weight.regular,
   },
   metaChips: {

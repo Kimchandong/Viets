@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -110,6 +110,32 @@ export default function MyScreen() {
   // (중개업소/고객)을 만들 수도, 웹 미리보기에서 로그인할 수도 없다.
   const [loginId, setLoginId] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  /** 아이디·비밀번호가 둘 다 채워졌는가 — 로그인 버튼 색이 이 값으로 갈린다. */
+  const passwordReady = loginId.trim().length > 0 && loginPassword.length > 0;
+
+  /**
+   * [2026-09-26 사용자 지시] "관심목록" 타일을 누르면 관심목록이 보이게 한다.
+   *
+   * 지금까지는 부동산 탭(/property)으로 보냈다 — 관심목록과 아무 상관이 없는 화면이라
+   * 눌러도 찜한 것이 안 보였다. 관심목록 섹션은 **이 화면 아래쪽에 이미 있으므로**
+   * 다른 화면으로 보내지 않고 그 자리로 스크롤한다.
+   */
+  const pageScrollRef = useRef<ScrollView>(null);
+  const favoritesSectionRef = useRef<View>(null);
+
+  function revealFavorites() {
+    const section = favoritesSectionRef.current;
+    const scroll = pageScrollRef.current;
+    const inner = scroll?.getInnerViewNode();
+    if (!section || !scroll || inner == null) return;
+    section.measureLayout(
+      inner,
+      (_x, y) => scroll.scrollTo({ y: Math.max(0, y - 16), animated: true }),
+      () => {
+        // 측정 실패는 무시 — 화면이 안 움직일 뿐이다.
+      },
+    );
+  }
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -473,7 +499,11 @@ export default function MyScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header title={t("my.title")} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={pageScrollRef}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <Card style={styles.profileCard}>
           {isLoggedIn ? (
             <>
@@ -566,8 +596,11 @@ export default function MyScreen() {
             </>
           ) : (
             <View style={styles.profileText}>
-              <Text style={[textStyles.cardTitle, { color: theme.text }]}>{t("my.guestTitle")}</Text>
-              <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
+              {/* [2026-09-26 사용자 지시] 안내 두 줄 가운데 정렬. */}
+              <Text style={[textStyles.cardTitle, styles.guestCenter, { color: theme.text }]}>
+                {t("my.guestTitle")}
+              </Text>
+              <Text style={[textStyles.bodySmall, styles.guestCenter, { color: theme.secondaryText }]}>
                 {t("my.guestDescription")}
               </Text>
               {/* 사용자 요청: Google/Apple 아이콘 추가, 버튼 문구는 "~로 계속하기" 대신
@@ -629,8 +662,9 @@ export default function MyScreen() {
                   그래서 이메일 로그인은 **출시본에 남는다**. 아래 가입 줄도 같은
                   이유로 함께 노출한다 — 로그인은 되는데 가입할 길이 없으면 앞뒤가
                   맞지 않는다(A2 화면은 완성돼 있었으나 진입 경로가 없었다). */}
-              <View style={[styles.passwordLogin, { borderTopColor: theme.border }]}>
-                <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+              <View style={[styles.passwordLogin, { borderColor: theme.border }]}>
+                {/* [2026-09-26 사용자 지시] "아이디로 로그인" 글자 한 치수 크게. */}
+                <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
                   {t("my.passwordLogin.title")}
                 </Text>
                 <Input
@@ -650,12 +684,19 @@ export default function MyScreen() {
                   autoCorrect={false}
                   secureTextEntry
                 />
+                {/* [2026-09-26 사용자 지시] 아이디·비번을 둘 다 넣기 전에는 회색,
+                    넣으면 파란 배경 + 흰 글자. 지금 눌러도 되는지가 색으로 보인다. */}
                 <Button
                   size="small"
                   title={t("auth.login.submit")}
                   onPress={handlePasswordLogin}
                   loading={passwordLoading}
                   disabled={passwordLoading || !!loadingProvider}
+                  style={[
+                    styles.passwordSubmit,
+                    passwordReady ? { backgroundColor: theme.accent } : { backgroundColor: theme.border },
+                  ]}
+                  textStyle={{ color: passwordReady ? theme.onAccent : "#666666" }}
                 />
                 {/* [2026-09-16 확정-결정사항 2] 이메일 가입 진입.
                     app/register.tsx(A2)는 완성돼 있었지만 코드 어디에도
@@ -760,7 +801,7 @@ export default function MyScreen() {
             <StatTile
               label={t("my.stats.favorites")}
               value={String(favoriteProperties.length + favoriteInvestments.length)}
-              onPress={() => router.push("/property")}
+              onPress={revealFavorites}
               valueStyle={styles.activityValue}
             />
           </Card>
@@ -889,7 +930,7 @@ export default function MyScreen() {
           </View>
         ) : null}
 
-        <View style={styles.section}>
+        <View ref={favoritesSectionRef} style={styles.section}>
           <SectionHeader title={t("my.favoritesTitle")} />
           <View style={styles.favoritesStack}>
             <View style={styles.favoritesBlock}>
@@ -1259,10 +1300,23 @@ const styles = createScaledStyles(() => ({
     flex: 1,
   },
   // 아이디/비번 로그인 블록 — 소셜 버튼과 구분되도록 위쪽에 구분선을 둔다.
+  // [2026-09-26 사용자 지시] 게스트 안내 두 줄 가운데 정렬.
+  guestCenter: {
+    textAlign: "center",
+  },
+  // [2026-09-26 사용자 지시] 로그인 버튼 내부 상하 여백 10px.
+  passwordSubmit: {
+    paddingVertical: 10,
+  },
   passwordLogin: {
     marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    // [2026-09-26 사용자 지시] 아이디/비밀번호 영역을 **흰 상자**로 감싼다
+    // (회색 테두리 + 라운딩). 예전에는 윗선 하나로만 구분해 어디까지가 한 묶음인지
+    // 알기 어려웠다. 윗선은 상자와 역할이 겹치므로 없앤다.
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
     gap: spacing.sm,
   },
   // [2026-09-16 확정 2] 이메일 가입 진입 — 로그인 버튼 아래 한 줄. 버튼으로 두면
@@ -1314,7 +1368,8 @@ const styles = createScaledStyles(() => ({
   authButtons: {
     flexDirection: "row",
     gap: spacing.sm,
-    marginTop: spacing.xs,
+    // [2026-09-26 사용자 지시] 버튼 묶음 위 여백 30px.
+    marginTop: 30,
   },
   authButton: {
     flex: 1,
@@ -1340,6 +1395,9 @@ const styles = createScaledStyles(() => ({
   socialButton: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
+    // [2026-09-26 사용자 지시] 버튼 글자와 테두리 사이 상하 여백 10px.
+    // Button의 size="small"이 주는 기본 padding을 여기서 덮어쓴다.
+    paddingVertical: 10,
   },
   // [STEP: 2026-09-09] 사용자 요청 — 버튼 글자("로그인") 조금 작게(15→13px)
   socialButtonLabel: {

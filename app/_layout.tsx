@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Stack, usePathname, useRouter } from "expo-router";
-import { ActivityIndicator, useWindowDimensions, View } from "react-native";
+import { Animated, Easing, Image, useWindowDimensions, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 
-import { Loading } from "@/components/Loading";
 import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { registerPushToken, subscribeToNotificationTaps } from "@/services/push";
@@ -232,31 +231,34 @@ export default function RootLayout() {
     });
   }, [router]);
 
-  if (!i18nReady) {
-    // STEP 4-10A-3: 이 분기는 i18n이 "아직" 준비되지 않은 상태다 — 여기서 Loading을
-    // 쓰면 안 된다. Loading은 내부에서 무조건 useTranslation()을 호출하므로, i18n이
-    // 준비되기 전에 Loading을 마운트했다가 i18n이 준비되는 순간 그대로 다시 렌더되며
-    // (컴포넌트는 언마운트되지 않은 채) useTranslation() 내부 hook 개수가 달라진다 —
-    // 이것이 실제 로그의 "Rendered more hooks than during the previous render"의
-    // 원인이었다. 그래서 이 분기에서는 번역에 의존하지 않는 최소한의 스플래시만
-    // 그린다 — Loading의 공개 API(`<Loading fullscreen />`)는 그대로 유지하고,
-    // 다른 화면에서의 사용처는 전혀 건드리지 않는다.
-    return (
-      <SafeAreaProvider>
-        <View style={styles.splash}>
-          <ActivityIndicator size="large" />
-        </View>
-      </SafeAreaProvider>
-    );
-  }
+  /**
+   * [2026-09-27 사용자 지시] 빛이 **한 번 지나간 뒤** 홈으로 넘어가야 한다.
+   *
+   * i18n과 세션 조회는 보통 빛이 지나가기 전에 끝난다 — 그대로 두면 애니메이션이
+   * 중간에 잘린 채 화면이 바뀐다. 그래서 준비 여부와 별개로 SPLASH_HOLD_MS 동안은
+   * 스플래시를 내리지 않는다. 준비가 더 오래 걸리면 준비 쪽이 기준이 된다(둘 중
+   * 늦은 쪽까지 기다린다).
+   */
+  const [splashHolding, setSplashHolding] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setSplashHolding(false), SPLASH_HOLD_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (sessionLoading) {
-    // i18n은 이미 완전히 준비된 뒤이므로 이제부터는 Loading(useTranslation 포함)을
-    // 안전하게 쓸 수 있다 — 초기 getSession() 조회가 끝나기 전에는 Login/Home
-    // 어느 쪽도 보여주지 않는다는 기존 요구사항(STEP 4-10 §5)은 그대로다.
+  if (!i18nReady || sessionLoading || splashHolding) {
+    // STEP 4-10A-3: i18n이 준비되기 전에는 Loading을 쓸 수 없다 — Loading은 내부에서
+    // useTranslation()을 부르므로, 준비 전에 마운트했다가 준비되는 순간 같은 자리에서
+    // 다시 렌더되며 hook 개수가 달라진다("Rendered more hooks than during the previous
+    // render"의 실제 원인이었다). 그래서 번역에 의존하지 않는 화면만 그린다.
+    //
+    // STEP 4-10 §5: 초기 getSession()이 끝나기 전에는 Login/Home 어느 쪽도 보여주지
+    // 않는다.
+    //
+    // [2026-09-27] 세 조건을 한 분기로 합쳤다. 예전에는 i18n 단계와 세션 단계가 서로
+    // 다른 화면(빈 스플래시 / 흰 배경 Loading)이어서 시작할 때 화면이 두 번 바뀌었다.
     return (
       <SafeAreaProvider>
-        <Loading fullscreen />
+        <AppSplash />
       </SafeAreaProvider>
     );
   }
@@ -270,11 +272,261 @@ export default function RootLayout() {
   );
 }
 
+/**
+ * 앱이 준비되기 전까지 보여 주는 화면.
+ *
+ * [2026-09-27 사용자 지시] **네이티브 스플래시와 똑같이 보여야 한다.** 예전에는
+ * 흰 배경에 스피너였다 — 빨간 스플래시가 사라지고 흰 화면이 한 번 번쩍인 뒤 홈이
+ * 떴다. 사용자에게는 "스플래시가 두 번" 나오는 것처럼 보인다.
+ *
+ * 로고 크기 41%의 근거: 네이티브 스플래시는 로고를 **168dp**로 그리고(app.json의
+ * expo-splash-screen.imageWidth), 일반적인 기기 폭이 411dp다 — 168/411 = 0.409.
+ * 같은 비율로 그리면 네이티브 스플래시에서 이 화면으로 넘어갈 때 로고가 움직이지
+ * 않는다.
+ */
+const SPLASH_BACKGROUND = "#D70202";
+const SPLASH_LOGO_RATIO = 168 / 411;
+
+/**
+ * [2026-09-27 사용자 지시] 로고가 **페이드로 천천히** 나타난다.
+ *
+ * 이 때문에 네이티브 스플래시(app.json)는 빨간 배경만 보여 준다 — 네이티브가 로고를
+ * 먼저 띄우면 JS 화면으로 넘어오는 순간 로고가 한 번 사라졌다가 다시 나타난다.
+ * 앱을 켜자마자 브랜드 색 화면이 뜨고, 로고는 여기서 처음 등장한다.
+ */
+const FADE_DURATION_MS = 2300;
+/**
+ * 빛이 지나가기 시작하는 시각.
+ *
+ * [2026-09-27 사용자 지시] **0.5초부터** 시작한다. 로고 페이드(0초 시작)가 먼저
+ * 은은하게 올라오고, 그 위로 빛이 들어온다. 홈 전환 시점(2.4초)은 그대로이므로
+ * 빛이 지나가는 시간은 1.8초다.
+ */
+const SHINE_DELAY_MS = 500;
+/** 지나가는 시간. 사용자 지시로 "느린 슬라이드". */
+const SHINE_DURATION_MS = 1800;
+/**
+ * 지나간 뒤 여운.
+ *
+ * [2026-09-27 사용자 지시] 전체를 **2.4초로 줄였다.** 페이드·라이팅 2.3초,
+ * 그림자 1.7~2.4초, 여운 0.1초 → 2.4초에 홈. 시간만 줄였으므로 곡선은 그대로고
+ * 같은 거리를 더 짧은 시간에 지나가 속도가 올라간다.
+ */
+const SHINE_TAIL_MS = 100;
+
+/**
+ * [2026-09-27 사용자 지시] 마지막 구간에 로고 **그림자**가 붙는다 — 오른쪽·아래로
+ * 3px씩 움직이며 투명 → rgba(0,0,0,0.4)로 나타나고, 끝나는 순간이 홈 전환 시점이다.
+ */
+const SHADOW_DELAY_MS = 1700;
+const SHADOW_DURATION_MS = 700;
+const SHADOW_OFFSET = 3;
+const SHADOW_OPACITY = 0.4;
+/** 스플래시를 내리지 않는 최소 시간 = 빛이 한 번 완전히 지나가는 시간. */
+const SPLASH_HOLD_MS = Math.max(
+  SHINE_DELAY_MS + SHINE_DURATION_MS + SHINE_TAIL_MS,
+  SHADOW_DELAY_MS + SHADOW_DURATION_MS,
+);
+
+/** 빛 띠 이미지는 로고 상자보다 크다 — 기울어져 있어 모서리까지 덮어야 한다. */
+const SHINE_SCALE = 2.6;
+
+/**
+ * 앱이 준비되기 전까지 보여 주는 화면.
+ *
+ * [2026-09-27 사용자 지시] **네이티브 스플래시와 똑같이 보여야 한다.** 예전에는
+ * 흰 배경에 스피너였다 — 빨간 스플래시가 사라지고 흰 화면이 한 번 번쩍인 뒤 홈이
+ * 떴다. 사용자에게는 "스플래시가 두 번" 나오는 것처럼 보인다.
+ *
+ * 로고 크기 41%의 근거: 네이티브 스플래시는 로고를 **168dp**로 그리고(app.json의
+ * expo-splash-screen.imageWidth), 일반적인 기기 폭이 411dp다 — 168/411 = 0.409.
+ * 같은 비율로 그리면 네이티브 스플래시에서 이 화면으로 넘어갈 때 로고가 움직이지
+ * 않는다.
+ *
+ * [2026-09-27 사용자 지시] **흰 로고 부분에만 빛(shine)이 대각선으로 한 번 지나간다.**
+ *
+ * 두 가지가 핵심이다.
+ *
+ * 하나, **로고는 순백 100%에서 전혀 건드리지 않는다.** 빛이 안 닿은 자리까지
+ * 어두워지면 "띠가 지나간다"가 아니라 "로고 전체가 변한다"로 보인다.
+ *
+ * 둘, 빛은 **흰색 번짐**이고(사용자 지시) 실제 빛이 표면을 스칠 때의 모양을 그대로
+ * 그려 넣었다 — 아주 좁고 밝은 심지, 진행 방향 앞은 짧고 뒤는 길게 끌리는 비대칭
+ * 번짐(혜성 꼬리), 뒤따르는 가는 줄, 그리고 띠 끝으로 갈수록 약해지는 감쇠(광원이
+ * 점이라 띠 가운데가 가장 밝다). 여기에 세기가 켜졌다 꺼지는 것(shineOpacity)까지
+ * 더해야 "완성된 띠가 들어왔다 나간다"가 아니라 "빛이 스쳐 간다"로 보인다.
+ *
+ * 이미 순백인 획에서는 더 밝아질 여지가 없으므로, 변화는 로고 아래쪽 그라데이션
+ * 구간에서 가장 크게 보인다 — 빛이 지나가는 동안 그 구간이 순백으로 떠올랐다가
+ * 되돌아간다.
+ *
+ * 겹치는 순서가 전부다:
+ *   1. 로고(순백 100%)
+ *   2. 그 위로 지나가는 빛 띠 — 가로로만 움직이지만 띠 자체가 20° 기울어져 있어
+ *      대각선으로 지나간다. 회전 변환을 쓰지 않으므로 안드로이드에서 회전+overflow
+ *      조합이 잘리는 문제를 피한다.
+ *   3. **로고 실루엣만 뚫린 배경색 판** — 띠가 로고 바깥(빨간 배경)에서는 보이지 않게
+ *      덮는다. 판 바깥은 배경과 같은 #D70202라 있는지 알 수 없다.
+ *
+ *      [2026-09-27 사용자 지시] 구멍을 로고의 알파 그대로가 아니라 **실루엣**으로
+ *      뚫는다. 알파를 그대로 뒤집으면 'd' 아래쪽 그라데이션 구간에서 판이 진해져
+ *      빛이 그 구간에서만 사라졌다 — 빛은 그라데이션 위로도 지나가야 한다.
+ *
+ * 이 방식을 고른 이유: expo-linear-gradient와 masked-view를 새로 깔면 네이티브 모듈이
+ * 둘 늘어난다. 띠와 판을 이미지로 미리 만들어 두면 Animated의 translateX 하나로 끝나고
+ * (useNativeDriver 가능) 새 의존성이 없다.
+ */
+function AppSplash() {
+  const { width } = useWindowDimensions();
+  const size = Math.round(width * SPLASH_LOGO_RATIO);
+  const shineSize = Math.round(size * SHINE_SCALE);
+  const progress = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  // 빛의 **세기**는 거리가 아니라 시간에 맞춰야 한다. progress는 감속 곡선이 이미
+  // 적용된 값이라, 이걸로 세기를 만들면 끝부분(거리는 거의 다 갔지만 시간은 절반
+  // 남은 구간)에서 빛이 먼저 꺼져 버린다 — 슬로우모션 구간이 통째로 비어 보인다.
+  const timeline = useRef(new Animated.Value(0)).current;
+  const shadow = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fade, {
+      toValue: 1,
+      duration: FADE_DURATION_MS,
+      // [2026-09-27 사용자 지시] **처음 나타나는 부분을 슬로우모션처럼 더 느리게.**
+      //
+      // out(quad)는 반대였다 — 시작하자마자 확 밝아지고 끝에서 느려진다(0.85초에
+      // 이미 44%). inOut 계열은 한참 은은하게 떠오르다가 중반에 드러나고 끝에서
+      // 다시 부드럽게 멈춘다. 같은 0.85초에 cubic은 6%, **poly(4)는 3%**다.
+      // (RN Easing에 quart는 없다 — poly(4)가 같은 곡선이다.)
+      easing: Easing.inOut(Easing.poly(4)),
+      useNativeDriver: true,
+    }).start();
+  }, [fade]);
+
+  useEffect(() => {
+    Animated.timing(shadow, {
+      toValue: 1,
+      delay: SHADOW_DELAY_MS,
+      duration: SHADOW_DURATION_MS,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [shadow]);
+
+  useEffect(() => {
+    Animated.timing(timeline, {
+      toValue: 1,
+      // 빛과 같은 시점에 시작해야 세기와 위치가 어긋나지 않는다.
+      delay: SHINE_DELAY_MS,
+      duration: SHINE_DURATION_MS,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }).start();
+  }, [timeline]);
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: 1,
+      delay: SHINE_DELAY_MS,
+      duration: SHINE_DURATION_MS,
+      // [2026-09-27 사용자 지시] 처음부터 나타나면서 점점 느려지고, **끝부분은
+      // 슬로우모션처럼** 더 느리게.
+      //
+      // 지수 2.6 — quad(2)보다 끝이 느리고 cubic(3)보다는 초반이 덜 급하다.
+      // 시간이 2.3초로 줄어도 곡선은 그대로라 전체 속도만 올라간다.
+      easing: Easing.out(Easing.poly(2.6)),
+      useNativeDriver: true,
+    }).start();
+  }, [progress]);
+
+  // 왼쪽 바깥(-1.5)에서 오른쪽 끝(+1.0)까지.
+  //
+  // 끝값을 1.6에서 1.0으로 줄인 이유: 감속 곡선에서는 느려지는 구간이 **끝 지점
+  // 근처**다. 끝을 로고에서 멀리 두면 그 슬로우모션이 로고 밖에서 일어나 화면에는
+  // 아무것도 안 보인다. 끝을 로고 오른쪽 가장자리에 붙여야 빛이 로고 위에서
+  // 천천히 빠져나간다.
+  const translateX = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-size * 1.5, size * 1.0],
+  });
+
+  // 가림판(cutout)에는 페이드를 걸지 않는다. 같이 흐려지면 그 사이로 빛이 로고
+  // 밖으로 새고, 그룹 투명도 처리 방식에 결과가 좌우된다.
+  //
+  // [2026-09-27 사용자 지시] 실제 빛처럼 **세기가 켜졌다 꺼진다.** 위치만 움직이면
+  // 빛이 화면 밖에서 완성된 채로 들어왔다 그대로 나가는 것처럼 보인다.
+  const shineOpacity = timeline.interpolate({
+    inputRange: [0, 0.1, 0.85, 1],
+    outputRange: [0, 1, 1, 0],
+  });
+
+  // 그림자는 최종 자리(오른쪽·아래 3px)에 그려 둔 조각이라, -3에서 0으로 밀어
+  // 넣으면 "로고 뒤에서 오른쪽 아래로 빠져나오는" 움직임이 된다.
+  const shadowOpacity = shadow.interpolate({ inputRange: [0, 1], outputRange: [0, SHADOW_OPACITY] });
+  const shadowShift = shadow.interpolate({ inputRange: [0, 1], outputRange: [-SHADOW_OFFSET, 0] });
+
+  const box = { width: size, height: size };
+  const shineBox = {
+    width: shineSize,
+    height: shineSize,
+    left: (size - shineSize) / 2,
+    top: (size - shineSize) / 2,
+  };
+
+  return (
+    <View style={styles.splash}>
+      {/* overflow:"hidden"이 없으면 안 된다. 띠 이미지는 로고 상자의 2배라, 상자
+          밖으로 삐져나온 부분은 아래의 가림판(로고 상자 크기)이 덮지 못해 빨간
+          배경 위에 그대로 보인다 — 화면을 가로지르는 흰 띠가 된다. */}
+      <View style={[box, styles.clip]}>
+        <Animated.Image
+          source={require("@/assets/images/splash-logo.png")}
+          style={[styles.layer, box, { opacity: fade }]}
+          resizeMode="contain"
+        />
+        <Animated.Image
+          source={require("@/assets/images/splash-shine.png")}
+          style={[
+            styles.layer,
+            shineBox,
+            // 빛도 로고와 함께 떠오른다 — 로고가 반쯤 보이는데 빛만 온전하면 따로 논다.
+            { opacity: Animated.multiply(shineOpacity, fade), transform: [{ translateX }] },
+          ]}
+          resizeMode="contain"
+        />
+        <Image
+          source={require("@/assets/images/splash-logo-cutout.png")}
+          style={[styles.layer, box]}
+          resizeMode="contain"
+        />
+        {/* 그림자는 가림판 **위에** 온다. 로고 뒤에 깔면 가림판이 실루엣 바깥을
+            배경색으로 덮으면서 통째로 가려진다. 그래서 이미지 자체를 "로고 밖으로
+            삐져나오는 조각"만으로 만들어(splash-shadow.png) 맨 위에 얹는다 —
+            로고와 겹치지 않으므로 흰 획을 가리지 않는다. */}
+        <Animated.Image
+          source={require("@/assets/images/splash-shadow.png")}
+          style={[styles.layer, box, {
+              opacity: shadowOpacity,
+              transform: [{ translateX: shadowShift }, { translateY: shadowShift }],
+            }]}
+          resizeMode="contain"
+        />
+      </View>
+    </View>
+  );
+}
+
 const styles = createScaledStyles(() => ({
   splash: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: SPLASH_BACKGROUND,
+  },
+  layer: {
+    position: "absolute",
+  },
+  clip: {
+    overflow: "hidden",
   },
 }));

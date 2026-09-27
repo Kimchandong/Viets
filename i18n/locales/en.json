@@ -371,7 +371,9 @@
       "title": "Edit agency name",
       "edit": "Edit agency name",
       "failed": "Could not change the agency name.",
-      "updated": "Agency name updated."
+      "updated": "Agency name updated.",
+      "notOwner": "Only the agency owner can change the agency name.",
+      "tooLong": "The agency name can be up to 60 characters."
     },
     "adBalanceEmpty": "Your ad balance has run out.",
     "adSlotDropped": "Your listing was outbid and dropped from the ad ranking.",

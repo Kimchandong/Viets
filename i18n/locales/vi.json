@@ -371,7 +371,9 @@
       "title": "Sửa tên công ty",
       "edit": "Sửa tên công ty",
       "failed": "Không thể đổi tên công ty.",
-      "updated": "Đã cập nhật tên công ty."
+      "updated": "Đã cập nhật tên công ty.",
+      "notOwner": "Chỉ chủ đại lý mới có thể đổi tên đại lý.",
+      "tooLong": "Tên đại lý tối đa 60 ký tự."
     },
     "adBalanceEmpty": "Số dư quảng cáo đã hết.",
     "adSlotDropped": "Tin của bạn đã bị trả giá cao hơn và rớt khỏi bảng xếp hạng quảng cáo.",

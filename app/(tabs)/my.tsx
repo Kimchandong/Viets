@@ -373,11 +373,19 @@ export default function MyScreen() {
     if (next.length === 0 || nameSaving) return;
 
     setNameSaving(true);
-    const ok = await renameMyAgency(next);
+    const result = await renameMyAgency(next);
     setNameSaving(false);
 
-    if (!ok) {
-      showToast(t("my.agencyName.failed"));
+    if (!result.ok) {
+      // [2026-09-27] 실패 이유를 그대로 띄운다. "변경하지 못했습니다" 한 줄로는
+      // owner가 아니어서인지, 이름이 길어서인지, 함수가 없어서인지 알 수 없었다.
+      const detail =
+        result.reason === "no-agency"
+          ? t("my.agencyName.notOwner")
+          : result.reason === "name-too-long"
+            ? t("my.agencyName.tooLong")
+            : `${t("my.agencyName.failed")} (${result.message})`;
+      showToast(detail, 4000);
       return;
     }
     setAgency((prev) => (prev ? { ...prev, name: next } : prev));
@@ -521,74 +529,94 @@ export default function MyScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Card style={styles.profileCard}>
+        {/* [2026-09-27 사용자 지시] 로그인 상태에서만 세로 배치 — 비로그인 화면은
+            안내문 한 덩어리뿐이라 기존 가로 배치를 그대로 둔다(열 방향에서 flex:1은
+            높이가 0으로 접힐 수 있다). */}
+        <Card style={[styles.profileCard, isLoggedIn && styles.profileCardStacked]}>
           {isLoggedIn ? (
             <>
-              {/* 사용자이미지(avatar) 영역은 로그인 상태에서만 표시한다 — 비로그인
-                  상태는 아래에서 별도 렌더링(사용자 요청: 좌측 사용자이미지 영역 삭제) */}
-              {/* [2026-09-11 사용자 지시] 아이콘 우하단에 편집 버튼 — 누르면 사진을
-                  고를 수 있다. 사진이 있으면 아이콘 대신 사진을 원형으로 보여 준다. */}
-              <View style={styles.avatarBox}>
-                <View style={[styles.avatar, { backgroundColor: theme.background, borderColor: theme.border }]}>
-                  {avatarUrl ? (
-                    <Image source={{ uri: avatarUrl }} style={styles.avatarImage} resizeMode="cover" />
-                  ) : (
-                    <Ionicons name="person-outline" size={AVATAR_ICON_SIZE} color={theme.secondaryText} />
-                  )}
+              {/* [2026-09-27 사용자 지시] **계정 부분과 정산(금액) 부분을 세로로 분리.**
+                  예전에는 아바타 · 업체명 · 금액이 한 줄에 나란히 있어, 금액이 계정
+                  정보의 일부처럼 읽혔다. 이제 위는 계정, 아래는 정산이고 그 사이를
+                  가로선으로 끊는다. */}
+              <View style={styles.accountRow}>
+                {/* 사용자이미지(avatar) 영역은 로그인 상태에서만 표시한다 — 비로그인
+                    상태는 아래에서 별도 렌더링(사용자 요청: 좌측 사용자이미지 영역 삭제) */}
+                {/* [2026-09-11 사용자 지시] 아이콘 우하단에 편집 버튼 — 누르면 사진을
+                    고를 수 있다. 사진이 있으면 아이콘 대신 사진을 원형으로 보여 준다. */}
+                <View style={styles.avatarBox}>
+                  <View style={[styles.avatar, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                    {avatarUrl ? (
+                      <Image source={{ uri: avatarUrl }} style={styles.avatarImage} resizeMode="cover" />
+                    ) : (
+                      <Ionicons name="person-outline" size={AVATAR_ICON_SIZE} color={theme.secondaryText} />
+                    )}
+                  </View>
+                  <Pressable
+                    onPress={handlePickAvatar}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("my.avatar.edit")}
+                    disabled={avatarUploading}
+                    hitSlop={6}
+                    style={({ pressed }) => [
+                      styles.avatarEdit,
+                      {
+                        backgroundColor: theme.accent,
+                        borderColor: theme.background,
+                        opacity: avatarUploading ? opacity.disabled : pressed ? opacity.pressed : 1,
+                      },
+                    ]}
+                  >
+                    <Ionicons name="camera" size={12} color={theme.onAccent} />
+                  </Pressable>
                 </View>
-                <Pressable
-                  onPress={handlePickAvatar}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("my.avatar.edit")}
-                  disabled={avatarUploading}
-                  hitSlop={6}
-                  style={({ pressed }) => [
-                    styles.avatarEdit,
-                    {
-                      backgroundColor: theme.accent,
-                      borderColor: theme.background,
-                      opacity: avatarUploading ? opacity.disabled : pressed ? opacity.pressed : 1,
-                    },
-                  ]}
-                >
-                  <Ionicons name="camera" size={12} color={theme.onAccent} />
-                </Pressable>
-              </View>
-              {/* 업체명은 등록신청을 마친 계정에만 있다 — 없는 계정(고객/관리자)은
-                  가운데를 비우고 우측 블록만 읽는다. */}
-              <View style={styles.profileText}>
-                {agency ? (
-                  <>
-                    <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-                      {t(`my.agencyStatus.${agency.approvalStatus}`)}
-                    </Text>
-                    {/* [2026-09-11 사용자 지시] 업체명 옆 수정 버튼. */}
-                    <View style={styles.agencyNameRow}>
-                      <Text
-                        style={[textStyles.cardTitle, styles.agencyName, { color: theme.text }]}
-                        numberOfLines={2}
-                      >
-                        {agency.name}
+                {/* 업체명은 등록신청을 마친 계정에만 있다 — 없는 계정(고객/관리자)은
+                    상태·업체명 없이 이메일만 남는다. */}
+                <View style={styles.profileText}>
+                  {agency ? (
+                    <>
+                      <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                        {t(`my.agencyStatus.${agency.approvalStatus}`)}
                       </Text>
-                      <Pressable
-                        onPress={openNameModal}
-                        accessibilityRole="button"
-                        accessibilityLabel={t("my.agencyName.edit")}
-                        hitSlop={8}
-                        style={({ pressed }) => [{ opacity: pressed ? opacity.pressed : 1 }]}
-                      >
-                        <Ionicons name="create-outline" size={16} color={theme.secondaryText} />
-                      </Pressable>
-                    </View>
-                  </>
-                ) : null}
+                      {/* [2026-09-11 사용자 지시] 업체명 옆 수정 버튼.
+                          [2026-09-27] owner에게만 보인다 — staff가 눌러도 DB가 막으므로
+                          버튼이 있으면 실패만 반복된다. */}
+                      <View style={styles.agencyNameRow}>
+                        <Text
+                          style={[textStyles.cardTitle, styles.agencyName, { color: theme.text }]}
+                          numberOfLines={2}
+                        >
+                          {agency.name}
+                        </Text>
+                        {agency.roleInAgency === "owner" ? (
+                          <Pressable
+                            onPress={openNameModal}
+                            accessibilityRole="button"
+                            accessibilityLabel={t("my.agencyName.edit")}
+                            hitSlop={8}
+                            style={({ pressed }) => [{ opacity: pressed ? opacity.pressed : 1 }]}
+                          >
+                            <Ionicons name="create-outline" size={16} color={theme.secondaryText} />
+                          </Pressable>
+                        ) : null}
+                      </View>
+                    </>
+                  ) : null}
+                  {/* [2026-09-27 사용자 지시] 이메일은 정산이 아니라 **계정** 정보다 —
+                      금액 블록에서 계정 블록으로 옮겼다. */}
+                  <Text style={[styles.balanceEmail, { color: theme.secondaryText }]} numberOfLines={1}>
+                    {session?.user.email ?? ""}
+                  </Text>
+                </View>
               </View>
 
-              {/* [2026-09-11 사용자 지시] 로그인 아이콘 우측 — 사용잔액 24px 주황,
-                  그 아래 현잔액 12px 회색, 그 아래 이메일. 잔액이 없는 계정(업체가
-                  아니거나 아직 입금 전)은 0으로 보여 준다 — 자리를 비워 두면 이메일이
-                  어디에 붙는지가 계정마다 달라진다. */}
-              <View style={styles.balanceBox}>
+              <View style={[styles.profileSplit, { borderColor: theme.border }]} />
+
+              {/* 정산 칸 — 사용잔액 24px 주황, 그 아래 현잔액 12px 회색. 잔액이 없는
+                  계정(업체가 아니거나 아직 입금 전)도 0으로 보여 준다 — 칸을 비우면
+                  계정마다 카드 높이가 달라진다.
+                  [2026-09-27] 계정 칸 아래로 내려왔다(예전에는 아바타 우측). */}
+              <View style={[styles.balanceBox, styles.balanceBoxStacked]}>
                 {/* [2026-09-11 사용자 지시] 단위(VND)만 60% 크기·굵기 없이.
                     금액과 단위를 한 문자열로 두면 굵기·크기를 따로 줄 수 없어
                     숫자와 단위를 나눠 그린다. */}
@@ -605,9 +633,6 @@ export default function MyScreen() {
                 </Text>
                 <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>
                   {formatMoneyAmount(adBilling.totalDeposited, "VND")}
-                </Text>
-                <Text style={[styles.balanceEmail, { color: theme.secondaryText }]} numberOfLines={1}>
-                  {session?.user.email ?? ""}
                 </Text>
               </View>
             </>
@@ -1309,6 +1334,22 @@ const styles = createScaledStyles(() => ({
     shadowOpacity: 0,
     elevation: 0,
   },
+  // [2026-09-27 사용자 지시] 계정/정산 세로 분리.
+  profileCardStacked: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: spacing.sm,
+  },
+  // 위 칸 — 아바타 + 상태/업체명/이메일.
+  accountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  // 계정과 정산을 끊는 가로선.
+  profileSplit: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   // 편집 버튼(absolute)의 기준점. 아바타와 같은 크기로 둔다.
   avatarBox: {
     width: AVATAR_SIZE,
@@ -1429,6 +1470,10 @@ const styles = createScaledStyles(() => ({
   balanceBox: {
     alignItems: "flex-end",
     minWidth: 0,
+  },
+  // 세로 분리 후에도 금액은 우측 정렬 — 자리를 넓혀 잡는다.
+  balanceBoxStacked: {
+    alignSelf: "stretch",
   },
   balanceAvailable: {
     fontSize: scaleFont(24, FONT_FACTOR.TITLE),

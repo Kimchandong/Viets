@@ -25,6 +25,14 @@ export type MyAgency = {
   registrationNo: string;
   /** 반려됐을 때만 값이 있다 — 화면에 그대로 보여 준다. */
   rejectionReason: string;
+  /**
+   * 내 역할.
+   *
+   * [2026-09-27] 추가한 이유: 업체명 변경은 **owner만** 할 수 있다
+   * (rename_my_agency가 role_in_agency='owner'로 찾는다). 그런데 이 함수는 역할을
+   * 가려내지 않아 staff에게도 수정 버튼이 보였고, 누르면 이유 없이 실패했다.
+   */
+  roleInAgency: "owner" | "staff";
 };
 
 const AGENCY_COLUMNS =
@@ -42,8 +50,9 @@ type AgencyRow = {
   rejection_reason: string | null;
 };
 
-function mapAgency(row: AgencyRow): MyAgency {
+function mapAgency(row: AgencyRow, roleInAgency: "owner" | "staff" = "owner"): MyAgency {
   return {
+    roleInAgency,
     id: row.id,
     name: row.name,
     approvalStatus: row.approval_status,
@@ -70,7 +79,7 @@ export async function getMyAgency(): Promise<MyAgency | null> {
 
   const { data, error } = await supabase
     .from("agency_members")
-    .select(`agencies(${AGENCY_COLUMNS})`)
+    .select(`role_in_agency,agencies(${AGENCY_COLUMNS})`)
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(1);
@@ -82,10 +91,13 @@ export async function getMyAgency(): Promise<MyAgency | null> {
 
   // PostgREST는 임베드한 관계를 배열로 타이핑한다(FK가 1:1이라 실제로는 한 건).
   // 생성 타입과 런타임 모양이 어긋나므로 둘 다 받아 준다.
-  const rows = (data ?? []) as unknown as { agencies: AgencyRow | AgencyRow[] | null }[];
+  const rows = (data ?? []) as unknown as {
+    role_in_agency: "owner" | "staff" | null;
+    agencies: AgencyRow | AgencyRow[] | null;
+  }[];
   const embedded = rows[0]?.agencies;
   const found = Array.isArray(embedded) ? embedded[0] : embedded;
-  return found ? mapAgency(found) : null;
+  return found ? mapAgency(found, rows[0]?.role_in_agency ?? "staff") : null;
 }
 
 export type AgencyApplicationInput = {
@@ -262,13 +274,30 @@ export async function reviewAgency(
  * 관리자 전용이고(agencies_update_admin), RLS를 행 단위로 열면 승인 상태까지 함께
  * 바꿀 수 있게 되기 때문이다. 함수는 호출자가 owner인 업체의 name만 고친다.
  */
-export async function renameMyAgency(name: string): Promise<boolean> {
-  if (!supabase) return false;
+export type RenameAgencyResult =
+  | { ok: true }
+  | { ok: false; reason: "no-agency" | "empty-name" | "name-too-long" | "not-authenticated" | "other"; message: string };
+
+/**
+ * 업체명 변경.
+ *
+ * [2026-09-27] **실패 이유를 돌려준다.** 예전에는 true/false만 돌려줘서 화면이
+ * "변경하지 못했습니다" 한 줄밖에 보여 줄 수 없었다 — owner가 아니어서인지, 함수가
+ * 없어서인지, 이름이 길어서인지 사용자도 나도 알 수 없었다.
+ *
+ * reason은 DB 함수가 raise하는 문구를 그대로 쓴다(rename_my_agency 본문).
+ */
+export async function renameMyAgency(name: string): Promise<RenameAgencyResult> {
+  if (!supabase) return { ok: false, reason: "other", message: "supabase-not-configured" };
 
   const { error } = await supabase.rpc("rename_my_agency", { p_name: name });
   if (error) {
     console.warn("[services/agencies] renameMyAgency failed:", error.message);
-    return false;
+    const raw = `${error.message}`;
+    const known = (["no-agency", "empty-name", "name-too-long", "not-authenticated"] as const).find((code) =>
+      raw.includes(code),
+    );
+    return { ok: false, reason: known ?? "other", message: raw };
   }
-  return true;
+  return { ok: true };
 }

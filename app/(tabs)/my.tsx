@@ -112,6 +112,12 @@ export default function MyScreen() {
   const [loginPassword, setLoginPassword] = useState("");
   /** 아이디·비밀번호가 둘 다 채워졌는가 — 로그인 버튼 색이 이 값으로 갈린다. */
   const passwordReady = loginId.trim().length > 0 && loginPassword.length > 0;
+  /**
+   * [2026-09-26 사용자 지시] 아이디/비밀번호 입력칸은 **"아이디로 로그인"을 눌렀을 때만**
+   * 펼친다. 기본 경로는 소셜 로그인이고, 이쪽은 필요한 사람만 쓰는 보조 경로다 —
+   * 늘 펼쳐 두면 두 방법이 같은 무게로 보여 무엇을 눌러야 할지 한 번 더 생각하게 된다.
+   */
+  const [showPasswordLogin, setShowPasswordLogin] = useState(false);
 
   /**
    * [2026-09-26 사용자 지시] "관심목록" 타일을 누르면 관심목록이 보이게 한다.
@@ -663,10 +669,29 @@ export default function MyScreen() {
                   이유로 함께 노출한다 — 로그인은 되는데 가입할 길이 없으면 앞뒤가
                   맞지 않는다(A2 화면은 완성돼 있었으나 진입 경로가 없었다). */}
               <View style={[styles.passwordLogin, { borderColor: theme.border }]}>
-                {/* [2026-09-26 사용자 지시] "아이디로 로그인" 글자 한 치수 크게. */}
-                <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>
-                  {t("my.passwordLogin.title")}
-                </Text>
+                {/* [2026-09-26 사용자 지시] 이 줄을 눌러야 아래 입력칸이 펼쳐진다.
+                    글자는 한 치수 크게, 오른쪽 화살표로 접힘/펼침을 알린다. */}
+                <Pressable
+                  testID="password-login-toggle"
+                  onPress={() => setShowPasswordLogin((prev) => !prev)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: showPasswordLogin }}
+                  style={({ pressed }) => [
+                    styles.passwordLoginToggle,
+                    { opacity: pressed ? opacity.pressed : 1 },
+                  ]}
+                >
+                  <Text style={[textStyles.bodySmall, { color: theme.secondaryText, flex: 1 }]}>
+                    {t("my.passwordLogin.title")}
+                  </Text>
+                  <Ionicons
+                    name={showPasswordLogin ? "chevron-up" : "chevron-down"}
+                    size={18}
+                    color={theme.secondaryText}
+                  />
+                </Pressable>
+                {showPasswordLogin ? (
+                <>
                 <Input
                   label={t("my.passwordLogin.idLabel")}
                   value={loginId}
@@ -712,6 +737,8 @@ export default function MyScreen() {
                     {t("my.passwordLogin.signUpLink")}
                   </Text>
                 </Pressable>
+                </>
+                ) : null}
               </View>
             </View>
           )}
@@ -1307,6 +1334,12 @@ const styles = createScaledStyles(() => ({
   // [2026-09-26 사용자 지시] 로그인 버튼 내부 상하 여백 10px.
   passwordSubmit: {
     paddingVertical: 10,
+  },
+  // 펼침 줄 — 글자와 화살표를 한 줄에.
+  passwordLoginToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   passwordLogin: {
     marginTop: spacing.md,

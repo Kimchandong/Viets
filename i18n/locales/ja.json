@@ -1252,6 +1252,14 @@
       "investment_chat_reply": {
         "title": "相談の回答",
         "body": "{{title}} の相談に回答が届きました。"
+      },
+      "property_chat": {
+        "title": "新しい物件問い合わせ",
+        "body": "{{title}} の問い合わせが届きました。"
+      },
+      "property_chat_reply": {
+        "title": "問い合わせの回答",
+        "body": "{{title}} の問い合わせに回答が届きました。"
       }
     }
   },

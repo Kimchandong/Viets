@@ -94,6 +94,9 @@ export const NOTIFICATION_KINDS = [
   "investment_chat",
   // 담당자 답장 — 고객이 받는다. 둘을 나눠 둬야 "문의 알림만 끄기"가 가능하다.
   "investment_chat_reply",
+  // [2026-09-28] 매물 상담 — 업체·상담 직원이 받는 문의와, 고객이 받는 답변.
+  "property_chat",
+  "property_chat_reply",
 ] as const;
 
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];

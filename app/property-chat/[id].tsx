@@ -42,7 +42,8 @@ import {
   sendCustomerMessage,
   subscribeToMessages,
 } from "@/services/chat";
-import { markRead } from "@/services/notifications";
+import { markRead, markNotificationsReadByLink, sendNotificationPush } from "@/services/notifications";
+import { setActiveNotificationRoute } from "@/services/push";
 import { useLocaleStore } from "@/store/useLocaleStore";
 import { localizeUnits } from "@/utils/format";
 
@@ -195,6 +196,28 @@ export default function PropertyChatScreen() {
     };
   }, [session, property, conversationIdParam]);
 
+  // [2026-09-28 사용자 지시] 이 방을 보고 있는 동안에는 배너를 띄우지 않는다.
+  // 발송은 그대로 두고 표시만 거른다 — 화면을 벗어나면 다시 울려야 하므로
+  // 나갈 때 반드시 되돌린다.
+  //
+  // 경로는 트리거가 넣은 링크와 **글자까지 같아야** 한다(services/push.ts가 문자열을
+  // 그대로 비교한다) — 매물 id와 대화방 id가 둘 다 들어간다.
+  useEffect(() => {
+    if (!property || !conversationId) return;
+    const route = `/property-chat/${property.id}?conversationId=${conversationId}`;
+    setActiveNotificationRoute(route);
+    return () => setActiveNotificationRoute(null);
+  }, [property, conversationId]);
+
+  // 이 방으로 온 알림을 읽음 처리한다 — 알림함이 아닌 곳(상담 목록, 매물 상세)에서
+  // 들어와도 배지가 남지 않게. 홈의 숫자 배지는 아래 markRead가 따로 맡는다.
+  useEffect(() => {
+    if (!property || !conversationId) return;
+    void markNotificationsReadByLink(
+      `/property-chat/${property.id}?conversationId=${conversationId}`,
+    );
+  }, [property, conversationId, messages.length]);
+
   // [2026-09-11 사용자 지시] 이 대화를 지금까지 읽은 것으로 표시한다 — 홈 상단의
   // 부동산 알림 숫자가 여기서 줄어든다. messages를 의존성에 넣어, 방을 열어 둔 채
   // 새 메시지를 받는 경우에도 다시 표시한다(읽고 있는 중이므로).
@@ -264,6 +287,13 @@ export default function PropertyChatScreen() {
 
     if (success) {
       setDraft("");
+      // [2026-09-28 사용자 지시] 상대에게 푸시를 보낸다. DB는 밖으로 발송하지 못하므로
+      // (트리거는 수신함에 알림을 남길 뿐이다) 보낸 쪽이 엣지 함수를 한 번 부른다.
+      // kind는 보낸 사람에 따라 갈린다 — 받는 쪽이 다르니 문구도 다르다.
+      void sendNotificationPush(
+        isAgentView ? "property_chat_reply" : "property_chat",
+        conversationId,
+      );
     } else {
       // 실패 시 입력한 텍스트를 지우지 않는다 — 다시 눌러 재시도할 수 있게 한다.
       showToast(t("chat.sendFailedToast"));
@@ -300,7 +330,12 @@ export default function PropertyChatScreen() {
 
     if (!success) {
       showToast(t("chat.sendFailedToast"));
+      return;
     }
+    void sendNotificationPush(
+      isAgentView ? "property_chat_reply" : "property_chat",
+      conversationId,
+    );
   }
 
   if (sessionLoading || propertyLoading) {

@@ -228,6 +228,32 @@ Deno.serve(async (req: Request) => {
     allowed = canManage === true;
   }
 
+  // [2026-09-28] 예외 다섯: **매물 상담 알림은 고객과 업체가 보낸다.**
+  //
+  // 양쪽 다 관리자가 아니다. dedupe_key가 property_conversations.id이므로 그 대화를
+  // 먼저 찾고, 고객이면 본인인지, 담당자면 그 매물의 상담을 볼 수 있는지를 본다
+  // (판정은 DB의 can_manage_property_chat이 한다 — 여기서 다시 해석하지 않는다).
+  if (!allowed && (body.kind === "property_chat" || body.kind === "property_chat_reply")) {
+    const { data: userData } = await userClient.auth.getUser();
+    const callerId = userData.user?.id ?? null;
+    const { data: conversation } = await admin
+      .from("property_conversations")
+      .select("customer_id,property_id")
+      .eq("id", body.dedupeKey)
+      .maybeSingle();
+
+    if (callerId && conversation) {
+      if (body.kind === "property_chat") {
+        allowed = conversation.customer_id === callerId;
+      } else {
+        const { data: canManage } = await userClient.rpc("can_manage_property_chat", {
+          target_property_id: conversation.property_id,
+        });
+        allowed = canManage === true;
+      }
+    }
+  }
+
   if (!allowed) {
     return json({ error: "forbidden" }, 403);
   }

@@ -1252,6 +1252,14 @@
       "investment_chat_reply": {
         "title": "咨询回复",
         "body": "您关于 {{title}} 的咨询有了回复。"
+      },
+      "property_chat": {
+        "title": "新的房源咨询",
+        "body": "收到关于 {{title}} 的咨询。"
+      },
+      "property_chat_reply": {
+        "title": "咨询回复",
+        "body": "您关于 {{title}} 的咨询有了回复。"
       }
     }
   },

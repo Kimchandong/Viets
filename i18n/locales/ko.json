@@ -1252,6 +1252,14 @@
       "investment_chat_reply": {
         "title": "상담 답변",
         "body": "{{title}} 상담에 답변이 도착했습니다."
+      },
+      "property_chat": {
+        "title": "새 매물 문의",
+        "body": "{{title}} 문의가 도착했습니다."
+      },
+      "property_chat_reply": {
+        "title": "문의 답변",
+        "body": "{{title}} 문의에 답변이 도착했습니다."
       }
     }
   },

@@ -1252,6 +1252,14 @@
       "investment_chat_reply": {
         "title": "Inquiry answered",
         "body": "You have a reply about {{title}}."
+      },
+      "property_chat": {
+        "title": "New property inquiry",
+        "body": "A new inquiry arrived for {{title}}."
+      },
+      "property_chat_reply": {
+        "title": "Inquiry answered",
+        "body": "You have a reply about {{title}}."
       }
     }
   },

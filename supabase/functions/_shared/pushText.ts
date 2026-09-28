@@ -135,6 +135,24 @@ const CATALOG: Record<string, Record<PushLang, Entry>> = {
     zh: { title: "咨询回复", body: "您关于 {{title}} 的咨询有了回复。" },
     th: { title: "ตอบกลับคำปรึกษา", body: "มีการตอบกลับเกี่ยวกับ {{title}}" },
   },
+  // [2026-09-28] 매물 상담 — 받는 쪽은 그 매물 업체와 상담 직원.
+  property_chat: {
+    ko: { title: "새 매물 문의", body: "{{title}} 문의가 도착했습니다." },
+    en: { title: "New property inquiry", body: "A new inquiry arrived for {{title}}." },
+    vi: { title: "Yêu cầu mới", body: "Có yêu cầu tư vấn mới cho {{title}}." },
+    ja: { title: "新しい物件問い合わせ", body: "{{title}} の問い合わせが届きました。" },
+    zh: { title: "新的房源咨询", body: "收到关于 {{title}} 的咨询。" },
+    th: { title: "คำถามใหม่เกี่ยวกับประกาศ", body: "มีคำขอปรึกษาใหม่สำหรับ {{title}}" },
+  },
+  // 담당자 답장 — 받는 쪽은 문의한 고객.
+  property_chat_reply: {
+    ko: { title: "문의 답변", body: "{{title}} 문의에 답변이 도착했습니다." },
+    en: { title: "Inquiry answered", body: "You have a reply about {{title}}." },
+    vi: { title: "Đã có phản hồi", body: "Bạn có phản hồi về {{title}}." },
+    ja: { title: "問い合わせの回答", body: "{{title}} の問い合わせに回答が届きました。" },
+    zh: { title: "咨询回复", body: "您关于 {{title}} 的咨询有了回复。" },
+    th: { title: "ตอบกลับคำถาม", body: "มีการตอบกลับเกี่ยวกับ {{title}}" },
+  },
 };
 
 function normalizeLang(lang: string | null | undefined): PushLang {

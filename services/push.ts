@@ -213,7 +213,9 @@ const PUSH_ROUTES = [
  */
 // [2026-09-28] /invest-chat/<대화방 id> — 투자 상담 알림을 눌러 들어가는 곳.
 // 이 목록에 없으면 알림을 눌러도 아무 데도 가지 않는다(isAllowedRoute가 막는다).
-const PUSH_ROUTE_PREFIXES = ["/push-message/", "/invest-chat/"] as const;
+// /property-chat/<매물 id>?conversationId=<대화방 id> — 매물 쪽은 화면이 매물 id를
+// 받으므로 대화방 id가 쿼리로 붙는다. 슬래시가 더 늘지 않아 아래 규칙을 그대로 통과한다.
+const PUSH_ROUTE_PREFIXES = ["/push-message/", "/invest-chat/", "/property-chat/"] as const;
 
 function isAllowedRoute(route: string): boolean {
   if ((PUSH_ROUTES as readonly string[]).includes(route)) return true;

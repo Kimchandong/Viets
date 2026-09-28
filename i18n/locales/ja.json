@@ -1248,6 +1248,10 @@
       "investment_chat": {
         "title": "新しい投資相談",
         "body": "{{title}} の相談が届きました。"
+      },
+      "investment_chat_reply": {
+        "title": "相談の回答",
+        "body": "{{title}} の相談に回答が届きました。"
       }
     }
   },

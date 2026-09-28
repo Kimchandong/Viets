@@ -18,13 +18,36 @@ import { supabase } from "./supabase";
  */
 
 // 앱이 열려 있을 때도 알림을 띄운다 — 잔액 소진은 지금 바로 알아야 하는 내용이다.
+/**
+ * [2026-09-28 사용자 지시] "읽고 있는 상태가 아니라면 알림은 울려야 한다."
+ *
+ * 뒤집으면: **읽고 있는 중이면 울리지 않아야 한다.** 상담방을 열어 두고 대화하는
+ * 동안 메시지마다 배너가 덮이면 쓸 수가 없다.
+ *
+ * 서버는 이 사실을 알 수 없다 — 지금 무슨 화면을 보고 있는지는 앱만 안다. 그래서
+ * 발송은 언제나 하고(그래야 유실되지 않는다) 표시만 여기서 거른다.
+ *
+ * 목록에는 남기고 배너와 소리만 끈다 — 화면을 벗어난 뒤 확인할 수 있어야 한다.
+ */
+let activeRoute: string | null = null;
+
+/** 지금 보고 있는 화면의 알림 경로. 화면이 사라질 때 null로 되돌린다. */
+export function setActiveNotificationRoute(route: string | null): void {
+  activeRoute = route;
+}
+
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    const data = notification.request.content.data as { route?: unknown } | undefined;
+    const route = typeof data?.route === "string" ? data.route : null;
+    const reading = route !== null && route === activeRoute;
+    return {
+      shouldShowBanner: !reading,
+      shouldShowList: true,
+      shouldPlaySound: !reading,
+      shouldSetBadge: false,
+    };
+  },
 });
 
 /**

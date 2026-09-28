@@ -72,7 +72,8 @@ export default function InvestDetailScreen() {
    */
   const { text: descriptionText } = useLocalizedContent(
     product?.description ?? {},
-    `investment:${id}`,
+    "investment",
+    id,
   );
   const [productLoading, setProductLoading] = useState(true);
 

@@ -1248,6 +1248,10 @@
       "investment_chat": {
         "title": "Tư vấn đầu tư mới",
         "body": "Có yêu cầu tư vấn mới cho {{title}}."
+      },
+      "investment_chat_reply": {
+        "title": "Đã có phản hồi",
+        "body": "Bạn có phản hồi về {{title}}."
       }
     }
   },

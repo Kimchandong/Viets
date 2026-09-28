@@ -155,7 +155,8 @@ export default function PropertyDetailScreen() {
    */
   const { text: descriptionText } = useLocalizedContent(
     property?.description ?? {},
-    `property:${id}`,
+    "property",
+    id,
   );
 
   const isFavorite = useFavoritesStore((state) => (property ? state.isFavorite("property", property.id) : false));

@@ -219,6 +219,15 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // [2026-09-28] 예외 넷: **상담 답장 알림은 상담 담당 직원이 보낸다.**
+  //
+  // 관리자는 위에서 이미 통과한다. 남는 것은 chat_support 직원인데, 그 판정은
+  // DB가 한다(can_manage_investment_chat) — 여기서 역할을 다시 해석하지 않는다.
+  if (!allowed && body.kind === "investment_chat_reply") {
+    const { data: canManage } = await userClient.rpc("can_manage_investment_chat");
+    allowed = canManage === true;
+  }
+
   if (!allowed) {
     return json({ error: "forbidden" }, 403);
   }

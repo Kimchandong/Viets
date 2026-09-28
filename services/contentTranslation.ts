@@ -38,6 +38,41 @@ export async function translateOnce(
   }
 }
 
+export type TranslatableContentKind = "property" | "investment";
+
+/**
+ * [2026-09-28 사용자 지시] 저장된 글(매물·투자상품 설명)을 보는 사람 언어로.
+ *
+ * translateOnce와 다른 점 둘:
+ *   · 문장을 보내지 않는다. 행 id만 보내고 원문은 서버가 DB에서 읽는다 —
+ *     남의 매물 설명에 아무 문장이나 써 넣을 수 없다.
+ *   · 서버가 결과를 그 행(description_i18n)에 저장한다. 그래서 같은 글을 다시
+ *     번역하지 않고, **로그인하지 않은 사용자도** 번역된 글을 읽는다
+ *     (translate 함수는 익명 호출을 막으므로 비로그인 사용자는 원문만 봤다).
+ */
+export async function translateStoredContent(
+  kind: TranslatableContentKind,
+  id: string,
+  targetLang: string,
+): Promise<string | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.functions.invoke("translate-content", {
+      body: { kind, id, targetLang },
+    });
+    if (error) {
+      console.warn("[services/contentTranslation] translate-content failed:", error.message);
+      return null;
+    }
+    const translated = (data as { translatedText?: unknown })?.translatedText;
+    return typeof translated === "string" && translated.length > 0 ? translated : null;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown-error";
+    console.warn("[services/contentTranslation] translate-content threw:", message);
+    return null;
+  }
+}
+
 /**
  * 한 문장을 원문 언어 외 5개 언어로.
  *

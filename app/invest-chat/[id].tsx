@@ -39,6 +39,7 @@ import {
   subscribeToInvestMessages,
 } from "@/services/investChat";
 import { markNotificationsReadByLink, sendNotificationPush } from "@/services/notifications";
+import { setActiveNotificationRoute } from "@/services/push";
 import { useLocaleStore } from "@/store/useLocaleStore";
 import { localizeUnits } from "@/utils/format";
 
@@ -135,6 +136,15 @@ export default function InvestChatScreen() {
     };
   }, [session, conversationId]);
 
+  // [2026-09-28 사용자 지시] 이 방을 보고 있는 동안에는 배너를 띄우지 않는다.
+  // 발송은 그대로 두고 표시만 거른다 — 화면을 벗어나면 다시 울려야 하므로
+  // 나갈 때 반드시 되돌린다(화면이 스택에 남아도 unmount 시 실행된다).
+  useEffect(() => {
+    if (!conversationId) return;
+    setActiveNotificationRoute(`/invest-chat/${conversationId}`);
+    return () => setActiveNotificationRoute(null);
+  }, [conversationId]);
+
   // 읽음 처리 — 이 방으로 오는 알림을 치운다. 방을 열어 둔 채 새 메시지를 받는
   // 경우까지 포함해야 하므로 messages.length에도 반응한다(읽고 있는 중이다).
   useEffect(() => {
@@ -191,13 +201,14 @@ export default function InvestChatScreen() {
       // 알림을 남길 뿐이다) 보낸 쪽이 엣지 함수를 한 번 부르는 구조다 —
       // 승인·반려 화면들과 같은 방식.
       //
-      // dedupeKey는 트리거가 넣은 값(대화방 id)과 같아야 한다. 안 읽은 알림이
-      // 이미 있으면 서버가 조용히 넘어가므로 연달아 보내도 푸시가 쌓이지 않는다.
+      // dedupeKey는 트리거가 넣은 값(대화방 id)과 같아야 한다.
       //
-      // 담당자가 쓴 답장에는 부르지 않는다 — 그 알림은 애초에 생기지 않는다.
-      if (!isAgentView) {
-        void sendNotificationPush("investment_chat", conversationId);
-      }
+      // kind는 보낸 사람에 따라 갈린다 — 고객이 보내면 담당자가, 담당자가 보내면
+      // 고객이 받는다. 받는 쪽이 다르니 문구도 다르다.
+      void sendNotificationPush(
+        isAgentView ? "investment_chat_reply" : "investment_chat",
+        conversationId,
+      );
     } else {
       // 실패해도 입력한 글은 지우지 않는다 — 다시 눌러 재시도할 수 있게.
       showToast(t("chat.sendFailedToast"));
@@ -228,9 +239,10 @@ export default function InvestChatScreen() {
       showToast(t("chat.sendFailedToast"));
       return;
     }
-    if (!isAgentView) {
-      void sendNotificationPush("investment_chat", conversationId);
-    }
+    void sendNotificationPush(
+      isAgentView ? "investment_chat_reply" : "investment_chat",
+      conversationId,
+    );
   }
 
   const headerTitle = t("investChat.headerTitle");

@@ -1248,6 +1248,10 @@
       "investment_chat": {
         "title": "새 투자 상담",
         "body": "{{title}} 상담 문의가 도착했습니다."
+      },
+      "investment_chat_reply": {
+        "title": "상담 답변",
+        "body": "{{title}} 상담에 답변이 도착했습니다."
       }
     }
   },

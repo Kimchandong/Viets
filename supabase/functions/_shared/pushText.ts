@@ -125,6 +125,16 @@ const CATALOG: Record<string, Record<PushLang, Entry>> = {
     zh: { title: "新的投资咨询", body: "收到关于 {{title}} 的咨询。" },
     th: { title: "คำปรึกษาการลงทุนใหม่", body: "มีคำขอปรึกษาใหม่สำหรับ {{title}}" },
   },
+  // [2026-09-28] 담당자 답장 — 받는 사람이 **고객**이라 문구가 반대 관점이다.
+  // 한 kind로 합치면 "문의가 도착했습니다"가 고객에게도 가서 말이 되지 않는다.
+  investment_chat_reply: {
+    ko: { title: "상담 답변", body: "{{title}} 상담에 답변이 도착했습니다." },
+    en: { title: "Inquiry answered", body: "You have a reply about {{title}}." },
+    vi: { title: "Đã có phản hồi", body: "Bạn có phản hồi về {{title}}." },
+    ja: { title: "相談の回答", body: "{{title}} の相談に回答が届きました。" },
+    zh: { title: "咨询回复", body: "您关于 {{title}} 的咨询有了回复。" },
+    th: { title: "ตอบกลับคำปรึกษา", body: "มีการตอบกลับเกี่ยวกับ {{title}}" },
+  },
 };
 
 function normalizeLang(lang: string | null | undefined): PushLang {

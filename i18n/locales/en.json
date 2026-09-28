@@ -1248,6 +1248,10 @@
       "investment_chat": {
         "title": "New investment inquiry",
         "body": "A new inquiry arrived for {{title}}."
+      },
+      "investment_chat_reply": {
+        "title": "Inquiry answered",
+        "body": "You have a reply about {{title}}."
       }
     }
   },

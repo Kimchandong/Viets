@@ -1248,6 +1248,10 @@
       "investment_chat": {
         "title": "新的投资咨询",
         "body": "收到关于 {{title}} 的咨询。"
+      },
+      "investment_chat_reply": {
+        "title": "咨询回复",
+        "body": "您关于 {{title}} 的咨询有了回复。"
       }
     }
   },

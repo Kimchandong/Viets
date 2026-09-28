@@ -64,7 +64,8 @@
     "filterAll": "すべて",
     "status": {
       "forSale": "売買",
-      "forRent": "賃貸"
+      "forRent": "賃貸",
+      "presale": "分譲"
     },
     "statusLabel": "取引タイプ",
     "mapComingSoon": "マップ表示は近日公開予定です",
@@ -159,7 +160,8 @@
     "dividendFrequency": {
       "monthly": "毎月",
       "quarterly": "四半期ごと",
-      "yearly": "毎年"
+      "yearly": "毎年",
+      "single": "一括(%)"
     },
     "relatedPropertyTitle": "関連物件",
     "applyButton": "投資申込",

@@ -94,9 +94,16 @@ const LISTING_WORDS: Record<MockPropertyStatus, string[]> = {
     "租", "出租", "賃貸", "貸", "เช่า",
   ],
   forSale: [
+    // [2026-09-27] "분양"을 여기서 뺐다 — presale이 별도 거래 종류가 되면서
+    // "분양 아파트"를 찾으면 매매로 잡히던 것을 바로잡는다.
     "sale", "buy", "purchase", "for sale",
-    "mua", "ban", "매매", "분양", "매입", "구입",
+    "mua", "ban", "매매", "매입", "구입",
     "出售", "买", "売買", "購入", "ขาย",
+  ],
+  presale: [
+    "presale", "pre-sale", "off-plan", "new launch",
+    "mo ban", "du an moi", "분양", "선분양", "신규분양",
+    "预售", "認購", "分譲", "プレセール", "พรีเซล",
   ],
 };
 

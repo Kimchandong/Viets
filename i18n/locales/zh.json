@@ -64,7 +64,8 @@
     "filterAll": "全部",
     "status": {
       "forSale": "出售",
-      "forRent": "出租"
+      "forRent": "出租",
+      "presale": "预售"
     },
     "statusLabel": "交易类型",
     "mapComingSoon": "地图视图即将推出",
@@ -159,7 +160,8 @@
     "dividendFrequency": {
       "monthly": "每月",
       "quarterly": "每季度",
-      "yearly": "每年"
+      "yearly": "每年",
+      "single": "一次性(%)"
     },
     "relatedPropertyTitle": "相关房产",
     "applyButton": "申请投资",

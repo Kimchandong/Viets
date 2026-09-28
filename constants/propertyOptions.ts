@@ -260,11 +260,15 @@ export const RENT_OPTION_GROUPS: PropertyOptionGroup[] = [
 ];
 
 /** 거래 유형에 맞는 그룹 목록. */
-export function optionGroupsFor(listingType: "for_sale" | "for_rent"): PropertyOptionGroup[] {
-  return listingType === "for_sale" ? SALE_OPTION_GROUPS : RENT_OPTION_GROUPS;
+export function optionGroupsFor(listingType: "for_sale" | "for_rent" | "presale"): PropertyOptionGroup[] {
+  // 분양은 "사는 거래"라 매매와 옵션이 같다 — 별도 목록을 만들지 않는다.
+  return listingType === "for_rent" ? RENT_OPTION_GROUPS : SALE_OPTION_GROUPS;
 }
 
 /** 이 저장값이 해당 거래 유형에 속하는가 — 유형을 바꿨을 때 남은 선택을 걷어내는 데 쓴다. */
-export function belongsToListingType(value: string, listingType: "for_sale" | "for_rent"): boolean {
-  return value.startsWith(listingType === "for_sale" ? "sale." : "rent.");
+export function belongsToListingType(
+  value: string,
+  listingType: "for_sale" | "for_rent" | "presale",
+): boolean {
+  return value.startsWith(listingType === "for_rent" ? "rent." : "sale.");
 }

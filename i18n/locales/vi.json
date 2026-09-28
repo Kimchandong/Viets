@@ -64,7 +64,8 @@
     "filterAll": "Tất cả",
     "status": {
       "forSale": "Bán",
-      "forRent": "Cho thuê"
+      "forRent": "Cho thuê",
+      "presale": "Mở bán"
     },
     "statusLabel": "Loại giao dịch",
     "mapComingSoon": "Chế độ bản đồ sắp ra mắt",
@@ -159,7 +160,8 @@
     "dividendFrequency": {
       "monthly": "Hàng tháng",
       "quarterly": "Hàng quý",
-      "yearly": "Hàng năm"
+      "yearly": "Hàng năm",
+      "single": "Một lần (%)"
     },
     "relatedPropertyTitle": "Bất động sản liên quan",
     "applyButton": "Đăng ký đầu tư",

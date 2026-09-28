@@ -83,7 +83,7 @@ type SortOption = "newest" | "priceLow" | "priceHigh" | "areaLarge";
 
 // [STEP: 2026-09-09] 사용자 요청 — 전체/매매/임대, 정렬 칩 목록을 셀렉트(Modal)로
 // 전환하면서 옵션 목록을 invest.tsx의 RISK_OPTIONS와 동일한 패턴으로 뺀다.
-const STATUS_OPTIONS: StatusFilter[] = ["all", "forSale", "forRent"];
+const STATUS_OPTIONS: StatusFilter[] = ["all", "forSale", "forRent", "presale"];
 const SORT_OPTIONS: SortOption[] = ["newest", "priceLow", "priceHigh", "areaLarge"];
 
 function sortProperties(properties: MockProperty[], sort: SortOption): MockProperty[] {
@@ -113,9 +113,10 @@ export default function PropertyScreen() {
   // [2026-09-26] 홈 검색 패널에서 region/listing도 함께 넘어온다.
   //   region  — 베트남 행정구역 이름(constants/vietnamRegions.ts)
   //   listing — forSale | forRent | presale
-  // 'presale'(분양)은 **아직 DB에 값이 없다**(property_listing_type enum은
-  // for_sale/for_rent 둘뿐). 그래서 분양으로 검색하면 결과가 0건이다 — 화면이
-  // 고장 난 것이 아니라 데이터가 아직 없는 것이고, 마이그레이션이 따라와야 한다.
+  //
+  // [2026-09-27] 분양(presale)이 DB에 생겼다(20260929000000_presale_and_single_
+  // dividend.sql). 예전에는 enum에 값이 없어 무조건 0건으로 돌려보냈는데, 이제는
+  // 매매·임대와 똑같이 status 필터 하나로 처리한다.
   const params = useLocalSearchParams<{
     category?: string;
     search?: string;
@@ -129,15 +130,12 @@ export default function PropertyScreen() {
       ? (params.category as PropertyImageCategory)
       : null;
   const initialStatus: StatusFilter =
-    params.listing === "forSale" || params.listing === "forRent"
+    params.listing === "forSale" || params.listing === "forRent" || params.listing === "presale"
       ? (params.listing as StatusFilter)
       : "all";
 
   const [region, setRegion] = useState<string | null>(params.region ?? null);
   const [status, setStatus] = useState<StatusFilter>(initialStatus);
-  // 분양으로 들어온 경우만 따로 들고 있는다 — StatusFilter에는 없는 값이라
-  // status에 넣을 수 없고, 넣으면 매매/임대 셀렉트가 깨진다.
-  const [presaleOnly] = useState(params.listing === "presale");
   // [2026-09-26] 홈 검색의 금액 조건(이 금액 이하). 0/없음이면 제한 없음.
   const [maxPrice] = useState(() => {
     const n = Number(params.maxPrice);
@@ -308,8 +306,7 @@ export default function PropertyScreen() {
         !region ||
         (province.length > 0 && (province.includes(region) || region.includes(province))) ||
         property.location.includes(region);
-      // 분양은 아직 데이터가 없다(위 params 주석 참고) — 고르면 0건이 맞다.
-      const matchesStatus = presaleOnly ? false : status === "all" || property.status === status;
+      const matchesStatus = status === "all" || property.status === status;
       const matchesPrice =
         (!maxPrice || property.priceValueVnd <= maxPrice) &&
         (!minPrice || property.priceValueVnd >= minPrice);
@@ -321,7 +318,7 @@ export default function PropertyScreen() {
       return matchesRegion && matchesStatus && matchesPrice && matchesCategory && matchesSearch;
     });
     return sortProperties(base, sort);
-  }, [properties, region, status, presaleOnly, maxPrice, minPrice, category, normalizedSearch, isSearching, sort]);
+  }, [properties, region, status, maxPrice, minPrice, category, normalizedSearch, isSearching, sort]);
 
   // 광고 자리를 산 매물만, DB가 준 순위 그대로. 광고가 하나도 없을 때만 예전처럼
   // featured 플래그(관리자 수동 큐레이션)를 쓴다.

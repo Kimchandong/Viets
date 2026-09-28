@@ -64,7 +64,8 @@
     "filterAll": "ทั้งหมด",
     "status": {
       "forSale": "ขาย",
-      "forRent": "เช่า"
+      "forRent": "เช่า",
+      "presale": "พรีเซล"
     },
     "statusLabel": "ประเภทธุรกรรม",
     "mapComingSoon": "มุมมองแผนที่ — เร็ว ๆ นี้",
@@ -159,7 +160,8 @@
     "dividendFrequency": {
       "monthly": "รายเดือน",
       "quarterly": "รายไตรมาส",
-      "yearly": "รายปี"
+      "yearly": "รายปี",
+      "single": "ครั้งเดียว (%)"
     },
     "relatedPropertyTitle": "อสังหาริมทรัพย์ที่เกี่ยวข้อง",
     "applyButton": "สมัครลงทุน",

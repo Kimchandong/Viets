@@ -28,7 +28,7 @@ import { MOCK_INVEST_IMAGES, MOCK_PROPERTY_IMAGES, type InvestImageCategory, typ
  * 표시해 실제 거래 가능한 매물/상품으로 오해되지 않도록 한다.
  */
 
-export type MockPropertyStatus = "forSale" | "forRent";
+export type MockPropertyStatus = "forSale" | "forRent" | "presale";
 export type MockPropertyCategory = PropertyImageCategory;
 
 export type MockProperty = {
@@ -401,7 +401,7 @@ export type MockInvestmentProduct = {
   minInvestmentValueVnd: number;
   targetAmountVnd: number;
   raisedAmountVnd: number;
-  dividendFrequency: "monthly" | "quarterly" | "yearly";
+  dividendFrequency: "monthly" | "quarterly" | "yearly" | "single";
   /** [2026-09-16 확정-결정사항 5] 모집 기간(ISO 문자열). undefined면 그 방향으로
    * 제한이 없다 — 시작일이 없으면 이미 시작, 종료일이 없으면 무기한. 기간 열이
    * 생기기 전에 등록된 상품과 mock 상품은 둘 다 없다. */

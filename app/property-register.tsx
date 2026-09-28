@@ -97,7 +97,7 @@ export default function PropertyRegisterScreen() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<DbCategory>("apartment");
-  const [listingType, setListingType] = useState<"for_sale" | "for_rent">("for_sale");
+  const [listingType, setListingType] = useState<"for_sale" | "for_rent" | "presale">("for_sale");
   const [price, setPrice] = useState("");
   const [area, setArea] = useState("");
   const [bedrooms, setBedrooms] = useState("");
@@ -160,7 +160,7 @@ export default function PropertyRegisterScreen() {
   }
 
   /** 거래 유형을 바꾸면 반대 유형의 선택은 의미가 없으므로 걷어낸다(예전 값은 남긴다). */
-  function handleListingTypeChange(next: "for_sale" | "for_rent") {
+  function handleListingTypeChange(next: "for_sale" | "for_rent" | "presale") {
     setListingType(next);
     setAmenities((prev) =>
       prev.filter(
@@ -613,8 +613,11 @@ export default function PropertyRegisterScreen() {
             options={[
               { value: "for_sale", label: t("property.status.forSale") },
               { value: "for_rent", label: t("property.status.forRent") },
+              // [2026-09-27] 분양 추가. 화면 검색에는 예전부터 있었는데 등록에는 없어
+              // 분양 매물을 만들 방법 자체가 없었다 — 그래서 검색 결과가 늘 0건이었다.
+              { value: "presale", label: t("property.status.presale") },
             ]}
-            onChange={(next) => handleListingTypeChange(next as "for_sale" | "for_rent")}
+            onChange={(next) => handleListingTypeChange(next as "for_sale" | "for_rent" | "presale")}
             theme={theme}
           />
 

@@ -64,7 +64,8 @@
     "filterAll": "All",
     "status": {
       "forSale": "For Sale",
-      "forRent": "For Rent"
+      "forRent": "For Rent",
+      "presale": "Presale"
     },
     "statusLabel": "Transaction Type",
     "mapComingSoon": "Map view — coming soon",
@@ -159,7 +160,8 @@
     "dividendFrequency": {
       "monthly": "Monthly",
       "quarterly": "Quarterly",
-      "yearly": "Yearly"
+      "yearly": "Yearly",
+      "single": "Single (%)"
     },
     "relatedPropertyTitle": "Related property",
     "applyButton": "Apply to invest",

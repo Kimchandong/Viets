@@ -52,7 +52,7 @@ type PropertyRow = {
   /** 설명 원문의 언어. NULL이면 모든 언어에서 원문이 보인다. */
   description_lang: string | null;
   category: string;
-  listing_type: "for_sale" | "for_rent";
+  listing_type: "for_sale" | "for_rent" | "presale";
   price: number;
   area: number | null;
   bedrooms: number | null;
@@ -113,12 +113,14 @@ function resolveImages(row: PropertyRow, uiCategory: PropertyImageCategory): Ima
  * 만들고, listing_type='for_rent'면 "/tháng"을 붙인다(mock의 "18,000k/tháng"과 동일). */
 function formatPrice(row: Pick<PropertyRow, "price" | "listing_type">): string {
   const amount = formatVndAmount(row.price);
+  // 분양(presale)은 매매와 같이 **총 대금**이라 월세 표기를 붙이지 않는다.
   return row.listing_type === "for_rent" ? `${amount}/tháng` : amount;
 }
 
 function mapRowToMockProperty(row: PropertyRow): MockProperty {
   const uiCategory: MockPropertyCategory = DB_CATEGORY_TO_UI[row.category] ?? "other";
-  const status: MockPropertyStatus = row.listing_type === "for_rent" ? "forRent" : "forSale";
+  const status: MockPropertyStatus =
+    row.listing_type === "for_rent" ? "forRent" : row.listing_type === "presale" ? "presale" : "forSale";
 
   return {
     id: row.id,
@@ -335,7 +337,7 @@ export type NewPropertyInput = {
   description: string;
   /** DATABASE.md §0 property_category enum 값 그대로(UI 6종이 아니라 DB 8종). */
   category: string;
-  listing_type: "for_sale" | "for_rent";
+  listing_type: "for_sale" | "for_rent" | "presale";
   /** VND 정수. for_rent이면 월 임대료. */
   price: number;
   area: number | null;
@@ -771,7 +773,7 @@ type ManagedPropertyRow = {
   title: string;
   address: string | null;
   price: number;
-  listing_type: "for_sale" | "for_rent";
+  listing_type: "for_sale" | "for_rent" | "presale";
   status: string;
   featured: boolean;
   created_by: string | null;

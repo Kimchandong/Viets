@@ -64,7 +64,8 @@
     "filterAll": "전체",
     "status": {
       "forSale": "매매",
-      "forRent": "임대"
+      "forRent": "임대",
+      "presale": "분양"
     },
     "statusLabel": "거래 유형",
     "mapComingSoon": "지도 보기는 준비 중입니다",
@@ -159,7 +160,8 @@
     "dividendFrequency": {
       "monthly": "월별",
       "quarterly": "분기별",
-      "yearly": "연간"
+      "yearly": "연간",
+      "single": "단일(%)"
     },
     "relatedPropertyTitle": "연계 매물",
     "applyButton": "투자 신청",

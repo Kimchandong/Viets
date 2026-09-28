@@ -231,7 +231,7 @@ export type NewInvestmentProductInput = {
   minimum_investment: number;
   expected_return: number | null;
   investment_period_months: number | null;
-  dividend_frequency: "monthly" | "quarterly" | "yearly";
+  dividend_frequency: "monthly" | "quarterly" | "yearly" | "single";
   risk_level: "low" | "medium" | "high";
   /** [2026-09-11] 지역 — 매물 지역 필터(MOCK_REGIONS)와 같은 값. 고르지 않으면 빈 문자열. */
   region: string;

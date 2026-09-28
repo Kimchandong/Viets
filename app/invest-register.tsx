@@ -58,7 +58,9 @@ const CATEGORIES: InvestImageCategory[] = [
 
 const PRODUCT_TYPES = ["reit_share", "co_investment", "fund", "bond_like"] as const;
 const RISK_LEVELS = ["low", "medium", "high"] as const;
-const DIVIDEND_FREQUENCIES = ["monthly", "quarterly", "yearly"] as const;
+// [2026-09-27] 'single'(단일 %) 추가 — 투자 화면 검색에는 예전부터 있었는데 등록에
+// 없어 그런 상품을 만들 방법 자체가 없었고, 그래서 검색 결과가 늘 0건이었다.
+const DIVIDEND_FREQUENCIES = ["monthly", "quarterly", "yearly", "single"] as const;
 
 type ProductType = (typeof PRODUCT_TYPES)[number];
 type RiskLevel = (typeof RISK_LEVELS)[number];
@@ -581,8 +583,9 @@ export default function InvestRegisterScreen() {
           <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
             {t("investRegister.dividendLabel")}
           </Text>
-          {/* 배당주기는 셋뿐이라 가로를 3등분해 한 줄에 채운다. */}
-          <View style={styles.thirdsRow}>
+          {/* [2026-09-27] 넷으로 늘어 한 줄에 3등분으로는 글자가 짤린다 —
+              줄바꿈을 허용해 남는 항목이 아래로 내려가게 한다. */}
+          <View style={[styles.thirdsRow, styles.wrapRow]}>
             {DIVIDEND_FREQUENCIES.map((item) => {
               const active = dividendFrequency === item;
               return (
@@ -593,6 +596,7 @@ export default function InvestRegisterScreen() {
                   accessibilityState={{ selected: active }}
                   style={({ pressed }) => [
                     styles.thirdsButton,
+                    styles.wrapButton,
                     {
                       borderColor: active ? theme.accent : theme.border,
                       backgroundColor: active ? theme.accent : "transparent",
@@ -929,6 +933,14 @@ const styles = createScaledStyles(() => ({
   thirdsRow: {
     flexDirection: "row",
     gap: spacing.xs,
+  },
+  // 줄바꿈용 — flex:1은 한 줄에 다 밀어 넣으므로 폭을 못 박아 두 줄로 나눈다.
+  wrapRow: {
+    flexWrap: "wrap",
+  },
+  wrapButton: {
+    flexGrow: 0,
+    flexBasis: "48%",
   },
   thirdsButton: {
     flex: 1,

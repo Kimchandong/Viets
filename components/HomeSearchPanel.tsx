@@ -101,8 +101,6 @@ const DIVIDEND_KINDS = ["monthly", "quarterly", "yearly", "single"];
  * 읽었다(= 10,000,000,000 = 10 tỷ). 원화로 읽을 근거가 없다 — 화면 어디에도
  * 원화가 나오지 않는다. 매물 금액도 같은 축을 쓴다.
  */
-const AMOUNT_MAX = 10_000_000_000;
-const AMOUNT_STEP = 100_000_000; // 1억 단위로 끊는다 — 1 VND씩 움직이면 못 맞춘다.
 
 /**
  * [2026-09-26 사용자 지시] 금액 바의 범위를 **거래 종류에 따라** 다르게 둔다.
@@ -115,26 +113,42 @@ const AMOUNT_STEP = 100_000_000; // 1억 단위로 끊는다 — 1 VND씩 움직
  * - 분양: 매매와 같다 — 사는 거래라 자릿수가 같다.
  * - 거래 종류를 아직 안 골랐을 때: 전체를 덮는 0~100억.
  */
-type AmountRange = { min: number; max: number; step: number };
-
-const AMOUNT_RANGES: Record<string, AmountRange> = {
-  // [2026-09-26 사용자 지시] 임대는 0~1억동. 그 위는 바로 고르지 않고 체크로 넘긴다
-  // (바를 100억까지 늘리면 실제 월세 구간이 바 왼쪽 1%에 뭉쳐 손가락으로 못 고른다).
-  forRent: { min: 0, max: 100_000_000, step: 1_000_000 },
-  forSale: { min: 100_000_000, max: 10_000_000_000, step: 100_000_000 },
-  presale: { min: 100_000_000, max: 10_000_000_000, step: 100_000_000 },
+/**
+ * [2026-09-28 사용자 지시] 금액 바는 **눈금 목록**이다. 예전에는 min~max를 일정 간격으로
+ * 나눈 직선 바였는데, 실제 금액은 자릿수가 크게 벌어져 있어 직선으로는 못 쓴다 —
+ * 매매를 0~100억 직선으로 두면 1억짜리와 5억짜리가 바의 왼쪽 몇 px 안에 겹친다.
+ *
+ * 그래서 사용자가 지정한 지점만 눈금으로 두고, 손잡이는 눈금에만 선다.
+ * 눈금 사이 간격은 화면에서 모두 같으므로(등간격) 자릿수가 달라도 고르기 쉽다.
+ */
+type AmountScale = {
+  /** 왼쪽부터 오른쪽까지의 눈금 값(VND). */
+  stops: number[];
+  /** "이 금액 이상"을 뜻하는 체크 기준. 보통 마지막 눈금과 같다. */
+  over: number;
 };
 
-const AMOUNT_RANGE_ANY: AmountRange = { min: 0, max: AMOUNT_MAX, step: AMOUNT_STEP };
+const SALE_SCALE: AmountScale = {
+  // 0 · 10,000k · 100,000k · 1 tỷ · 5 tỷ · 10 tỷ
+  stops: [0, 10_000_000, 100_000_000, 1_000_000_000, 5_000_000_000, 10_000_000_000],
+  over: 10_000_000_000,
+};
 
-/**
- * [2026-09-26 사용자 지시] 임대에서 "1억동 이상"을 고르는 기준선.
- * 바의 오른쪽 끝(1억)과 같은 값이라, 체크하면 그 위쪽 전부를 뜻한다.
- */
-const PRICE_OVER_THRESHOLD = 100_000_000;
+const RENT_SCALE: AmountScale = {
+  // 0 · 1,000k · 10,000k · 100,000k · 1 tỷ
+  stops: [0, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000],
+  over: 1_000_000_000,
+};
 
-/** 투자액 바는 거래 종류와 무관하다 — 기존 범위를 그대로 쓴다. */
-const INVEST_RANGE: AmountRange = { min: 0, max: AMOUNT_MAX, step: AMOUNT_STEP };
+const AMOUNT_SCALES: Record<string, AmountScale> = {
+  forRent: RENT_SCALE,
+  forSale: SALE_SCALE,
+  // 분양은 매매와 같다 — 사는 거래라 자릿수가 같다.
+  presale: SALE_SCALE,
+};
+
+/** 투자액 바 — 거래 종류와 무관하다. 매매와 같은 눈금을 쓴다. */
+const INVEST_SCALE: AmountScale = SALE_SCALE;
 
 /** 지금 열려 있는 팝업. null이면 닫힘. */
 type SheetKind = "region" | "listing" | "price" | "investCategory" | "investAmount" | "dividend";
@@ -156,7 +170,9 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
   const [priceOver, setPriceOver] = useState(false);
   // 지금 거래 종류에 맞는 금액 범위. 종류를 바꾸면 범위 밖으로 나간 값은 버린다
   // (임대 5억을 고른 뒤 매매로 바꾸면 그 값이 새 범위의 최솟값 아래일 수 있다).
-  const priceRange = (listing && AMOUNT_RANGES[listing]) || AMOUNT_RANGE_ANY;
+  // [2026-09-28 사용자 지시] 종류를 골라야 금액을 고를 수 있다 — 종류에 따라 눈금이
+  // 달라지므로, 고르기 전에는 어떤 눈금을 보여 줘야 할지 정할 수 없다.
+  const priceScale = listing ? AMOUNT_SCALES[listing] : null;
 
   // ── 투자 ──────────────────────────────────────────────────────────────
   const [investCategory, setInvestCategory] = useState<string | null>(null);
@@ -178,7 +194,7 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
         ...(propertyCategory ? { category: propertyCategory } : {}),
         // 체크가 켜져 있으면 상한이 아니라 **하한**으로 보낸다.
         ...(priceOver
-          ? { minPrice: String(PRICE_OVER_THRESHOLD) }
+          ? { minPrice: String(priceScale?.over ?? RENT_SCALE.over) }
           : maxPrice > 0
             ? { maxPrice: String(maxPrice) }
             : {}),
@@ -235,12 +251,15 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
             label={t("homeSearch.price")}
             value={
               priceOver
-                ? t("homeSearch.atLeast", { amount: formatVndAmount(PRICE_OVER_THRESHOLD) })
+                ? t("homeSearch.atLeast", { amount: formatVndAmount(priceScale?.over ?? RENT_SCALE.over) })
                 : maxPrice > 0
                   ? t("homeSearch.upTo", { amount: formatVndAmount(maxPrice) })
                   : null
             }
-            placeholder={t("homeSearch.amountAny")}
+            placeholder={
+              priceScale ? t("homeSearch.amountAny") : t("homeSearch.pickKindFirst")
+            }
+            disabled={!priceScale}
             last
             onPress={() => setSheet("price")}
           />
@@ -264,7 +283,10 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
             icon="wallet-outline"
             label={t("homeSearch.amount")}
             value={amount > 0 ? t("homeSearch.upTo", { amount: formatVndAmount(amount) }) : null}
-            placeholder={t("homeSearch.amountAny")}
+            placeholder={
+              investCategory ? t("homeSearch.amountAny") : t("homeSearch.pickKindFirst")
+            }
+            disabled={!investCategory}
             onPress={() => setSheet("investAmount")}
           />
           <FieldButton
@@ -371,11 +393,13 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
       <BottomSheet open={sheet === "price"} title={t("homeSearch.price")} onClose={() => setSheet(null)}>
         {/* 체크가 켜지면 바는 의미가 없다 — 흐리게 하고 조작도 막는다. */}
         <View pointerEvents={priceOver ? "none" : "auto"} style={priceOver ? styles.dimmed : null}>
-          <AmountSlider value={maxPrice} range={priceRange} accent={accent} onChange={setMaxPrice} />
+          {priceScale ? (
+            <AmountSlider value={maxPrice} scale={priceScale} accent={accent} onChange={setMaxPrice} />
+          ) : null}
         </View>
-        {listing === "forRent" ? (
+        {priceScale ? (
           <CheckRow
-            label={t("homeSearch.priceOver")}
+            label={t("homeSearch.priceOver", { amount: formatVndAmount(priceScale.over) })}
             checked={priceOver}
             accent={accent}
             onToggle={() => {
@@ -415,7 +439,7 @@ export function HomeSearchPanel({ tab }: { tab: HomeSearchTab }) {
         title={t("homeSearch.amount")}
         onClose={() => setSheet(null)}
       >
-        <AmountSlider value={amount} range={INVEST_RANGE} accent={accent} onChange={setAmount} />
+        <AmountSlider value={amount} scale={INVEST_SCALE} accent={accent} onChange={setAmount} />
         <SheetConfirm
           label={t("homeSearch.confirm")}
           enabled={amount > 0}
@@ -461,6 +485,7 @@ function FieldButton({
   value,
   placeholder,
   last,
+  disabled,
   onPress,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
@@ -468,6 +493,12 @@ function FieldButton({
   value: string | null;
   placeholder: string;
   last?: boolean;
+  /**
+   * [2026-09-28 사용자 지시] 앞 항목을 고르기 전에는 누를 수 없다.
+   * 눌러 놓고 "종류를 먼저 고르세요"라고 막는 것보다, 아예 흐리게 두어 순서를
+   * 보여 주는 편이 헤매지 않는다.
+   */
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const theme = colors.light;
@@ -475,12 +506,14 @@ function FieldButton({
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
+      accessibilityState={{ disabled: !!disabled }}
       accessibilityLabel={`${label}: ${value ?? placeholder}`}
       style={({ pressed }) => [
         styles.fieldButton,
         !last ? { borderBottomWidth: 1, borderBottomColor: GLASS_BORDER } : null,
-        { opacity: pressed ? opacity.pressed : 1 },
+        { opacity: disabled ? opacity.disabled : pressed ? opacity.pressed : 1 },
         // [2026-09-26 사용자 지시] 여기서는 **고른 값만 보여 준다** — 예전처럼 줄
         // 전체를 적색으로 칠하지 않는다. 이 줄은 "무엇을 골랐나"를 적어 두는 자리이고,
         // 실제로 고르는 행위는 팝업에서 일어난다. 적색은 아래 검색 버튼 한 곳에만 쓴다.
@@ -784,14 +817,21 @@ function SheetChipRow({
  *
  * 팝업 안에 들어가므로 여기서는 테마 색을 쓴다(영상 위가 아니다).
  */
+/**
+ * 금액 바 — 손잡이는 **눈금에만** 선다.
+ *
+ * [2026-09-28 사용자 지시] 눈금 값과 간격은 AmountScale이 정한다. 화면에서 눈금 사이는
+ * 모두 같은 폭이므로, 0 → 10,000k → 1 tỷ처럼 자릿수가 크게 벌어져도 손가락으로 고를 수
+ * 있다(직선 축이면 작은 금액들이 왼쪽 몇 px에 겹친다).
+ */
 function AmountSlider({
   value,
-  range,
+  scale,
   accent,
   onChange,
 }: {
   value: number;
-  range: AmountRange;
+  scale: AmountScale;
   accent: string;
   onChange: (next: number) => void;
 }) {
@@ -800,6 +840,8 @@ function AmountSlider({
   const [trackWidth, setTrackWidth] = useState(0);
   // PanResponder 안에서는 state가 생성 시점 값으로 고정되므로 ref로 읽는다.
   const widthRef = useRef(0);
+  const stopsRef = useRef(scale.stops);
+  stopsRef.current = scale.stops;
 
   function onTrackLayout(e: LayoutChangeEvent) {
     const w = e.nativeEvent.layout.width;
@@ -807,19 +849,14 @@ function AmountSlider({
     setTrackWidth(w);
   }
 
-  // range는 렌더마다 새 객체일 수 있으므로 ref로 읽는다 — PanResponder는 한 번만
-  // 만들어지고 그 안에 잡힌 값은 갱신되지 않는다(trackWidth와 같은 이유).
-  const rangeRef = useRef(range);
-  rangeRef.current = range;
-
+  /** 손가락 위치 → 가장 가까운 눈금 값. */
   function valueFromX(x: number): number {
     const w = widthRef.current;
-    const { min, max, step } = rangeRef.current;
-    if (w <= 0) return min;
+    const stops = stopsRef.current;
+    if (w <= 0 || stops.length === 0) return stops[0] ?? 0;
     const ratio = Math.max(0, Math.min(1, x / w));
-    const raw = min + ratio * (max - min);
-    const snapped = Math.round(raw / step) * step;
-    return Math.max(min, Math.min(max, snapped));
+    const index = Math.round(ratio * (stops.length - 1));
+    return stops[index];
   }
 
   const pan = useMemo(
@@ -835,9 +872,10 @@ function AmountSlider({
     [],
   );
 
-  // 값이 아직 0(미선택)이고 범위의 최솟값이 0보다 크면 손잡이를 맨 왼쪽에 둔다.
-  const span = range.max - range.min;
-  const filled = value > 0 ? Math.max(0, Math.min(1, (value - range.min) / span)) : 0;
+  const lastIndex = Math.max(1, scale.stops.length - 1);
+  // 고른 값이 눈금에 없으면(종류를 바꾼 직후) 맨 왼쪽으로 본다.
+  const index = scale.stops.indexOf(value);
+  const filled = index > 0 ? index / lastIndex : 0;
   const fillWidth = Math.round(trackWidth * filled);
 
   return (
@@ -847,13 +885,26 @@ function AmountSlider({
         {value > 0 ? formatVndAmount(value) : t("homeSearch.amountAny")}
       </Text>
       <View
-        /* [2026-09-26 사용자 지시] 아직 안 고른 구간은 옅은 회색. 예전에는 카드색
-           (#FAFAFA)이라 흰 시트 배경과 거의 구분되지 않아 바가 어디까지인지 보이지 않았다. */
+        /* 아직 안 고른 구간은 옅은 회색 — 흰 시트 배경과 구분되어야 바의 끝이 보인다. */
         style={[styles.sliderTrack, { borderColor: theme.border, backgroundColor: theme.border }]}
         onLayout={onTrackLayout}
         {...pan.panHandlers}
       >
         <View style={[styles.sliderFill, { width: fillWidth, backgroundColor: accent }]} />
+        {/* 눈금 — 바 위에 세로 선으로 찍는다. 아래 숫자와 세로로 맞춰야 어느 숫자가
+            어느 지점인지 알 수 있다. */}
+        {scale.stops.map((stop, i) =>
+          i === 0 || i === lastIndex ? null : (
+            <View
+              key={stop}
+              pointerEvents="none"
+              style={[
+                styles.sliderTick,
+                { left: `${(i / lastIndex) * 100}%`, backgroundColor: theme.background },
+              ]}
+            />
+          ),
+        )}
         <View
           style={[
             styles.sliderThumb,
@@ -865,13 +916,33 @@ function AmountSlider({
           ]}
         />
       </View>
-      <View style={styles.sliderEnds}>
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-          {range.min > 0 ? formatVndAmount(range.min) : "0"}
-        </Text>
-        <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
-          {formatVndAmount(range.max)}
-        </Text>
+      {/* 눈금 숫자 — 각 눈금 아래에 하나씩. 양 끝만 적으면 가운데 눈금이 얼마인지
+          알 수 없다. */}
+      <View style={styles.sliderTickLabels}>
+        {scale.stops.map((stop, i) => (
+          <Text
+            key={stop}
+            style={[
+              textStyles.caption,
+              styles.sliderTickLabel,
+              {
+                // 숫자를 눈금과 세로로 맞추는 계산.
+                //
+                // 눈금 i는 바의 i/(N-1) 지점에 있다. 그런데 칸을 똑같이 N등분하면
+                // 칸 i의 가운데는 (i+0.5)/N이라 눈금과 어긋난다(6칸이면 15px쯤).
+                // 양 끝 칸만 반 폭으로 두면 가운데 칸들의 중심이 정확히 i/(N-1)에
+                // 오고, 첫 칸의 왼쪽 끝과 마지막 칸의 오른쪽 끝이 바의 양 끝과 맞는다.
+                flex: i === 0 || i === lastIndex ? 0.5 : 1,
+                color: i === index ? theme.text : theme.secondaryText,
+                fontWeight: i === index ? typography.weight.bold : typography.weight.regular,
+                textAlign: i === 0 ? "left" : i === lastIndex ? "right" : "center",
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {stop > 0 ? formatVndAmount(stop) : "0"}
+          </Text>
+        ))}
       </View>
     </View>
   );
@@ -1012,6 +1083,24 @@ const styles = createScaledStyles(() => ({
     height: 24,
     borderRadius: radius.full,
     borderWidth: 3,
+  },
+  // 눈금 — 바 위 세로선.
+  sliderTick: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 2,
+    marginLeft: -1,
+    opacity: 0.9,
+  },
+  // 눈금 숫자 줄 — 눈금 개수만큼 균등 분할한다.
+  sliderTickLabels: {
+    flexDirection: "row",
+    marginTop: 4,
+  },
+  sliderTickLabel: {
+    // flex는 위에서 눈금 위치에 맞춰 칸마다 따로 준다.
+    minWidth: 0,
   },
   sliderEnds: {
     flexDirection: "row",

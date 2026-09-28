@@ -1298,8 +1298,9 @@
     "dividendPlaceholder": "Select payout",
     "confirm": "Done",
     "upTo": "Up to {{amount}}",
-    "priceOver": "100M VND and above",
-    "atLeast": "{{amount}} and above"
+    "priceOver": "{{amount}} and above",
+    "atLeast": "{{amount}} and above",
+    "pickKindFirst": "Choose a type first"
   },
   "pushMessage": {
     "title": "Push message",

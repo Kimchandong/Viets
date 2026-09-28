@@ -11,10 +11,12 @@
  * 선택한 언어의 영구 저장도 이번에 함께 붙였다 — persistLanguage()가 AsyncStorage에
  * 쓰고, 다음 실행에서 i18n이 그 값으로 초기화된다.
  */
+import * as Localization from "expo-localization";
 import { create } from "zustand";
 import i18n, {
   detectInitialLanguage,
   persistLanguage,
+  readChosenLanguage,
   SUPPORTED_LANGUAGES,
   SupportedLanguage,
 } from "@/i18n";
@@ -26,10 +28,19 @@ type LocaleState = {
   /** i18n 초기화 완료 후, 실제 적용된 언어로 화면 표기를 맞춘다(app/_layout.tsx에서 호출). */
   syncFromI18n: () => void;
   /**
-   * [2026-09-16 확정-결정사항 9] 로그인 뒤 서버 값을 반영한다(app/_layout.tsx에서 호출).
+   * 로그인 뒤 서버 값을 반영한다(app/_layout.tsx에서 호출).
    *
-   * 지금까지 언어는 기기에만 남아 기기를 바꾸면 초기화됐다. 서버가 비어 있으면
-   * "아직 고르지 않음"이므로 기기 값을 유지하고, 그 값을 서버에 올린다.
+   * [2026-09-16 확정-결정사항 9] 원래는 서버 값이 무조건 이겼다 — 기기를 바꿔도
+   * 계정 언어가 따라오게 하려던 것이다.
+   *
+   * [2026-09-28 사용자 지시] **기기 언어가 우선이다.** 저 규칙 때문에 기기를
+   * 중국어로 두고 앱 데이터를 지운 뒤 다시 접속해도, 로그인하는 순간 계정에 저장된
+   * 한국어로 되돌아갔다 — 기기 설정이 무시되는 것처럼 보인다.
+   *
+   * 지금 규칙:
+   *   1. 이 기기에서 **직접 고른** 언어가 있으면 그것이 이긴다(서버 값보다도).
+   *   2. 고른 적이 없고 기기 언어가 지원 언어면 → 기기 언어를 쓴다.
+   *   3. 고른 적도 없고 기기 언어도 지원하지 않으면 → 그때만 계정 값을 쓴다.
    */
   syncWithServer: () => Promise<void>;
 };
@@ -57,15 +68,35 @@ export const useLocaleStore = create<LocaleState>((set, get) => ({
     }
   },
   syncWithServer: async () => {
-    const { language } = await getMyPreferences();
-    if (language && isSupported(language)) {
-      i18n.changeLanguage(language);
-      set({ language });
-      // 서버 값을 기기에도 남긴다 — 다음 실행은 로그인 전에도 이 언어로 뜬다.
-      void persistLanguage(language);
+    const chosen = await readChosenLanguage();
+    const { language: serverLanguage } = await getMyPreferences();
+
+    // 1. 이 기기에서 직접 고른 값이 있으면 그대로 둔다. 서버가 비어 있으면 올려 둔다.
+    if (chosen) {
+      if (!serverLanguage) void saveMyPreferences({ language: chosen });
       return;
     }
-    // 서버가 비어 있다 = 아직 고르지 않았다. 지금 기기 값을 올려 둔다.
-    void saveMyPreferences({ language: get().language });
+
+    // 2. 기기 언어가 지원 언어면 그것을 쓴다 — 서버 값으로 덮지 않는다.
+    //    여기서 persistLanguage를 부르지 않는 것이 중요하다. 부르면 다음 실행부터
+    //    "직접 고른 값"으로 취급돼, 기기 언어를 바꿔도 앱이 따라가지 않는다.
+    const deviceLanguage = detectInitialLanguage();
+    const deviceLocales = Localization.getLocales();
+    const deviceSupported = deviceLocales.some(
+      (locale) => locale.languageCode != null && isSupported(locale.languageCode),
+    );
+    if (deviceSupported) {
+      if (get().language !== deviceLanguage) {
+        i18n.changeLanguage(deviceLanguage);
+        set({ language: deviceLanguage });
+      }
+      return;
+    }
+
+    // 3. 기기 언어를 지원하지 않을 때만 계정 값을 쓴다.
+    if (serverLanguage && isSupported(serverLanguage)) {
+      i18n.changeLanguage(serverLanguage);
+      set({ language: serverLanguage });
+    }
   },
 }));

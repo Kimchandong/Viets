@@ -1298,8 +1298,9 @@
     "dividendPlaceholder": "배당주기 선택",
     "confirm": "확인",
     "upTo": "{{amount}} 이하",
-    "priceOver": "1억동 이상",
-    "atLeast": "{{amount}} 이상"
+    "priceOver": "{{amount}} 이상",
+    "atLeast": "{{amount}} 이상",
+    "pickKindFirst": "종류를 먼저 선택하세요"
   },
   "pushMessage": {
     "title": "푸시 메시지",

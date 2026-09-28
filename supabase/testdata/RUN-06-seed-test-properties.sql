@@ -15,22 +15,26 @@
 --   · 지역     — 10개 지역에 하나씩. 지역 필터가 한 건씩 걸리는지 바로 보인다
 --   · 거래종류 — 매매 / 임대 / 분양을 번갈아 넣는다
 --   · 금액     — 임대는 300만~1.5억(1억 이상 체크박스까지), 매매·분양은 1.5억~100억
---                슬라이더 양 끝과 중간이 모두 걸리도록 흩어 놓았다
+--   · **다국어** — description_i18n에 6개 언어를 직접 넣는다
+--
+-- [2026-09-28] 다국어를 SQL에 박아 넣은 이유: 앱 등록 경로는 저장 시점에 번역 API를
+-- 부르지만, SQL로 직접 넣은 행은 번역이 비어 있다. 그 상태로는 "중국어 화면인데
+-- 설명만 한국어"가 데이터 문제인지 화면 문제인지 가릴 수 없다. 번역을 넣어 두면
+-- 그래도 한국어가 보일 때 원인이 앱 쪽으로 좁혀진다.
 -- ============================================================================
 
--- 이전 테스트 매물 제거 — 제목이 '[TEST]'로 시작하는 것만 지운다.
 delete from public.properties where title like '[TEST]%';
 
-with cats(cat, ko, ord) as (
+with cats(cat, ord, ko, vi, en, zh, ja, th) as (
   values
-    ('apartment'::public.property_category,  '아파트',     1),
-    ('villa'::public.property_category,      '빌라',       2),
-    ('townhouse'::public.property_category,  '타운하우스', 3),
-    ('land'::public.property_category,       '토지',       4),
-    ('office'::public.property_category,     '오피스',     5),
-    ('retail'::public.property_category,     '상가',       6),
-    ('hotel'::public.property_category,      '호텔',       7),
-    ('industrial'::public.property_category, '공장',       8)
+    ('apartment'::public.property_category,  1, '아파트',     'Căn hộ',           'Apartment', '公寓',     'アパート',     'อพาร์ตเมนต์'),
+    ('villa'::public.property_category,      2, '빌라',       'Biệt thự',         'Villa',     '别墅',     'ヴィラ',       'วิลล่า'),
+    ('townhouse'::public.property_category,  3, '타운하우스', 'Nhà phố',          'Townhouse', '联排别墅', 'タウンハウス', 'ทาวน์เฮาส์'),
+    ('land'::public.property_category,       4, '토지',       'Đất nền',          'Land',      '土地',     '土地',         'ที่ดิน'),
+    ('office'::public.property_category,     5, '오피스',     'Văn phòng',        'Office',    '写字楼',   'オフィス',     'สำนักงาน'),
+    ('retail'::public.property_category,     6, '상가',       'Mặt bằng bán lẻ',  'Retail',    '商铺',     '店舗',         'ร้านค้า'),
+    ('hotel'::public.property_category,      7, '호텔',       'Khách sạn',        'Hotel',     '酒店',     'ホテル',       'โรงแรม'),
+    ('industrial'::public.property_category, 8, '공장',       'Nhà xưởng',        'Factory',   '厂房',     '工場',         'โรงงาน')
 ),
 regions(n, region, lat, lng) as (
   values
@@ -46,10 +50,18 @@ regions(n, region, lat, lng) as (
     (10, 'Bắc Ninh',        21.1861, 106.0763)
 ),
 -- 거래 종류는 1→매매, 2→임대, 3→분양을 번갈아 준다.
-kinds(n, listing) as (
-  select n,
-         (array['for_sale', 'for_rent', 'presale'])[((n - 1) % 3) + 1]::public.property_listing_type
-  from generate_series(1, 10) as n
+kinds(n, listing, ko, vi, en, zh, ja, th) as (
+  values
+    ( 1, 'for_sale'::public.property_listing_type, '매매', 'Bán',      'For sale', '出售', '売買', 'ขาย'),
+    ( 2, 'for_rent'::public.property_listing_type, '임대', 'Cho thuê', 'For rent', '出租', '賃貸', 'เช่า'),
+    ( 3, 'presale'::public.property_listing_type,  '분양', 'Mở bán',   'Presale',  '预售', '分譲', 'พรีเซล'),
+    ( 4, 'for_sale'::public.property_listing_type, '매매', 'Bán',      'For sale', '出售', '売買', 'ขาย'),
+    ( 5, 'for_rent'::public.property_listing_type, '임대', 'Cho thuê', 'For rent', '出租', '賃貸', 'เช่า'),
+    ( 6, 'presale'::public.property_listing_type,  '분양', 'Mở bán',   'Presale',  '预售', '分譲', 'พรีเซล'),
+    ( 7, 'for_sale'::public.property_listing_type, '매매', 'Bán',      'For sale', '出售', '売買', 'ขาย'),
+    ( 8, 'for_rent'::public.property_listing_type, '임대', 'Cho thuê', 'For rent', '出租', '賃貸', 'เช่า'),
+    ( 9, 'presale'::public.property_listing_type,  '분양', 'Mở bán',   'Presale',  '预售', '分譲', 'พรีเซล'),
+    (10, 'for_sale'::public.property_listing_type, '매매', 'Bán',      'For sale', '出售', '売買', 'ขาย')
 ),
 -- 금액은 거래 종류별로 자릿수가 다르다(화면의 금액 슬라이더 범위와 같다).
 prices(n, rent, sale, presale) as (
@@ -60,7 +72,7 @@ prices(n, rent, sale, presale) as (
   from generate_series(1, 10) as n
 )
 insert into public.properties (
-  title, description, description_lang,
+  title, description, description_lang, description_i18n,
   category, listing_type, price, currency,
   area, land_area, building_area, floors, year_built,
   bedrooms, bathrooms, rental_yield, occupancy_rate, rental_income,
@@ -69,11 +81,18 @@ insert into public.properties (
 )
 select
   format('[TEST] %s %s — %s', c.ko, g.n, r.region),
-  format('테스트용 매물입니다. %s / %s / %s. 지역·금액·거래종류 필터를 확인하려고 만든 데이터이며 실제 매물이 아닙니다.',
-         c.ko,
-         case k.listing when 'for_rent' then '임대' when 'presale' then '분양' else '매매' end,
-         r.region),
+  -- 원문(한국어). description_lang이 'ko'이므로 화면은 한국어 사용자에게 이 문장을 쓴다.
+  format('테스트용 매물입니다. %s / %s / %s. 지역·금액·거래종류 필터 확인용 데이터이며 실제 매물이 아닙니다.',
+         c.ko, k.ko, r.region),
   'ko',
+  -- 나머지 5개 언어. 앱은 description_lang 자리에 원문을 얹고 이 맵에서 나머지를 꺼낸다.
+  jsonb_build_object(
+    'vi', format('Đây là bất động sản dùng để thử nghiệm. %s / %s / %s. Dữ liệu tạo ra để kiểm tra bộ lọc khu vực, giá và loại giao dịch, không phải bất động sản thật.', c.vi, k.vi, r.region),
+    'en', format('This is a test listing. %s / %s / %s. Created to verify the region, price and listing-type filters — not a real property.', c.en, k.en, r.region),
+    'zh', format('这是测试房源。%s / %s / %s。用于验证地区、价格和交易类型筛选的数据，并非真实房源。', c.zh, k.zh, r.region),
+    'ja', format('テスト用の物件です。%s / %s / %s。地域・価格・取引種別フィルターの確認用データであり、実際の物件ではありません。', c.ja, k.ja, r.region),
+    'th', format('นี่คือรายการทดสอบ %s / %s / %s ข้อมูลนี้สร้างขึ้นเพื่อตรวจสอบตัวกรองพื้นที่ ราคา และประเภทการซื้อขาย ไม่ใช่ทรัพย์จริง', c.th, k.th, r.region)
+  ),
   c.cat,
   k.listing,
   case k.listing
@@ -122,8 +141,8 @@ select
   count(*) filter (where listing_type = 'for_rent') as 임대,
   count(*) filter (where listing_type = 'presale')  as 분양,
   count(distinct region)                            as 지역수,
-  to_char(min(price), 'FM999,999,999,999')          as 최저가,
-  to_char(max(price), 'FM999,999,999,999')          as 최고가
+  count(*) filter (where description_i18n ? 'zh')   as 중국어,
+  count(*) filter (where description_i18n ? 'ja')   as 일본어
 from public.properties
 where title like '[TEST]%'
 group by category

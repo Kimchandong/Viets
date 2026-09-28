@@ -1298,8 +1298,9 @@
     "dividendPlaceholder": "配当周期を選択",
     "confirm": "決定",
     "upTo": "{{amount}} 以下",
-    "priceOver": "1億ドン以上",
-    "atLeast": "{{amount}} 以上"
+    "priceOver": "{{amount}} 以上",
+    "atLeast": "{{amount}} 以上",
+    "pickKindFirst": "先に種類を選んでください"
   },
   "pushMessage": {
     "title": "プッシュメッセージ",

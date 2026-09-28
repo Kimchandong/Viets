@@ -75,18 +75,27 @@ export async function persistLanguage(language: SupportedLanguage): Promise<void
   }
 }
 
-/** 저장된 선택 → 디바이스 언어 → en 순으로 실제 사용할 언어를 정한다. */
-export async function resolveInitialLanguage(): Promise<SupportedLanguage> {
+/**
+ * 이 기기에서 사용자가 **직접 고른** 언어. 고른 적이 없으면 null.
+ *
+ * [2026-09-28 사용자 지시] 이 값이 있고 없고가 "기기 언어를 따를지"를 가른다.
+ * 그래서 이 키에는 **사용자가 MY에서 고른 값만** 쓴다 — 서버에서 읽어 온 값을 여기에
+ * 쓰면 다음 실행부터 "직접 고른 것"으로 둔갑해 기기 언어를 영영 무시하게 된다.
+ */
+export async function readChosenLanguage(): Promise<SupportedLanguage | null> {
   try {
     const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored && isSupportedLanguage(stored)) {
-      return stored;
-    }
+    if (stored && isSupportedLanguage(stored)) return stored;
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown-error";
     console.warn("[i18n] 저장된 언어 읽기 실패:", message);
   }
-  return detectInitialLanguage();
+  return null;
+}
+
+/** 직접 고른 값 → 디바이스 언어 → en 순으로 실제 사용할 언어를 정한다. */
+export async function resolveInitialLanguage(): Promise<SupportedLanguage> {
+  return (await readChosenLanguage()) ?? detectInitialLanguage();
 }
 
 let initPromise: Promise<typeof i18n> | null = null;

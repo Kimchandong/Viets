@@ -1298,8 +1298,9 @@
     "dividendPlaceholder": "Chọn kỳ chia cổ tức",
     "confirm": "Xong",
     "upTo": "Tối đa {{amount}}",
-    "priceOver": "Từ 100 triệu VND",
-    "atLeast": "Từ {{amount}}"
+    "priceOver": "Từ {{amount}} trở lên",
+    "atLeast": "Từ {{amount}}",
+    "pickKindFirst": "Hãy chọn loại trước"
   },
   "pushMessage": {
     "title": "Tin đẩy",

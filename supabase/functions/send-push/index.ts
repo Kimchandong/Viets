@@ -197,6 +197,28 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // [2026-09-28] 예외 셋: **투자 상담 알림은 상담을 건 고객이 보낸다.**
+  //
+  // 앞의 둘과 사정이 같다 — 보내는 쪽이 고객이고 받는 쪽이 관리자·상담 직원이라
+  // "호출자는 관리자" 규칙으로는 막힌다. 여기서 막히면 화면은 조용히 지나가고
+  // (푸시 실패는 무시한다) 담당자는 문의가 온 줄 모른다.
+  //
+  // dedupe_key가 investment_conversations.id이므로 그 대화의 customer_id와
+  // 호출자를 맞춰 본다. 남의 대화 id를 넣어도 통과하지 못한다.
+  if (!allowed && body.kind === "investment_chat") {
+    const { data: userData } = await userClient.auth.getUser();
+    const callerId = userData.user?.id ?? null;
+    if (callerId) {
+      const { data: conversation } = await admin
+        .from("investment_conversations")
+        .select("id")
+        .eq("id", body.dedupeKey)
+        .eq("customer_id", callerId)
+        .maybeSingle();
+      allowed = !!conversation;
+    }
+  }
+
   if (!allowed) {
     return json({ error: "forbidden" }, 403);
   }

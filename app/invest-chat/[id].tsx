@@ -38,7 +38,7 @@ import {
   sendInvestMessage,
   subscribeToInvestMessages,
 } from "@/services/investChat";
-import { markNotificationsReadByLink } from "@/services/notifications";
+import { markNotificationsReadByLink, sendNotificationPush } from "@/services/notifications";
 import { useLocaleStore } from "@/store/useLocaleStore";
 import { localizeUnits } from "@/utils/format";
 
@@ -187,6 +187,17 @@ export default function InvestChatScreen() {
 
     if (ok) {
       setDraft("");
+      // 담당자에게 푸시를 보낸다. DB는 밖으로 발송할 수 없어(트리거는 수신함에
+      // 알림을 남길 뿐이다) 보낸 쪽이 엣지 함수를 한 번 부르는 구조다 —
+      // 승인·반려 화면들과 같은 방식.
+      //
+      // dedupeKey는 트리거가 넣은 값(대화방 id)과 같아야 한다. 안 읽은 알림이
+      // 이미 있으면 서버가 조용히 넘어가므로 연달아 보내도 푸시가 쌓이지 않는다.
+      //
+      // 담당자가 쓴 답장에는 부르지 않는다 — 그 알림은 애초에 생기지 않는다.
+      if (!isAgentView) {
+        void sendNotificationPush("investment_chat", conversationId);
+      }
     } else {
       // 실패해도 입력한 글은 지우지 않는다 — 다시 눌러 재시도할 수 있게.
       showToast(t("chat.sendFailedToast"));
@@ -213,7 +224,13 @@ export default function InvestChatScreen() {
       isAgentView ? "agent" : "customer",
     );
     setSending(false);
-    if (!ok) showToast(t("chat.sendFailedToast"));
+    if (!ok) {
+      showToast(t("chat.sendFailedToast"));
+      return;
+    }
+    if (!isAgentView) {
+      void sendNotificationPush("investment_chat", conversationId);
+    }
   }
 
   const headerTitle = t("investChat.headerTitle");

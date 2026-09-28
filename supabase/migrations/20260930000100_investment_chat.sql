@@ -178,12 +178,24 @@ begin
     select up.user_id from public.user_permissions up
      where up.permission_type = 'chat_support' and up.enabled
   loop
+    -- 이미 **읽은** 알림은 치운다. notify_user는 dedupe_key가 겹치면 아무것도
+    -- 하지 않으므로(on conflict do nothing), 이 줄이 없으면 한 대화에서 알림이
+    -- 딱 한 번만 간다 — 담당자가 첫 문의를 읽고 나면 고객이 다시 말을 걸어도
+    -- 영영 조용하다. 그렇다고 메시지마다 남기면 수신함이 채팅 로그가 된다.
+    --
+    -- 그래서 "안 읽은 알림이 있으면 더 쌓지 않고, 읽었으면 다시 알린다" —
+    -- 채팅 앱이 실제로 하는 동작이고, 수신함에는 대화당 최대 한 줄만 남는다.
+    delete from public.user_notifications
+     where user_id = v_staff
+       and kind = 'investment_chat'
+       and dedupe_key = new.conversation_id::text
+       and read_at is not null;
+
     perform public.notify_user(
       v_staff,
       'investment_chat',
       jsonb_build_object('title', coalesce(v_title, '')),
       '/invest-chat/' || new.conversation_id::text,
-      -- 대화 한 건당 한 번씩만 — 같은 대화에서 말이 이어져도 알림이 쌓이지 않는다.
       new.conversation_id::text
     );
   end loop;

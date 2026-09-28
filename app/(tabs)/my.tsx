@@ -1558,17 +1558,22 @@ const styles = createScaledStyles(() => ({
   balanceAvailable: {
     fontSize: scaleFont(24, FONT_FACTOR.TITLE),
     fontWeight: typography.weight.bold,
+    // [2026-09-28] flexShrink가 없으면 금액이 길 때(VND는 자릿수가 많다) 24px
+    // 숫자가 줄 너비를 다 먹고 우측 USD 버튼을 화면 밖으로 밀어낸다 — 줄이
+    // 우측 정렬이라 넘치는 쪽이 왼쪽이 아니라 버튼 쪽이다.
+    flexShrink: 1,
   },
-  // 24px의 60% — 굵기는 상속되지 않도록 명시적으로 되돌린다.
+  // [2026-09-28 사용자 지시] 12px — 굵기는 상속되지 않도록 명시적으로 되돌린다.
   balanceUnit: {
-    fontSize: scaleFont(14, FONT_FACTOR.BODY),
+    fontSize: scaleFont(12, FONT_FACTOR.BODY),
     fontWeight: typography.weight.regular,
   },
   balanceTotal: {
     fontSize: scaleFont(12),
   },
+  // [2026-09-28 사용자 지시] 14px.
   balanceEmail: {
-    fontSize: scaleFont(12),
+    fontSize: scaleFont(14),
   },
   signOutButton: {
     alignSelf: "flex-end",

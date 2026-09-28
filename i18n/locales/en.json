@@ -1330,5 +1330,9 @@
     "missingTopics": "Choose at least one interest type",
     "openLink": "Open link",
     "noPermission": "You don't have permission"
+  },
+  "units": {
+    "perMonth": "mo",
+    "perYear": "yr"
   }
 }

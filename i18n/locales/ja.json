@@ -1330,5 +1330,9 @@
     "missingTopics": "関心の種類を1つ以上選んでください",
     "openLink": "リンクを開く",
     "noPermission": "アクセス権限がありません"
+  },
+  "units": {
+    "perMonth": "月",
+    "perYear": "年"
   }
 }

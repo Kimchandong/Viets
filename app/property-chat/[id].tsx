@@ -44,6 +44,7 @@ import {
 } from "@/services/chat";
 import { markRead } from "@/services/notifications";
 import { useLocaleStore } from "@/store/useLocaleStore";
+import { localizeUnits } from "@/utils/format";
 
 /**
  * [STEP: 2026-09-09] 사용자 요청 — 부동산상세 "문의하기" 클릭 시 매물 등록자와의
@@ -364,7 +365,7 @@ export default function PropertyChatScreen() {
             <Text style={[textStyles.caption, { color: theme.secondaryText, marginTop: spacing.xs }]}>
               {property.location}
             </Text>
-            <Text style={[textStyles.price, { color: theme.accent, marginTop: spacing.xs }]}>{property.price}</Text>
+            <Text style={[textStyles.price, { color: theme.accent, marginTop: spacing.xs }]}>{localizeUnits(property.price, t)}</Text>
             {property.options.length > 0 ? (
               <View style={styles.optionsRow}>
                 {property.options.map((option) => (

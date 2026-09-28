@@ -4,7 +4,7 @@ import { Animated, Image, StyleProp, StyleSheet, Text, View, ViewStyle } from "r
 import { Card } from "@/components/Card";
 import { createScaledStyles, colors, layout, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { MockInvestmentProduct } from "@/constants/mockData";
-import { buildGradientSteps, splitYieldText } from "@/utils/format";
+import { buildGradientSteps, localizeUnits, splitYieldText } from "@/utils/format";
 import { usePulsingColor } from "@/hooks/usePulsingColor";
 
 export type InvestmentCardProps = {
@@ -41,7 +41,7 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
   const pulsingAccent = usePulsingColor(theme.accent, theme.accentLight);
   // 사용자 요청(2026-09-09): "9.2%/năm" 중 "/năm" 단위 접미사는 bold를 없애고
   // 숫자보다 작게 표시한다 — splitYieldText로 숫자(rate)와 접미사(suffix)를 분리.
-  const expectedReturnParts = splitYieldText(product.expectedReturn);
+  const expectedReturnParts = splitYieldText(localizeUnits(product.expectedReturn, t));
 
   return (
     <Card onPress={onPress} style={[styles.card, variant === "featured" && styles.cardFeatured, style]}>
@@ -110,10 +110,10 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
               매물 카드·상세가 이미 쓰는 방식과 같게 맞춘다. fontSize를 따로 주지
               않으므로 바깥 metricValue 크기를 그대로 상속한다. */}
           <Text style={[styles.metricValue, { color: theme.text }]} numberOfLines={2}>
-            {splitYieldText(product.minInvestment).rate}
-            {splitYieldText(product.minInvestment).suffix ? (
+            {splitYieldText(localizeUnits(product.minInvestment, t)).rate}
+            {splitYieldText(localizeUnits(product.minInvestment, t)).suffix ? (
               <Text style={{ fontWeight: typography.weight.regular }}>
-                {splitYieldText(product.minInvestment).suffix}
+                {splitYieldText(localizeUnits(product.minInvestment, t)).suffix}
               </Text>
             ) : null}
           </Text>
@@ -123,7 +123,7 @@ export function InvestmentCard({ product, onPress, variant = "list", style }: In
             {t("invest.periodLabel")}
           </Text>
           <Text style={[styles.metricValue, { color: theme.text }]} numberOfLines={2}>
-            {product.period}
+            {localizeUnits(product.period, t)}
           </Text>
         </View>
       </View>

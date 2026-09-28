@@ -14,6 +14,7 @@ import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typog
 import type { AdPlacement } from "@/services/ads";
 import { listManagedProperties, type ManagedProperty } from "@/services/properties";
 import { canRegisterProperty } from "@/services/roles";
+import { localizeUnits } from "@/utils/format";
 
 /**
  * [2026-09-12 사용자 지시] 유료 노출광고 — 광고를 한곳에서 관리하는 화면.
@@ -219,7 +220,7 @@ export default function AdManageScreen() {
                   style={[textStyles.caption, { color: theme.accent, fontWeight: typography.weight.medium }]}
                   numberOfLines={1}
                 >
-                  {property.price}
+                  {localizeUnits(property.price, t)}
                 </Text>
               </View>
             </Pressable>

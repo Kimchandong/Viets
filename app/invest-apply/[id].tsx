@@ -32,7 +32,7 @@ import { type MockInvestmentProduct } from "@/constants/mockData";
 import { createInvestmentOrder, getInvestmentProductById } from "@/services/investments";
 import { VIETNAM_BANKS } from "@/constants/vietnamBanks";
 import { getSession, onAuthStateChange } from "@/services/auth";
-import { formatVndAmount, splitYieldText } from "@/utils/format";
+import { formatVndAmount, localizeUnits, splitYieldText } from "@/utils/format";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 // [STEP: 2026-09-09-8] 사용자 요청 — 신청 상품 요약 카드 안에 매물/투자 상세페이지와
@@ -223,7 +223,7 @@ export default function InvestApplyScreen() {
 
   const minAmountVnd = product.minInvestmentValueVnd;
   const amountNumber = Number(amount || "0");
-  const expectedReturnParts = splitYieldText(product.expectedReturn);
+  const expectedReturnParts = splitYieldText(localizeUnits(product.expectedReturn, t));
 
   const presetAmounts = [minAmountVnd, minAmountVnd * 2, minAmountVnd * 5];
 
@@ -414,8 +414,8 @@ export default function InvestApplyScreen() {
               ) : null}
             </Text>
             <View style={styles.summaryMetricsGrid}>
-              <MetricTile label={t("invest.minInvestmentLabel")} value={product.minInvestment} theme={theme} />
-              <MetricTile label={t("invest.periodLabel")} value={product.period} theme={theme} />
+              <MetricTile label={t("invest.minInvestmentLabel")} value={localizeUnits(product.minInvestment, t)} theme={theme} />
+              <MetricTile label={t("invest.periodLabel")} value={localizeUnits(product.period, t)} theme={theme} />
               <MetricTile
                 label={t("investDetail.targetAmountLabel")}
                 value={formatVndAmount(product.targetAmountVnd)}

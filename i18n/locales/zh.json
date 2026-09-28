@@ -1330,5 +1330,9 @@
     "missingTopics": "请至少选择一种关注类型",
     "openLink": "打开链接",
     "noPermission": "没有访问权限"
+  },
+  "units": {
+    "perMonth": "月",
+    "perYear": "年"
   }
 }

@@ -26,6 +26,21 @@ function detachUnitK(rate: string, suffix: string): { rate: string; suffix: stri
   return rate.endsWith("k") ? { rate: rate.slice(0, -1), suffix: ` k${suffix}` } : { rate, suffix };
 }
 
+/**
+ * [2026-09-28 사용자 지시] 금액 뒤에 붙는 **기간 단위**를 보는 사람의 언어로.
+ *
+ * 금액 자릿수 표기(tỷ / k)는 베트남 현지 기준으로 그대로 둔다(사용자 결정) — tỷ는
+ * 10^9, 억은 10^8이라 단어만 바꾸면 금액이 10배 틀린다. 기간 단위는 자릿수와 무관해
+ * 안전하게 번역할 수 있다.
+ *
+ * 왜 서비스(fetch) 쪽이 아니라 화면에서 바꾸는가: "18,000k/tháng" 같은 문자열은
+ * DB 조회 시점에 만들어지거나(services) 아예 코드에 박혀 있다(mockData). 조회 시점에
+ * 번역하면 언어를 바꾼 뒤 이미 떠 있는 목록은 옛 단위 그대로 남는다.
+ */
+export function localizeUnits(text: string, translate: (key: string) => string): string {
+  return text.replace(/tháng/g, translate("units.perMonth")).replace(/năm/g, translate("units.perYear"));
+}
+
 export function splitYieldText(text: string): { rate: string; suffix: string } {
   const slashIndex = text.indexOf("/");
   if (slashIndex !== -1) {

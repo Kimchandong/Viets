@@ -23,7 +23,7 @@ import {
   spacing,
   textStyles,
 } from "@/constants/theme";
-import { formatVndAmount } from "@/utils/format";
+import { formatVndAmount, localizeUnits } from "@/utils/format";
 import {
   clearRecentQueries,
   loadRecentQueries,
@@ -505,7 +505,7 @@ export default function AiScreen() {
                         </Text>
                       </View>
                       <Text style={[textStyles.price, { color: theme.accent }]} numberOfLines={1}>
-                        {product.expectedReturn}
+                        {localizeUnits(product.expectedReturn, t)}
                       </Text>
                       <Ionicons name="chevron-forward" size={16} color={theme.secondaryText} />
                     </Pressable>

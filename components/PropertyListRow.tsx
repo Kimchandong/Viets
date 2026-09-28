@@ -4,7 +4,7 @@ import { Image, Pressable, Text, View } from "react-native";
 
 import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
-import { splitYieldText } from "@/utils/format";
+import { localizeUnits, splitYieldText } from "@/utils/format";
 
 /**
  * [2026-09-11 사용자 지시] 매물 섹션 가로형 행 — 홈("최신매물")과 부동산 탭
@@ -50,7 +50,7 @@ export function PropertyListRow({
   const { t } = useTranslation();
 
   const thumbnail = property.images?.[0];
-  const priceParts = splitYieldText(property.price);
+  const priceParts = splitYieldText(localizeUnits(property.price, t));
   // [2026-09-12 사용자 지시] 배지를 **추천 캐러셀 카드(PropertyCard)와 같은 모양**으로
   // 통일한다 — 흰 배경 + 본문 글자색. 같은 화면에 같은 임대/매매 라벨이 파랑·주황과
   // 흰색 두 가지로 보이던 것을 없앤다. 거래유형은 배지 색이 아니라 글자가 말해 준다.

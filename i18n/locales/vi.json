@@ -1330,5 +1330,9 @@
     "missingTopics": "Chọn ít nhất một loại quan tâm",
     "openLink": "Mở liên kết",
     "noPermission": "Bạn không có quyền truy cập"
+  },
+  "units": {
+    "perMonth": "tháng",
+    "perYear": "năm"
   }
 }

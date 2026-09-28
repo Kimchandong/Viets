@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
-import { buildGradientSteps, formatVndAmount, localizedText, splitYieldText } from "@/utils/format";
+import { buildGradientSteps, formatVndAmount, localizeUnits, splitYieldText } from "@/utils/format";
 import { EmptyState } from "@/components/EmptyState";
 import { BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
@@ -40,6 +40,7 @@ import { getSession, onAuthStateChange } from "@/services/auth";
 import { getInvestmentProductById } from "@/services/investments";
 import { canManageInvestment } from "@/services/roles";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useLocalizedContent } from "@/hooks/useLocalizedContent";
 
 // [FULL-DEV] Invest 상세 화면 — app/(tabs)/invest.tsx(리스트/카드)와 app/(tabs)/home.tsx
 // (추천 투자상품)의 카드 press가 여기로 연결된다. app/property-detail/[id].tsx와 동일한
@@ -57,12 +58,21 @@ export default function InvestDetailScreen() {
   // [STEP: 2026-09-09-24] 사용자 요청 — "모집중" 배지 배경을 accent/accentLight
   // 사이에서 깜박이게(InvestmentCard.tsx와 동일 로직).
   const pulsingAccent = usePulsingColor(theme.accent, theme.accentLight);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   // [STEP 06] Mock(findMockInvestmentProduct) → 실제 investment_products 테이블.
   const [product, setProduct] = useState<MockInvestmentProduct | undefined>(undefined);
+
+  /**
+   * [2026-09-28 사용자 지시] 상품 설명도 보는 사람의 언어로 — 매물 상세와 같은 규칙.
+   * 저장된 번역이 없는 상품(기능 생기기 전 등록·SQL 직접 입력)은 볼 때 번역한다.
+   */
+  const { text: descriptionText } = useLocalizedContent(
+    product?.description ?? {},
+    `investment:${id}`,
+  );
   const [productLoading, setProductLoading] = useState(true);
 
   useEffect(() => {
@@ -327,10 +337,10 @@ export default function InvestDetailScreen() {
               사이즈)을 여기(상세 페이지 hero 숫자)에도 그대로 적용해 앱 전체에서
               예상수익률 표기 방식을 통일한다. */}
           <Text style={[textStyles.heroValue, { color: theme.accent }]}>
-            {splitYieldText(product.expectedReturn).rate}
-            {splitYieldText(product.expectedReturn).suffix ? (
+            {splitYieldText(localizeUnits(product.expectedReturn, t)).rate}
+            {splitYieldText(localizeUnits(product.expectedReturn, t)).suffix ? (
               <Text style={[textStyles.body, { fontWeight: typography.weight.regular }]}>
-                {splitYieldText(product.expectedReturn).suffix}
+                {splitYieldText(localizeUnits(product.expectedReturn, t)).suffix}
               </Text>
             ) : null}
           </Text>
@@ -361,8 +371,8 @@ export default function InvestDetailScreen() {
           </View>
 
           <View style={styles.metricsGrid}>
-            <MetricTile label={t("invest.minInvestmentLabel")} value={product.minInvestment} theme={theme} />
-            <MetricTile label={t("invest.periodLabel")} value={product.period} theme={theme} />
+            <MetricTile label={t("invest.minInvestmentLabel")} value={localizeUnits(product.minInvestment, t)} theme={theme} />
+            <MetricTile label={t("invest.periodLabel")} value={localizeUnits(product.period, t)} theme={theme} />
             <MetricTile
               label={t("investDetail.targetAmountLabel")}
               value={formatVndAmount(product.targetAmountVnd)}
@@ -379,9 +389,11 @@ export default function InvestDetailScreen() {
           <View style={styles.section}>
             <SectionHeader title={t("propertyDetail.descriptionTitle")} />
             {/* [STEP: 2026-09-09-8] 사용자 요청 — 상세설명 글자크기 한 치수 축소
-                (body -> bodySmall). 다국어는 localizedText가 이미 지원한다. */}
+                (body -> bodySmall).
+                [2026-09-28 사용자 지시] 보는 사람의 언어로 — 저장된 번역이 없으면
+                useLocalizedContent가 볼 때 번역한다(매물 상세와 같은 규칙). */}
             <Text style={[textStyles.bodySmall, { color: theme.text }]}>
-              {localizedText(product.description, i18n.language)}
+              {descriptionText}
             </Text>
           </View>
 

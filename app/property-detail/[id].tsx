@@ -41,7 +41,7 @@ import {
   optionGroupsFor,
   PROPERTY_OPTION_VALUE_PATTERN,
 } from "@/constants/propertyOptions";
-import { formatVndAmount, localizedText, splitYieldText } from "@/utils/format";
+import { formatVndAmount, localizeUnits, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { getPropertyById } from "@/services/properties";
 import { reportProperty } from "@/services/reports";
@@ -50,6 +50,7 @@ import {
 } from "@/services/investments";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useLocalizedContent } from "@/hooks/useLocalizedContent";
 
 // [FULL-DEV] Property 상세 화면 — app/(tabs)/property.tsx(리스트/카드)와 app/(tabs)/home.tsx
 // (추천 매물)의 카드 press가 여기로 연결된다. 기존 app/(tabs)/property.tsx 파일을 지우거나
@@ -145,6 +146,17 @@ export default function PropertyDetailScreen() {
   const [reportVisible, setReportVisible] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  /**
+   * [2026-09-28 사용자 지시] 상세설명을 보는 사람의 언어로.
+   *
+   * 훅이므로 property가 아직 안 왔을 때도 호출돼야 한다(조건부 호출 금지) — 빈 맵을
+   * 넘기면 번역할 원문이 없어 그대로 빈 문자열을 돌려준다.
+   */
+  const { text: descriptionText } = useLocalizedContent(
+    property?.description ?? {},
+    `property:${id}`,
+  );
 
   const isFavorite = useFavoritesStore((state) => (property ? state.isFavorite("property", property.id) : false));
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
@@ -400,12 +412,12 @@ export default function PropertyDetailScreen() {
               { color: theme.accent, fontSize: textStyles.sectionTitle.fontSize },
             ]}
           >
-            {splitYieldText(property.price).rate}
+            {splitYieldText(localizeUnits(property.price, t)).rate}
             {/* [2026-09-11 사용자 지시] 단위 크기를 금액과 같게 — fontSize를 지정하지
                 않으면 바깥 heroValue 크기를 그대로 상속한다. 굵기만 다르게 둔다. */}
-            {splitYieldText(property.price).suffix ? (
+            {splitYieldText(localizeUnits(property.price, t)).suffix ? (
               <Text style={{ fontWeight: typography.weight.regular }}>
-                {splitYieldText(property.price).suffix}
+                {splitYieldText(localizeUnits(property.price, t)).suffix}
               </Text>
             ) : null}
           </Text>
@@ -443,7 +455,7 @@ export default function PropertyDetailScreen() {
                 </Text>
                 {property.yieldRate.includes("/") ? (
                   <Text style={[styles.yieldUnit, { color: theme.warning }]} numberOfLines={1}>
-                    {property.yieldRate.split("/")[1]}
+                    {localizeUnits(property.yieldRate.split("/")[1], t)}
                   </Text>
                 ) : null}
               </View>
@@ -481,9 +493,12 @@ export default function PropertyDetailScreen() {
           <View style={styles.section}>
             <SectionHeader title={t("propertyDetail.descriptionTitle")} />
             {/* [STEP: 2026-09-09-8] 사용자 요청 — 상세설명 글자크기 한 치수 축소
-                (body -> bodySmall). 다국어는 localizedText가 이미 지원한다. */}
+                (body -> bodySmall).
+                [2026-09-28 사용자 지시] 입력 언어와 무관하게 **보는 사람의 언어**로
+                보여 준다. 저장된 번역이 없는 글(기능 생기기 전 등록·SQL 직접 입력·
+                등록 당시 번역 실패)은 useLocalizedContent가 볼 때 번역한다. */}
             <Text style={[textStyles.bodySmall, { color: theme.text }]}>
-              {localizedText(property.description, i18n.language)}
+              {descriptionText}
             </Text>
           </View>
 

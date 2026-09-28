@@ -5,7 +5,7 @@ import { Image, StyleProp, Text, View, ViewStyle } from "react-native";
 import { Card } from "@/components/Card";
 import { createScaledStyles, colors, layout, radius, spacing, textStyles, typography, scaleFont, textColor } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
-import { splitYieldText } from "@/utils/format";
+import { localizeUnits, splitYieldText } from "@/utils/format";
 
 export type PropertyCardProps = {
   property: MockProperty;
@@ -34,7 +34,7 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
   // [STEP: 2026-09-09] 사용자 요청 — "4.2 tỷ"/"18,000k/tháng"처럼 가격 뒤에 붙는
   // 단위(tỷ, tháng)는 bold를 없앤다 — 숫자만 bold 유지, 단위는 regular weight로
   // 중첩 Text 렌더링(색상은 부모를 그대로 상속).
-  const priceParts = splitYieldText(property.price);
+  const priceParts = splitYieldText(localizeUnits(property.price, t));
 
   return (
     <Card

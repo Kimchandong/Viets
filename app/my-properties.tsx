@@ -23,6 +23,7 @@ import {
   type ManagedPropertyTab,
 } from "@/services/properties";
 import { canRegisterProperty } from "@/services/roles";
+import { localizeUnits } from "@/utils/format";
 
 /**
  * [2026-09-11 사용자 지시] 등록 매물 목록 — MY > 매물 정보.
@@ -370,7 +371,7 @@ export default function MyPropertiesScreen() {
                       style={[textStyles.bodySmall, { color: theme.accent, fontWeight: typography.weight.medium }]}
                       numberOfLines={1}
                     >
-                      {property.price}
+                      {localizeUnits(property.price, t)}
                     </Text>
                   </View>
 

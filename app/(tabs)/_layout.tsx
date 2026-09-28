@@ -124,7 +124,25 @@ export default function TabsLayout() {
           title: t("tabs.property"),
           tabBarIcon: renderIcon("property"),
         }}
-        listeners={{ tabPress: () => bumpTab("property") }}
+        // [2026-09-28 사용자 지시] 탭을 누르면 **조건 없이 처음 화면**이어야 한다.
+        //
+        // 다시 마운트하는 것만으로는 부족했다 — 홈에서 "아파트"를 눌러 들어오면
+        // 이 탭의 경로에 category=apartment가 남고, 나중에 하단 탭으로 다시 들어와도
+        // 그 값이 그대로 읽혀 카테고리가 골라진 채로 열린다(제목도 "아파트 · 매물").
+        // 그래서 마운트 전에 경로 파라미터부터 지운다.
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.setParams({
+              category: undefined,
+              search: undefined,
+              region: undefined,
+              listing: undefined,
+              maxPrice: undefined,
+              minPrice: undefined,
+            });
+            bumpTab("property");
+          },
+        })}
       />
       <Tabs.Screen
         name="invest"
@@ -132,7 +150,17 @@ export default function TabsLayout() {
           title: t("tabs.invest"),
           tabBarIcon: renderIcon("invest"),
         }}
-        listeners={{ tabPress: () => bumpTab("invest") }}
+        // property와 같은 이유 — 홈에서 들고 온 조건을 지우고 다시 마운트한다.
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.setParams({
+              category: undefined,
+              maxAmount: undefined,
+              dividend: undefined,
+            });
+            bumpTab("invest");
+          },
+        })}
       />
       <Tabs.Screen
         name="ai"

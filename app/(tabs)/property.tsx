@@ -141,9 +141,14 @@ function PropertyScreen() {
    *
    * region만으로는 판단할 수 없다 — 처음 들어온 상태와 "전체지역"을 고른 상태가
    * 둘 다 null이기 때문이다. 그래서 "지역 바를 한 번이라도 눌렀는가"를 따로 둔다.
-   * 홈 검색에서 지역을 들고 들어온 경우(params.region)는 이미 고른 것으로 본다.
+   *
+   * 홈에서 조건을 들고 들어온 경우(지역 또는 카테고리)는 이미 고른 것으로 본다 —
+   * 카테고리가 골라진 채로 열렸는데 카테고리 줄이 없으면 무엇이 걸려 있는지 보이지도,
+   * 풀 수도 없다.
    */
-  const [regionChosen, setRegionChosen] = useState(params.region != null);
+  const [regionChosen, setRegionChosen] = useState(
+    params.region != null || params.category != null,
+  );
 
   function chooseRegion(next: string | null) {
     setRegion(next);

@@ -45,6 +45,7 @@ import {
   getCurrentLocation,
   type UserLocation,
 } from "@/services/location";
+import { useTabRefreshKey } from "@/store/useTabRefreshStore";
 
 // [STEP: 카테고리 재구성] 홈 화면 카테고리 아이콘 탭 시 이 화면으로 category 쿼리
 // param을 전달한다(app/(tabs)/home.tsx 참고) — 이 화면에서는 그 값을 서브카테고리
@@ -101,7 +102,7 @@ function sortProperties(properties: MockProperty[], sort: SortOption): MockPrope
   }
 }
 
-export default function PropertyScreen() {
+function PropertyScreen() {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지, 비로그인 공개 화면)
   const theme = colors.light;
   const { t } = useTranslation();
@@ -135,6 +136,19 @@ export default function PropertyScreen() {
       : "all";
 
   const [region, setRegion] = useState<string | null>(params.region ?? null);
+  /**
+   * [2026-09-28 사용자 지시] **지역을 고르기 전에는 하위 카테고리를 띄우지 않는다.**
+   *
+   * region만으로는 판단할 수 없다 — 처음 들어온 상태와 "전체지역"을 고른 상태가
+   * 둘 다 null이기 때문이다. 그래서 "지역 바를 한 번이라도 눌렀는가"를 따로 둔다.
+   * 홈 검색에서 지역을 들고 들어온 경우(params.region)는 이미 고른 것으로 본다.
+   */
+  const [regionChosen, setRegionChosen] = useState(params.region != null);
+
+  function chooseRegion(next: string | null) {
+    setRegion(next);
+    setRegionChosen(true);
+  }
   const [status, setStatus] = useState<StatusFilter>(initialStatus);
   // [2026-09-26] 홈 검색의 금액 조건(이 금액 이하). 0/없음이면 제한 없음.
   const [maxPrice] = useState(() => {
@@ -489,14 +503,22 @@ export default function PropertyScreen() {
             영향 없음. 활성(선택) 상태는 사각형 배경(#444444)으로 채운다(squared +
             activeColor). 바로 아래 카테고리 메뉴와의 상하 간격도 좀 더 좁혔다
             (regionBar의 음수 marginBottom, content의 기본 gap을 상쇄). */}
-        <View style={[styles.regionBar, { borderColor: theme.border }]}>
+        <View
+          style={[
+            styles.regionBar,
+            // 음수 marginBottom은 **바로 아래 카테고리 줄과의 간격을 좁히려는 것**이다.
+            // 카테고리 줄이 없을 때도 걸어 두면 그 아래 필터 줄이 12px 끌려 올라온다.
+            regionChosen && styles.regionBarTight,
+            { borderColor: theme.border },
+          ]}
+        >
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.regionChipRow}>
             {/* [STEP: 2026-09-09-6] 사용자 요청 — 지역탭은 배경색 없이(투명),
                 비활성은 회색 글자, 활성(선택)은 검은색 글자로만 구분한다. */}
             <Chip
               label={t("property.allRegions")}
               active={region === null}
-              onPress={() => setRegion(null)}
+              onPress={() => chooseRegion(null)}
               theme={theme}
               bordered={false}
               squared
@@ -517,7 +539,7 @@ export default function PropertyScreen() {
                 key={item.name}
                 label={item.name}
                 active={region === item.name}
-                onPress={() => setRegion(item.name)}
+                onPress={() => chooseRegion(item.name)}
                 theme={theme}
                 bordered={false}
                 squared
@@ -533,25 +555,30 @@ export default function PropertyScreen() {
           </ScrollView>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-          <Chip
-            label={t("property.filterAll")}
-            active={category === null}
-            onPress={() => setCategory(null)}
-            theme={theme}
-            tone="accent"
-          />
-          {PROPERTY_CATEGORIES.map((item) => (
+        {/* [2026-09-28 사용자 지시] 지역을 고른 뒤에만 나온다. 조건부로 **그리지
+            않는** 것이 핵심 — 숨기기만 하면 content의 세로 gap이 그대로 남아
+            빈 줄처럼 보인다. */}
+        {regionChosen ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
             <Chip
-              key={item}
-              label={t(`categories.property.${item}`)}
-              active={category === item}
-              onPress={() => setCategory(item)}
+              label={t("property.filterAll")}
+              active={category === null}
+              onPress={() => setCategory(null)}
               theme={theme}
               tone="accent"
             />
-          ))}
-        </ScrollView>
+            {PROPERTY_CATEGORIES.map((item) => (
+              <Chip
+                key={item}
+                label={t(`categories.property.${item}`)}
+                active={category === item}
+                onPress={() => setCategory(item)}
+                theme={theme}
+                tone="accent"
+              />
+            ))}
+          </ScrollView>
+        ) : null}
 
         {/* [STEP: 2026-09-09] 사용자 요청 — 전체/매매/임대, 정렬(최신순 등) 칩 목록을
             각각 셀렉트(버튼+Modal, invest.tsx의 위험도 셀렉트와 동일 패턴)로 바꾸고,
@@ -853,6 +880,9 @@ const styles = createScaledStyles(() => ({
     // 위/아래로 나눈다.
     paddingTop: 0,
     paddingBottom: spacing.xs,
+  },
+  // 카테고리 줄이 붙어 있을 때만 쓰는 간격 보정.
+  regionBarTight: {
     marginBottom: -(spacing.md - spacing.xs),
   },
   regionChipRow: {
@@ -960,3 +990,15 @@ const styles = createScaledStyles(() => ({
     gap: 0,
   },
 }));
+
+/**
+ * [2026-09-28 사용자 지시] 하단 탭을 누르면 이 화면은 **처음부터 다시 시작한다.**
+ *
+ * key가 바뀌면 React가 PropertyScreen를 버리고 새로 만든다 — 필터·펼친 항목·스크롤이
+ * 초기값으로 돌아가고, 마운트 시 조회가 다시 돌아 새 정보가 바로 보인다.
+ * 껍데기를 따로 둔 이유: 자기 자신의 key는 자기가 바꿀 수 없다.
+ */
+export default function PropertyScreenTab() {
+  const refreshKey = useTabRefreshKey("property");
+  return <PropertyScreen key={refreshKey} />;
+}

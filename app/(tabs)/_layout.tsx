@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing, textStyles } from "@/constants/theme";
+import { useTabRefreshStore } from "@/store/useTabRefreshStore";
 
 // Bottom Navigation: HOME / PROPERTY / INVEST / AI / MY (마스터 프롬프트 3번,
 // ARCHITECTURE.md §2.3). STEP 4-9B: 아이콘 크기(TAB_ICON_SIZE 고정)와 라벨 타이포그래피
@@ -49,6 +50,12 @@ const ICONS_ACTIVE: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export default function TabsLayout() {
+  /**
+   * [2026-09-28 사용자 지시] 탭을 누르면 그 화면을 처음부터 다시 그린다.
+   * 자세한 이유는 store/useTabRefreshStore.ts 주석 참고.
+   */
+  const bumpTab = useTabRefreshStore((state) => state.bump);
+
   const { t } = useTranslation();
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
   const theme = colors.light;
@@ -109,6 +116,7 @@ export default function TabsLayout() {
           title: t("tabs.home"),
           tabBarIcon: renderIcon("home"),
         }}
+        listeners={{ tabPress: () => bumpTab("home") }}
       />
       <Tabs.Screen
         name="property"
@@ -116,6 +124,7 @@ export default function TabsLayout() {
           title: t("tabs.property"),
           tabBarIcon: renderIcon("property"),
         }}
+        listeners={{ tabPress: () => bumpTab("property") }}
       />
       <Tabs.Screen
         name="invest"
@@ -123,6 +132,7 @@ export default function TabsLayout() {
           title: t("tabs.invest"),
           tabBarIcon: renderIcon("invest"),
         }}
+        listeners={{ tabPress: () => bumpTab("invest") }}
       />
       <Tabs.Screen
         name="ai"
@@ -130,6 +140,9 @@ export default function TabsLayout() {
           title: t("tabs.ai"),
           tabBarIcon: renderIcon("ai"),
         }}
+        // [2026-09-28 사용자 지시] AI만 예외 — 탭을 다시 눌러도 초기화하지 않는다.
+        // 다른 탭은 목록이라 다시 그려도 잃을 게 없지만, 여기는 **대화**다.
+        // 이미 AI 탭에 있을 때 실수로 한 번 더 누르면 주고받던 내용이 사라진다.
       />
       <Tabs.Screen
         name="my"
@@ -137,6 +150,7 @@ export default function TabsLayout() {
           title: t("tabs.my"),
           tabBarIcon: renderIcon("my"),
         }}
+        listeners={{ tabPress: () => bumpTab("my") }}
       />
 
       {/* [2026-09-11 사용자 지시] 게시판 화면에서도 하단 메뉴가 보여야 한다.

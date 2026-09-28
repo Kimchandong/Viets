@@ -52,6 +52,7 @@ import { useLocaleStore } from "@/store/useLocaleStore";
 // [STEP: 2026-09-09] 사용자 요청 — MY > 통화 설정에서 베트남/달러를 실제로 선택할 수
 // 있게 한다. useLocaleStore(언어)와 동일한 패턴의 새 store.
 import { SUPPORTED_CURRENCIES, useCurrencyStore } from "@/store/useCurrencyStore";
+import { useTabRefreshKey } from "@/store/useTabRefreshStore";
 
 // STEP 4-9B — My(계정) UI 레이아웃 기반.
 // 로그인 상태는 STEP 4-8에서 만든 services/auth.ts의 getSession/onAuthStateChange를
@@ -93,7 +94,7 @@ const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
   th: "ภาษาไทย",
 };
 
-export default function MyScreen() {
+function MyScreen() {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
   const theme = colors.light;
   const { t } = useTranslation();
@@ -1579,3 +1580,15 @@ const styles = createScaledStyles(() => ({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
 }));
+
+/**
+ * [2026-09-28 사용자 지시] 하단 탭을 누르면 이 화면은 **처음부터 다시 시작한다.**
+ *
+ * key가 바뀌면 React가 MyScreen를 버리고 새로 만든다 — 필터·펼친 항목·스크롤이
+ * 초기값으로 돌아가고, 마운트 시 조회가 다시 돌아 새 정보가 바로 보인다.
+ * 껍데기를 따로 둔 이유: 자기 자신의 key는 자기가 바꿀 수 없다.
+ */
+export default function MyScreenTab() {
+  const refreshKey = useTabRefreshKey("my");
+  return <MyScreen key={refreshKey} />;
+}

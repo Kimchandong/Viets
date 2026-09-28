@@ -351,7 +351,7 @@
     "myProperties": "物件情報",
     "managePayments": "精算管理",
     "agencyTitle": "不動産事業者",
-    "agencyApply": "登録権限を申請",
+    "agencyApply": "不動産業者 登録申請",
     "agencyStatusRow": "申請状況",
     "agencyStatus": {
       "pending": "審査中",
@@ -360,7 +360,7 @@
       "suspended": "利用停止"
     },
     "refundNotice": "申請された広告費 {{amount}} は返金予定です",
-    "manageRegisterPermission": "登録権限アカウント管理",
+    "manageRegisterPermission": "スタッフ管理",
     "adSettlement": "広告費精算",
     "manageBoards": "掲示板管理",
     "avatar": {
@@ -617,7 +617,7 @@
     "errorEndBeforeStart": "終了日が開始日より前です。"
   },
   "adminPermissions": {
-    "title": "アカウント権限管理",
+    "title": "スタッフ管理",
     "search": "検索",
     "searchPlaceholder": "メールまたは名前で検索",
     "searchHelper": "2文字以上入力してください。最大20件まで表示されます。",
@@ -630,14 +630,18 @@
     "revoked": "権限を取り消しました",
     "updateFailed": "権限の変更に失敗しました。",
     "noPermissionTitle": "アクセス権限がありません",
-    "noPermissionDescription": "アカウント権限管理は管理者のみ利用できます。",
+    "noPermissionDescription": "スタッフ権限は管理者のみ付与できます。",
     "permission": {
       "investment_manage": "投資商品管理",
-      "property_manage": "物件管理"
+      "property_manage": "物件管理",
+      "chat_support": "相談担当",
+      "agency_manage": "仲介業者管理"
     },
     "permissionDescription": {
       "investment_manage": "投資商品の登録・編集・募集終了",
-      "property_manage": "物件の登録・編集・非表示"
+      "property_manage": "物件の登録・編集・非表示",
+      "chat_support": "物件・投資の相談一覧の閲覧と返信",
+      "agency_manage": "仲介業者の登録申請の審査・承認"
     }
   },
   "translationUsage": {
@@ -889,7 +893,8 @@
     "needsReply": "返信が必要",
     "imageMessage": "(写真)",
     "noPermissionTitle": "権限がありません",
-    "noPermissionDescription": "物件管理権限のあるアカウントのみ相談一覧を閲覧できます。"
+    "noPermissionDescription": "管理者・相談担当者・承認済みの仲介会社のみが相談リストを見られます。",
+    "emptyInvestDescription": "お客様が投資商品から相談を始めると、ここに表示されます。"
   },
   "myProperties": {
     "title": "登録物件",
@@ -1239,6 +1244,10 @@
       "admin_message": {
         "title": "お知らせ",
         "body": "{{title}}"
+      },
+      "investment_chat": {
+        "title": "新しい投資相談",
+        "body": "{{title}} の相談が届きました。"
       }
     }
   },
@@ -1335,5 +1344,21 @@
   "units": {
     "perMonth": "月",
     "perYear": "年"
+  },
+  "investChat": {
+    "headerTitle": "投資相談",
+    "consultButton": "相談する",
+    "waitingForAgent": "担当者が確認しています。返信が届くと通知でお知らせします。",
+    "emptyHint": "ご質問を書き込んでいただければ担当者がお答えします。",
+    "startFailed": "相談を開始できませんでした。しばらくしてからもう一度お試しください。"
+  },
+  "chatConsults": {
+    "title": "チャット相談情報",
+    "tabProperty": "物件",
+    "tabInvest": "投資",
+    "newReply": "新しい返信",
+    "emptyTitle": "相談履歴がありません",
+    "emptyPropertyDescription": "物件詳細から問い合わせると、ここに表示されます。",
+    "emptyInvestDescription": "投資商品の詳細から相談すると、ここに表示されます。"
   }
 }

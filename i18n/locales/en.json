@@ -351,7 +351,7 @@
     "myProperties": "Listings",
     "managePayments": "Settlements",
     "agencyTitle": "Agency",
-    "agencyApply": "Request listing access",
+    "agencyApply": "Apply as a property agency",
     "agencyStatusRow": "Application status",
     "agencyStatus": {
       "pending": "Under review",
@@ -360,7 +360,7 @@
       "suspended": "Suspended"
     },
     "refundNotice": "Your advertising payment of {{amount}} is scheduled for refund",
-    "manageRegisterPermission": "Listing permissions",
+    "manageRegisterPermission": "Staff management",
     "adSettlement": "Ad payment",
     "manageBoards": "Manage boards",
     "avatar": {
@@ -617,7 +617,7 @@
     "errorEndBeforeStart": "The end date is before the start date."
   },
   "adminPermissions": {
-    "title": "Account permissions",
+    "title": "Staff management",
     "search": "Search",
     "searchPlaceholder": "Search by email or name",
     "searchHelper": "Enter at least 2 characters. Up to 20 results.",
@@ -630,14 +630,18 @@
     "revoked": "Permission revoked",
     "updateFailed": "Could not update the permission.",
     "noPermissionTitle": "No access",
-    "noPermissionDescription": "Only admins can manage account permissions.",
+    "noPermissionDescription": "Only administrators can grant staff access.",
     "permission": {
       "investment_manage": "Manage products",
-      "property_manage": "Manage properties"
+      "property_manage": "Manage properties",
+      "chat_support": "Consultation support",
+      "agency_manage": "Agency management"
     },
     "permissionDescription": {
       "investment_manage": "Create, edit and close investment products",
-      "property_manage": "Create, edit and hide property listings"
+      "property_manage": "Create, edit and hide property listings",
+      "chat_support": "View and reply to property and investment consultations",
+      "agency_manage": "Review and approve agency applications"
     }
   },
   "translationUsage": {
@@ -889,7 +893,8 @@
     "needsReply": "Reply needed",
     "imageMessage": "(photo)",
     "noPermissionTitle": "No permission",
-    "noPermissionDescription": "Only accounts with property management permission can view inquiries."
+    "noPermissionDescription": "Only admins, support staff, and approved agencies can see the inquiry list.",
+    "emptyInvestDescription": "Inquiries customers start on investment products appear here."
   },
   "myProperties": {
     "title": "My listings",
@@ -1239,6 +1244,10 @@
       "admin_message": {
         "title": "Announcement",
         "body": "{{title}}"
+      },
+      "investment_chat": {
+        "title": "New investment inquiry",
+        "body": "A new inquiry arrived for {{title}}."
       }
     }
   },
@@ -1335,5 +1344,21 @@
   "units": {
     "perMonth": "mo",
     "perYear": "yr"
+  },
+  "investChat": {
+    "headerTitle": "Investment inquiry",
+    "consultButton": "Ask a question",
+    "waitingForAgent": "Our team is reviewing your message. You'll get a notification when they reply.",
+    "emptyHint": "Leave your question here and our team will get back to you.",
+    "startFailed": "Couldn't start the inquiry. Please try again in a moment."
+  },
+  "chatConsults": {
+    "title": "My inquiries",
+    "tabProperty": "Properties",
+    "tabInvest": "Investments",
+    "newReply": "New reply",
+    "emptyTitle": "No inquiries yet",
+    "emptyPropertyDescription": "Inquiries you start from a property page appear here.",
+    "emptyInvestDescription": "Inquiries you start from an investment page appear here."
   }
 }

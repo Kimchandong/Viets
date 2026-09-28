@@ -29,7 +29,13 @@ import {
  * 노출되지 않는다). 검색어 2자 이상 조건과 관리자 검사 모두 서버가 수행한다.
  */
 
-const MANAGED_PERMISSIONS: UserPermissionType[] = ["investment_manage", "property_manage"];
+const MANAGED_PERMISSIONS: UserPermissionType[] = [
+  "investment_manage",
+  "property_manage",
+  // [2026-09-28 사용자 지시] 직원 권한 — 이메일로 계정을 찾아 여기서 켠다.
+  "chat_support",
+  "agency_manage",
+];
 
 export default function AdminPermissionsScreen() {
   const theme = colors.light;

@@ -351,7 +351,7 @@
     "myProperties": "ข้อมูลประกาศ",
     "managePayments": "จัดการการชำระบัญชี",
     "agencyTitle": "ผู้ประกอบการอสังหาฯ",
-    "agencyApply": "ขอสิทธิ์ลงประกาศ",
+    "agencyApply": "สมัครเป็นเอเจนซีอสังหาฯ",
     "agencyStatusRow": "สถานะคำขอ",
     "agencyStatus": {
       "pending": "กำลังตรวจสอบ",
@@ -360,7 +360,7 @@
       "suspended": "ระงับการใช้งาน"
     },
     "refundNotice": "ค่าโฆษณา {{amount}} ที่คุณยื่นไว้จะได้รับคืน",
-    "manageRegisterPermission": "จัดการสิทธิ์ลงประกาศ",
+    "manageRegisterPermission": "จัดการพนักงาน",
     "adSettlement": "ชำระค่าโฆษณา",
     "manageBoards": "จัดการกระดาน",
     "avatar": {
@@ -617,7 +617,7 @@
     "errorEndBeforeStart": "วันสิ้นสุดอยู่ก่อนวันเริ่มต้น"
   },
   "adminPermissions": {
-    "title": "จัดการสิทธิ์บัญชี",
+    "title": "จัดการพนักงาน",
     "search": "ค้นหา",
     "searchPlaceholder": "ค้นหาด้วยอีเมลหรือชื่อ",
     "searchHelper": "กรอกอย่างน้อย 2 ตัวอักษร แสดงผลสูงสุด 20 รายการ",
@@ -630,14 +630,18 @@
     "revoked": "เพิกถอนสิทธิ์แล้ว",
     "updateFailed": "ไม่สามารถเปลี่ยนสิทธิ์ได้",
     "noPermissionTitle": "ไม่มีสิทธิ์เข้าถึง",
-    "noPermissionDescription": "เฉพาะผู้ดูแลระบบเท่านั้นที่จัดการสิทธิ์บัญชีได้",
+    "noPermissionDescription": "เฉพาะผู้ดูแลระบบเท่านั้นที่ให้สิทธิ์พนักงานได้",
     "permission": {
       "investment_manage": "จัดการผลิตภัณฑ์",
-      "property_manage": "จัดการอสังหาริมทรัพย์"
+      "property_manage": "จัดการอสังหาริมทรัพย์",
+      "chat_support": "ดูแลการปรึกษา",
+      "agency_manage": "จัดการเอเจนซี"
     },
     "permissionDescription": {
       "investment_manage": "ลงทะเบียน แก้ไข และปิดผลิตภัณฑ์ลงทุน",
-      "property_manage": "ลงประกาศ แก้ไข และซ่อนประกาศ"
+      "property_manage": "ลงประกาศ แก้ไข และซ่อนประกาศ",
+      "chat_support": "ดูและตอบการปรึกษาอสังหาฯ และการลงทุน",
+      "agency_manage": "ตรวจสอบและอนุมัติการสมัครเอเจนซี"
     }
   },
   "translationUsage": {
@@ -889,7 +893,8 @@
     "needsReply": "ต้องตอบกลับ",
     "imageMessage": "(รูปภาพ)",
     "noPermissionTitle": "ไม่มีสิทธิ์",
-    "noPermissionDescription": "เฉพาะบัญชีที่มีสิทธิ์จัดการอสังหาริมทรัพย์เท่านั้นที่ดูรายการสอบถามได้"
+    "noPermissionDescription": "เฉพาะผู้ดูแล พนักงานให้คำปรึกษา และบริษัทที่ได้รับอนุมัติเท่านั้นที่ดูรายการปรึกษาได้",
+    "emptyInvestDescription": "เมื่อลูกค้าเริ่มปรึกษาจากสินค้าการลงทุน จะแสดงที่นี่"
   },
   "myProperties": {
     "title": "ประกาศของฉัน",
@@ -1239,6 +1244,10 @@
       "admin_message": {
         "title": "ประกาศ",
         "body": "{{title}}"
+      },
+      "investment_chat": {
+        "title": "คำปรึกษาการลงทุนใหม่",
+        "body": "มีคำขอปรึกษาใหม่สำหรับ {{title}}"
       }
     }
   },
@@ -1335,5 +1344,21 @@
   "units": {
     "perMonth": "เดือน",
     "perYear": "ปี"
+  },
+  "investChat": {
+    "headerTitle": "ปรึกษาการลงทุน",
+    "consultButton": "ปรึกษา",
+    "waitingForAgent": "ทีมงานกำลังตรวจสอบข้อความของคุณ และจะแจ้งเตือนเมื่อมีการตอบกลับ",
+    "emptyHint": "ฝากคำถามไว้ได้เลย ทีมงานจะตอบกลับให้คุณ",
+    "startFailed": "เริ่มการปรึกษาไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+  },
+  "chatConsults": {
+    "title": "ข้อมูลการปรึกษา",
+    "tabProperty": "ประกาศ",
+    "tabInvest": "การลงทุน",
+    "newReply": "คำตอบใหม่",
+    "emptyTitle": "ยังไม่มีประวัติการปรึกษา",
+    "emptyPropertyDescription": "การปรึกษาที่คุณเริ่มจากหน้ารายละเอียดประกาศจะแสดงที่นี่",
+    "emptyInvestDescription": "การปรึกษาที่คุณเริ่มจากหน้าสินค้าการลงทุนจะแสดงที่นี่"
   }
 }

@@ -26,6 +26,7 @@ import { Header } from "@/components/Header";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { Loading } from "@/components/Loading";
 import { LoginPromptModal } from "@/components/LoginPromptModal";
+import { getOrCreateInvestConversation } from "@/services/investChat";
 import { SectionHeader } from "@/components/SectionHeader";
 import { usePulsingColor } from "@/hooks/usePulsingColor";
 import { Toast } from "@/components/Toast";
@@ -123,6 +124,8 @@ export default function InvestDetailScreen() {
   // [STEP: 2026-09-09] 사용자 요청 — "투자 신청"을 비로그인 상태에서 누르면
   // 전체 화면 전환 대신 팝업으로 Google/Apple 로그인을 바로 띄운다.
   const [loginPromptVisible, setLoginPromptVisible] = useState(false);
+  // [2026-09-28] 상담 버튼 — 대화방을 확보하는 동안 두 번 눌리지 않게 잠근다.
+  const [consultLoading, setConsultLoading] = useState(false);
 
   const isFavorite = useFavoritesStore((state) => (product ? state.isFavorite("investment_product", product.id) : false));
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
@@ -158,6 +161,33 @@ export default function InvestDetailScreen() {
   function showToast(message: string) {
     setToast(message);
     setTimeout(() => setToast(null), 1600);
+  }
+
+  /**
+   * [2026-09-28 사용자 지시] 상담 시작.
+   *
+   * 대화방을 **여기서** 먼저 만들고 그 id로 이동한다 — 채팅 화면이 언제나
+   * 대화방 id 하나만 받게 하려는 것이다(푸시 링크도 같은 모양이다).
+   * 상품 id를 넘겨 화면 안에서 만들게 하면, 같은 화면이 "상품 id일 때"와
+   * "대화방 id일 때"를 다시 가려야 한다.
+   */
+  async function handleConsult() {
+    if (!session) {
+      setLoginPromptVisible(true);
+      return;
+    }
+    if (!product || consultLoading) return;
+
+    setConsultLoading(true);
+    const conversationId = await getOrCreateInvestConversation(product.id);
+    setConsultLoading(false);
+
+    if (!conversationId) {
+      setToast(t("investChat.startFailed"));
+      setTimeout(() => setToast(null), 2000);
+      return;
+    }
+    router.push({ pathname: "/invest-chat/[id]", params: { id: conversationId } });
   }
 
   function handleFavoritePress() {
@@ -466,22 +496,34 @@ export default function InvestDetailScreen() {
             (목록에서만 가리고 상세는 열어 둔다는 결정). 그래서 버튼만 잠근다.
             서버에도 같은 제한이 필요한지는 4단계에서 "신청까지만 테스트"로 정해
             이번 빌드 범위 밖이다 — 지금은 화면 가드다. */}
-        <Button
-          title={
-            product.status === "fundraising"
-              ? t("investDetail.applyButton")
-              : t("investDetail.applyClosed")
-          }
-          disabled={product.status !== "fundraising"}
-          onPress={() => {
-            if (!session) {
-              setLoginPromptVisible(true);
-              return;
+        {/* [2026-09-28 사용자 지시] 상담 버튼 — 관리자/직원과 1:1로 이야기한다.
+            신청 버튼과 나란히 두되, 신청이 주 행동이므로 상담은 외곽선 버튼이다.
+            모집이 끝나도 상담은 열어 둔다 — 끝난 상품을 두고 묻는 일이 더 많다. */}
+        <View style={styles.footerRow}>
+          <Button
+            title={t("investChat.consultButton")}
+            variant="outline"
+            loading={consultLoading}
+            onPress={handleConsult}
+            style={styles.footerHalf}
+          />
+          <Button
+            title={
+              product.status === "fundraising"
+                ? t("investDetail.applyButton")
+                : t("investDetail.applyClosed")
             }
-            router.push({ pathname: "/invest-apply/[id]", params: { id: product.id } });
-          }}
-          style={styles.footerButton}
-        />
+            disabled={product.status !== "fundraising"}
+            onPress={() => {
+              if (!session) {
+                setLoginPromptVisible(true);
+                return;
+              }
+              router.push({ pathname: "/invest-apply/[id]", params: { id: product.id } });
+            }}
+            style={styles.footerHalf}
+          />
+        </View>
       </View>
 
       <LoginPromptModal visible={loginPromptVisible} onClose={() => setLoginPromptVisible(false)} />
@@ -680,5 +722,13 @@ const styles = createScaledStyles(() => ({
   },
   footerButton: {
     width: "100%",
+  },
+  footerRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  // 두 버튼을 같은 너비로. flex:1이면 글자 길이가 다른 언어에서도 반반이 유지된다.
+  footerHalf: {
+    flex: 1,
   },
 }));

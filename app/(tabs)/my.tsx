@@ -52,6 +52,7 @@ import { useLocaleStore } from "@/store/useLocaleStore";
 // [STEP: 2026-09-09] 사용자 요청 — MY > 통화 설정에서 베트남/달러를 실제로 선택할 수
 // 있게 한다. useLocaleStore(언어)와 동일한 패턴의 새 store.
 import { SUPPORTED_CURRENCIES, useCurrencyStore } from "@/store/useCurrencyStore";
+import { getVndPerUsd, hydrateExchangeRate, refreshExchangeRate } from "@/services/exchangeRate";
 import { useTabRefreshKey } from "@/store/useTabRefreshStore";
 
 // STEP 4-9B — My(계정) UI 레이아웃 기반.
@@ -105,6 +106,35 @@ function MyScreen() {
   // [STEP: 2026-09-09] 사용자 요청 — 통화(베트남/달러) 선택
   const currency = useCurrencyStore((state) => state.currency);
   const setCurrency = useCurrencyStore((state) => state.setCurrency);
+
+  /**
+   * [2026-09-28 사용자 지시] 실시간 환율. 못 받아 오면 null이고, 그때는 통화 버튼을
+   * 감춘다 — 틀린 환율로 바꿔 보여 주느니 VND만 보여 주는 편이 낫다.
+   */
+  const [fxRate, setFxRate] = useState<number | null>(getVndPerUsd());
+  useEffect(() => {
+    let active = true;
+    void hydrateExchangeRate()
+      .then(() => refreshExchangeRate())
+      .then((rate) => {
+        if (active) setFxRate(rate);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  /** 잔액 표기 — 고른 통화로 바꿔서 찍는다. */
+  function formatBalance(amountVnd: number): string {
+    if (currency === "USD" && fxRate !== null) {
+      // 달러는 센트까지 의미가 있다. 동은 소수점이 없다.
+      return (amountVnd / fxRate).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+    return Math.round(amountVnd).toLocaleString("en-US");
+  }
 
   const [session, setSession] = useState<Session | null>(null);
   // [2026-09-11] 아이디/비번 로그인 — 소셜 로그인만 있으면 테스트 계정
@@ -628,12 +658,33 @@ function MyScreen() {
 
                     등록자에게 "쓴 돈"을 크게 보여 주면 정작 알아야 할 "언제 소진되는가"가
                     보이지 않는다. 반대로 관리자에게 남의 잔액은 의미가 없다. */}
-                <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
-                  {Math.round(isAdminUser ? adBilling.adSpent : adBilling.available).toLocaleString("en-US")}
-                  <Text style={styles.balanceUnit}> VND</Text>
-                </Text>
+                {/* [2026-09-28 사용자 지시] 금액 우측에 통화 버튼. 누르면 그때 환율로
+                    바뀐다. 이 버튼은 MY > 설정의 통화 선택과 같은 값을 쓴다 — 두 자리가
+                    따로 놀면 "어느 쪽이 진짜인가"를 알 수 없다. */}
+                <View style={styles.balanceAmountRow}>
+                  <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
+                    {formatBalance(isAdminUser ? adBilling.adSpent : adBilling.available)}
+                    <Text style={styles.balanceUnit}> {currency}</Text>
+                  </Text>
+                  {fxRate !== null ? (
+                    <Pressable
+                      onPress={() => setCurrency(currency === "VND" ? "USD" : "VND")}
+                      accessibilityRole="button"
+                      accessibilityLabel={currency === "VND" ? "USD" : "VND"}
+                      hitSlop={6}
+                      style={({ pressed }) => [
+                        styles.currencyToggle,
+                        { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                      ]}
+                    >
+                      <Text style={[styles.currencyToggleText, { color: theme.secondaryText }]}>
+                        {currency === "VND" ? "USD" : "VND"}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
                 <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>
-                  {formatMoneyAmount(adBilling.totalDeposited, "VND")}
+                  {formatBalance(adBilling.totalDeposited)} {currency}
                 </Text>
               </View>
             </>
@@ -869,6 +920,18 @@ function MyScreen() {
               value={String(favoriteProperties.length + favoriteInvestments.length)}
               onPress={revealFavorites}
               valueStyle={styles.activityValue}
+            />
+          </Card>
+          {/* [2026-09-28 사용자 지시] 매물/투자/관심 **아래**에 채팅상담 정보.
+              위 세 칸과 달리 숫자를 미리 세지 않는다 — 세려면 화면을 열 때마다
+              두 테이블을 조회해야 하는데, 이 줄은 그 숫자를 보러 오는 자리가
+              아니라 목록으로 넘어가는 자리다. */}
+          <Card style={styles.rowsCard}>
+            <SettingsRow
+              icon="chatbubbles-outline"
+              label={t("chatConsults.title")}
+              onPress={() => router.push("/chat-consults")}
+              theme={theme}
             />
           </Card>
         </View>
@@ -1475,6 +1538,22 @@ const styles = createScaledStyles(() => ({
   // 세로 분리 후에도 금액은 우측 정렬 — 자리를 넓혀 잡는다.
   balanceBoxStacked: {
     alignSelf: "stretch",
+  },
+  // 금액 + 통화 버튼 한 줄.
+  balanceAmountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  currencyToggle: {
+    borderWidth: 1,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  currencyToggleText: {
+    fontSize: scaleFont(12),
+    fontWeight: typography.weight.semibold,
   },
   balanceAvailable: {
     fontSize: scaleFont(24, FONT_FACTOR.TITLE),

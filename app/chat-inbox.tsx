@@ -12,8 +12,9 @@ import { Header } from "@/components/Header";
 import { Loading } from "@/components/Loading";
 import { createScaledStyles, colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
 import { listManagedConversations, type ManagedConversation } from "@/services/chat";
+import { listInvestConversations, type InvestConversation } from "@/services/investChat";
 import { getSession, onAuthStateChange } from "@/services/auth";
-import { canRegisterProperty } from "@/services/roles";
+import { canSeeChatConsults, canSeeInvestConsults } from "@/services/roles";
 
 /**
  * [2026-09-11] 상담 목록 — 매물 담당자(중개업소/관리자)가 받은 상담을 보는 화면.
@@ -24,6 +25,11 @@ import { canRegisterProperty } from "@/services/roles";
  *
  * 어떤 대화가 보이는지는 서버(RLS can_manage_property_chat)가 정한다 — 이 화면은
  * 전체를 요청할 뿐이고, 내가 담당하지 않는 매물의 상담은 애초에 돌아오지 않는다.
+ *
+ * [2026-09-28 사용자 지시] 투자 탭 추가. 직원(chat_support)은 매물·투자 상담을
+ * 둘 다 보고, 중개업소는 매물만 본다 — 투자 상품은 플랫폼이 직접 올리므로
+ * 업체가 볼 상담이 없다. 그래서 투자 탭은 권한이 있을 때만 그린다(빈 탭을
+ * 보여 주면 "상담이 없다"와 "권한이 없다"가 구분되지 않는다).
  */
 
 export default function ChatInboxScreen() {
@@ -35,7 +41,10 @@ export default function ChatInboxScreen() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
   const [checkingPermission, setCheckingPermission] = useState(true);
+  const [investAllowed, setInvestAllowed] = useState(false);
+  const [tab, setTab] = useState<"property" | "invest">("property");
   const [conversations, setConversations] = useState<ManagedConversation[]>([]);
+  const [investConversations, setInvestConversations] = useState<InvestConversation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,11 +73,11 @@ export default function ChatInboxScreen() {
       setCheckingPermission(false);
       return;
     }
-    canRegisterProperty().then((ok) => {
-      if (mounted) {
-        setAllowed(ok);
-        setCheckingPermission(false);
-      }
+    Promise.all([canSeeChatConsults(), canSeeInvestConsults()]).then(([ok, investOk]) => {
+      if (!mounted) return;
+      setAllowed(ok);
+      setInvestAllowed(investOk);
+      setCheckingPermission(false);
     });
     return () => {
       mounted = false;
@@ -81,15 +90,20 @@ export default function ChatInboxScreen() {
     useCallback(() => {
       if (!session) return;
       let active = true;
-      listManagedConversations().then((result) => {
+      // 두 목록을 함께 불러온다 — 탭을 옮길 때마다 기다리게 하지 않는다.
+      Promise.all([
+        listManagedConversations(),
+        investAllowed ? listInvestConversations() : Promise.resolve<InvestConversation[]>([]),
+      ]).then(([properties, investments]) => {
         if (!active) return;
-        setConversations(result);
+        setConversations(properties);
+        setInvestConversations(investments);
         setLoading(false);
       });
       return () => {
         active = false;
       };
-    }, [session]),
+    }, [session, investAllowed]),
   );
 
   const screenTitle = t("chatInbox.title");
@@ -116,8 +130,87 @@ export default function ChatInboxScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={["bottom"]}>
       <Header title={screenTitle} leftAction={<BackButton fallback="/my" />} />
 
+      {/* 투자 상담을 볼 수 없는 계정(중개업소)에게는 탭 자체를 그리지 않는다 —
+          누를 수 없는 탭이나 늘 비어 있는 탭보다 없는 편이 낫다. */}
+      {investAllowed ? (
+        <View style={[styles.tabBar, { borderBottomColor: theme.border }]}>
+          {(["property", "invest"] as const).map((key) => {
+            const active = tab === key;
+            const count = key === "property" ? conversations.length : investConversations.length;
+            const label = key === "property" ? t("chatConsults.tabProperty") : t("chatConsults.tabInvest");
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setTab(key)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                style={({ pressed }) => [
+                  styles.tabButton,
+                  {
+                    borderBottomColor: active ? theme.accent : "transparent",
+                    opacity: pressed ? opacity.pressed : 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    textStyles.body,
+                    { color: active ? theme.accent : theme.secondaryText, fontWeight: active ? "700" : "400" },
+                  ]}
+                >
+                  {count > 0 ? `${label} ${count}` : label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+
       {loading ? (
         <Loading />
+      ) : investAllowed && tab === "invest" ? (
+        investConversations.length === 0 ? (
+          <EmptyState title={t("chatInbox.emptyTitle")} description={t("chatInbox.emptyInvestDescription")} />
+        ) : (
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            {investConversations.map((conversation) => (
+              <Pressable
+                key={conversation.id}
+                onPress={() => router.push({ pathname: "/invest-chat/[id]", params: { id: conversation.id } })}
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.row,
+                  { borderColor: theme.border, backgroundColor: theme.card, opacity: pressed ? opacity.pressed : 1 },
+                ]}
+              >
+                <View style={styles.rowTexts}>
+                  <View style={styles.titleRow}>
+                    <Text style={[textStyles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+                      {conversation.investmentTitle}
+                    </Text>
+                    {conversation.needsReply ? (
+                      <View style={[styles.badge, { backgroundColor: theme.accent }]}>
+                        <Text style={[textStyles.caption, { color: theme.onAccent }]}>
+                          {t("chatInbox.needsReply")}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text
+                    style={[
+                      textStyles.bodySmall,
+                      { color: conversation.lastMessageText ? theme.text : theme.secondaryText },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {conversation.lastMessageText || t("chatInbox.imageMessage")}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={theme.secondaryText} />
+              </Pressable>
+            ))}
+          </ScrollView>
+        )
       ) : conversations.length === 0 ? (
         <EmptyState title={t("chatInbox.emptyTitle")} description={t("chatInbox.emptyDescription")} />
       ) : (
@@ -185,6 +278,17 @@ export default function ChatInboxScreen() {
 const styles = createScaledStyles(() => ({
   container: {
     flex: 1,
+  },
+  tabBar: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    // 두께를 항상 두고 색만 바꾼다 — 선택될 때만 테두리를 붙이면 글자가 밀린다.
+    borderBottomWidth: 2,
   },
   content: {
     paddingHorizontal: spacing.screenPaddingX,

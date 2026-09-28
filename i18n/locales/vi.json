@@ -351,7 +351,7 @@
     "myProperties": "Tin đăng",
     "managePayments": "Quản lý quyết toán",
     "agencyTitle": "Môi giới",
-    "agencyApply": "Xin quyền đăng tin",
+    "agencyApply": "Đăng ký môi giới bất động sản",
     "agencyStatusRow": "Trạng thái đăng ký",
     "agencyStatus": {
       "pending": "Đang xét duyệt",
@@ -360,7 +360,7 @@
       "suspended": "Tạm ngưng"
     },
     "refundNotice": "Khoản phí quảng cáo {{amount}} của bạn sẽ được hoàn lại",
-    "manageRegisterPermission": "Quản lý quyền đăng tin",
+    "manageRegisterPermission": "Quản lý nhân viên",
     "adSettlement": "Thanh toán quảng cáo",
     "manageBoards": "Quản lý bảng tin",
     "avatar": {
@@ -617,7 +617,7 @@
     "errorEndBeforeStart": "Ngày kết thúc sớm hơn ngày bắt đầu."
   },
   "adminPermissions": {
-    "title": "Quyền tài khoản",
+    "title": "Quản lý nhân viên",
     "search": "Tìm kiếm",
     "searchPlaceholder": "Tìm theo email hoặc tên",
     "searchHelper": "Nhập ít nhất 2 ký tự. Hiển thị tối đa 20 kết quả.",
@@ -630,14 +630,18 @@
     "revoked": "Đã thu hồi quyền",
     "updateFailed": "Không thể cập nhật quyền.",
     "noPermissionTitle": "Không có quyền truy cập",
-    "noPermissionDescription": "Chỉ quản trị viên mới có thể quản lý quyền tài khoản.",
+    "noPermissionDescription": "Chỉ quản trị viên mới cấp quyền nhân viên.",
     "permission": {
       "investment_manage": "Quản lý sản phẩm",
-      "property_manage": "Quản lý bất động sản"
+      "property_manage": "Quản lý bất động sản",
+      "chat_support": "Phụ trách tư vấn",
+      "agency_manage": "Quản lý đại lý"
     },
     "permissionDescription": {
       "investment_manage": "Đăng, sửa và đóng sản phẩm đầu tư",
-      "property_manage": "Đăng, sửa và ẩn tin bất động sản"
+      "property_manage": "Đăng, sửa và ẩn tin bất động sản",
+      "chat_support": "Xem và trả lời tư vấn bất động sản, đầu tư",
+      "agency_manage": "Xét duyệt hồ sơ đăng ký môi giới"
     }
   },
   "translationUsage": {
@@ -889,7 +893,8 @@
     "needsReply": "Cần trả lời",
     "imageMessage": "(ảnh)",
     "noPermissionTitle": "Không có quyền",
-    "noPermissionDescription": "Chỉ tài khoản có quyền quản lý bất động sản mới xem được danh sách tư vấn."
+    "noPermissionDescription": "Chỉ quản trị viên, nhân viên tư vấn và công ty đã được duyệt mới xem được danh sách tư vấn.",
+    "emptyInvestDescription": "Khi khách bắt đầu tư vấn về sản phẩm đầu tư, cuộc trò chuyện sẽ hiện ở đây."
   },
   "myProperties": {
     "title": "Tin đã đăng",
@@ -1239,6 +1244,10 @@
       "admin_message": {
         "title": "Thông báo",
         "body": "{{title}}"
+      },
+      "investment_chat": {
+        "title": "Tư vấn đầu tư mới",
+        "body": "Có yêu cầu tư vấn mới cho {{title}}."
       }
     }
   },
@@ -1335,5 +1344,21 @@
   "units": {
     "perMonth": "tháng",
     "perYear": "năm"
+  },
+  "investChat": {
+    "headerTitle": "Tư vấn đầu tư",
+    "consultButton": "Tư vấn",
+    "waitingForAgent": "Bộ phận phụ trách đang xem tin nhắn. Bạn sẽ nhận được thông báo khi có phản hồi.",
+    "emptyHint": "Hãy để lại câu hỏi, bộ phận phụ trách sẽ trả lời bạn.",
+    "startFailed": "Không thể bắt đầu tư vấn. Vui lòng thử lại sau."
+  },
+  "chatConsults": {
+    "title": "Tư vấn của tôi",
+    "tabProperty": "Bất động sản",
+    "tabInvest": "Đầu tư",
+    "newReply": "Phản hồi mới",
+    "emptyTitle": "Chưa có cuộc tư vấn nào",
+    "emptyPropertyDescription": "Các cuộc tư vấn bạn bắt đầu từ trang bất động sản sẽ hiện ở đây.",
+    "emptyInvestDescription": "Các cuộc tư vấn bạn bắt đầu từ trang sản phẩm đầu tư sẽ hiện ở đây."
   }
 }

@@ -16,7 +16,17 @@ import { hasSession, supabase } from "./supabase";
 export type UserRole = "super_admin" | "admin" | "editor" | "reviewer" | "operator" | "user";
 
 /** DB의 user_permission_type enum과 1:1. 관리자가 계정별로 켜고 끄는 기능 권한이다. */
-export type UserPermissionType = "investment_manage" | "property_manage";
+/**
+ * [2026-09-28 사용자 지시] 직원 권한 둘을 더했다.
+ *   chat_support  — 매물·투자 상담 목록 보기와 답변
+ *   agency_manage — 부동산 중개업소 등록신청 검토·승인
+ * 역할(user_role)을 새로 만들지 않은 이유는 마이그레이션 20260930000000 주석 참고.
+ */
+export type UserPermissionType =
+  | "investment_manage"
+  | "property_manage"
+  | "chat_support"
+  | "agency_manage";
 
 /** 관리자 계열(properties/investment_products RLS의 is_admin_or_above와 동일 기준). */
 const ADMIN_ROLES: UserRole[] = ["super_admin", "admin"];
@@ -98,6 +108,39 @@ export async function canManageInvestment(): Promise<boolean> {
   return roles.some((role) => ADMIN_ROLES.includes(role)) || permissions.includes("investment_manage");
 }
 
+/**
+ * [2026-09-28 사용자 지시] 상담 목록(매물·투자)을 볼 수 있는가 —
+ * 관리자이거나, 중개업소로서 자기 매물 상담을 받거나, `chat_support` 직원이다.
+ *
+ * 서버의 can_manage_property_chat / can_manage_investment_chat과 짝이다. 화면이
+ * 여기서 막지 않아도 RLS가 빈 목록을 돌려주지만, 그러면 "권한이 없다"가 아니라
+ * "상담이 없다"로 보인다 — 직원이 자기 권한이 빠진 것을 알아챌 수 없다.
+ */
+export async function canSeeChatConsults(): Promise<boolean> {
+  const [roles, permissions, agency] = await Promise.all([
+    fetchMyRoles(),
+    fetchMyPermissions(),
+    getMyAgency(),
+  ]);
+  return (
+    roles.some((role) => ADMIN_ROLES.includes(role)) ||
+    permissions.includes("chat_support") ||
+    permissions.includes("property_manage") ||
+    permissions.includes("investment_manage") ||
+    agency?.approvalStatus === "approved"
+  );
+}
+
+/** 투자 상담 목록을 볼 수 있는가 — 투자 상품은 플랫폼이 직접 올리므로 업체는 제외된다. */
+export async function canSeeInvestConsults(): Promise<boolean> {
+  const [roles, permissions] = await Promise.all([fetchMyRoles(), fetchMyPermissions()]);
+  return (
+    roles.some((role) => ADMIN_ROLES.includes(role)) ||
+    permissions.includes("chat_support") ||
+    permissions.includes("investment_manage")
+  );
+}
+
 /** 관리자 권한 관리 화면(app/admin-permissions.tsx)의 계정 검색 결과 한 줄. */
 export type AdminUserSearchResult = {
   user_id: string;
@@ -106,6 +149,9 @@ export type AdminUserSearchResult = {
   is_admin: boolean;
   investment_manage: boolean;
   property_manage: boolean;
+  // [2026-09-28] 직원 권한 두 가지.
+  chat_support: boolean;
+  agency_manage: boolean;
 };
 
 /**

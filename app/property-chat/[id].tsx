@@ -366,15 +366,11 @@ export default function PropertyChatScreen() {
               {property.location}
             </Text>
             <Text style={[textStyles.price, { color: theme.accent, marginTop: spacing.xs }]}>{localizeUnits(property.price, t)}</Text>
-            {property.options.length > 0 ? (
-              <View style={styles.optionsRow}>
-                {property.options.map((option) => (
-                  <View key={option} style={[styles.optionChip, { borderColor: theme.border }]}>
-                    <Text style={[textStyles.caption, { color: theme.secondaryText }]}>{option}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
+            {/* [2026-09-28 사용자 지시] 옵션 목록은 빼낸다.
+                여기는 문의하러 온 자리이고, 옵션은 매물 상세에서 이미 본다. 게다가
+                이 카드는 저장된 값(rent.furniture.bed 같은 키)을 그대로 찍고 있어서
+                화면에 키가 노출되고 있었다 — 매물 상세는 optionLabel()로 라벨을
+                가져오는데 여기에는 그 처리가 없었다. */}
           </View>
 
           {/* [2026-09-11 STEP 07-③] 담당자 답장이 아직 없을 때의 안내.
@@ -533,18 +529,6 @@ const styles = createScaledStyles(() => ({
     borderBottomRightRadius: 0,
     overflow: "hidden",
     marginBottom: spacing.sm,
-  },
-  optionsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-  },
-  optionChip: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs / 2,
   },
   // 번역 생략 안내 — 말풍선 안, 원문 바로 아래.
   translateSkipped: {

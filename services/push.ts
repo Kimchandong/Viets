@@ -188,7 +188,9 @@ const PUSH_ROUTES = [
  * 형태다. 그렇다고 아무 문자열이나 통과시키면 없는 화면으로 가서 앱이 죽으므로,
  * 허용된 접두사 + 그 뒤에 한 조각만 더 오는 경우로 좁힌다.
  */
-const PUSH_ROUTE_PREFIXES = ["/push-message/"] as const;
+// [2026-09-28] /invest-chat/<대화방 id> — 투자 상담 알림을 눌러 들어가는 곳.
+// 이 목록에 없으면 알림을 눌러도 아무 데도 가지 않는다(isAllowedRoute가 막는다).
+const PUSH_ROUTE_PREFIXES = ["/push-message/", "/invest-chat/"] as const;
 
 function isAllowedRoute(route: string): boolean {
   if ((PUSH_ROUTES as readonly string[]).includes(route)) return true;

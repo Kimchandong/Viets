@@ -351,7 +351,7 @@
     "myProperties": "房源信息",
     "managePayments": "结算管理",
     "agencyTitle": "房产经纪",
-    "agencyApply": "申请发布权限",
+    "agencyApply": "房产中介注册申请",
     "agencyStatusRow": "申请状态",
     "agencyStatus": {
       "pending": "审核中",
@@ -360,7 +360,7 @@
       "suspended": "已暂停"
     },
     "refundNotice": "您申请的广告费 {{amount}} 将予退款",
-    "manageRegisterPermission": "登记权限账户管理",
+    "manageRegisterPermission": "员工管理",
     "adSettlement": "广告费结算",
     "manageBoards": "版块管理",
     "avatar": {
@@ -617,7 +617,7 @@
     "errorEndBeforeStart": "结束日期早于开始日期。"
   },
   "adminPermissions": {
-    "title": "账户权限管理",
+    "title": "员工管理",
     "search": "搜索",
     "searchPlaceholder": "按邮箱或姓名搜索",
     "searchHelper": "请输入至少2个字符，最多显示20条结果。",
@@ -630,14 +630,18 @@
     "revoked": "已收回权限",
     "updateFailed": "权限更新失败。",
     "noPermissionTitle": "无访问权限",
-    "noPermissionDescription": "仅管理员可管理账户权限。",
+    "noPermissionDescription": "仅管理员可授予员工权限。",
     "permission": {
       "investment_manage": "管理投资产品",
-      "property_manage": "管理房源"
+      "property_manage": "管理房源",
+      "chat_support": "咨询负责",
+      "agency_manage": "中介管理"
     },
     "permissionDescription": {
       "investment_manage": "发布、编辑及结束投资产品",
-      "property_manage": "发布、编辑及隐藏房源"
+      "property_manage": "发布、编辑及隐藏房源",
+      "chat_support": "查看并回复房源与投资咨询",
+      "agency_manage": "审核并批准中介注册申请"
     }
   },
   "translationUsage": {
@@ -889,7 +893,8 @@
     "needsReply": "待回复",
     "imageMessage": "(图片)",
     "noPermissionTitle": "没有权限",
-    "noPermissionDescription": "仅具有房源管理权限的账号可查看咨询列表。"
+    "noPermissionDescription": "只有管理员、咨询专员和已审核的中介公司可以查看咨询列表。",
+    "emptyInvestDescription": "客户在投资产品发起咨询后会显示在这里。"
   },
   "myProperties": {
     "title": "已登记房源",
@@ -1239,6 +1244,10 @@
       "admin_message": {
         "title": "新消息",
         "body": "{{title}}"
+      },
+      "investment_chat": {
+        "title": "新的投资咨询",
+        "body": "收到关于 {{title}} 的咨询。"
       }
     }
   },
@@ -1335,5 +1344,21 @@
   "units": {
     "perMonth": "月",
     "perYear": "年"
+  },
+  "investChat": {
+    "headerTitle": "投资咨询",
+    "consultButton": "咨询",
+    "waitingForAgent": "负责人正在查看您的消息，收到回复后会通知您。",
+    "emptyHint": "请留下您的问题，我们会尽快回复。",
+    "startFailed": "无法开始咨询，请稍后再试。"
+  },
+  "chatConsults": {
+    "title": "咨询记录",
+    "tabProperty": "房源",
+    "tabInvest": "投资",
+    "newReply": "新回复",
+    "emptyTitle": "暂无咨询记录",
+    "emptyPropertyDescription": "在房源详情页发起的咨询会显示在这里。",
+    "emptyInvestDescription": "在投资产品详情页发起的咨询会显示在这里。"
   }
 }

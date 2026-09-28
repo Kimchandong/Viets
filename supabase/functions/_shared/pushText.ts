@@ -115,6 +115,16 @@ const CATALOG: Record<string, Record<PushLang, Entry>> = {
     zh: { title: "新消息", body: "{{title}}" },
     th: { title: "ประกาศ", body: "{{title}}" },
   },
+  // [2026-09-28] 투자 상담 — 고객이 말을 걸면 관리자·상담 직원에게 간다.
+  // 받는 사람이 담당자 쪽이라 문구도 "문의가 왔다" 관점으로 쓴다.
+  investment_chat: {
+    ko: { title: "새 투자 상담", body: "{{title}} 상담 문의가 도착했습니다." },
+    en: { title: "New investment inquiry", body: "A new inquiry arrived for {{title}}." },
+    vi: { title: "Tư vấn đầu tư mới", body: "Có yêu cầu tư vấn mới cho {{title}}." },
+    ja: { title: "新しい投資相談", body: "{{title}} の相談が届きました。" },
+    zh: { title: "新的投资咨询", body: "收到关于 {{title}} 的咨询。" },
+    th: { title: "คำปรึกษาการลงทุนใหม่", body: "มีคำขอปรึกษาใหม่สำหรับ {{title}}" },
+  },
 };
 
 function normalizeLang(lang: string | null | undefined): PushLang {

@@ -205,15 +205,32 @@ export type ManagedConversation = {
  * PostgREST로는 "대화별 최신 1건"을 한 번에 뽑을 수 없고, 대화마다 쿼리를 돌리면
  * 목록 길이만큼 왕복이 생긴다.
  */
-export async function listManagedConversations(): Promise<ManagedConversation[]> {
+export async function listManagedConversations(
+  // [2026-09-28] MY > 채팅상담 정보에서 쓰는 값. RLS만으로는 부족하다 — 중개업소
+  // 계정에게는 "내가 건 상담"과 "내게 온 상담"이 둘 다 보이는데, 나의활동 밑에서
+  // 남의 문의까지 섞여 나오면 그 화면의 뜻이 달라진다. 그래서 고객 화면에서는
+  // 명시적으로 내 대화만 요청한다.
+  options: { onlyMine?: boolean } = {},
+): Promise<ManagedConversation[]> {
   if (!supabase) {
     return [];
   }
 
-  const { data: convData, error: convError } = await supabase
+  let query = supabase
     .from(CONVERSATIONS_TABLE)
     .select("id,property_id,created_at,properties(title,address)")
     .order("created_at", { ascending: false });
+
+  if (options.onlyMine) {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    // 로그인 정보를 못 읽으면 "전부"가 아니라 "없음"이 맞다 — 필터가 조용히
+    // 사라져 남의 상담이 내 목록에 뜨는 쪽이 훨씬 나쁘다.
+    if (!userId) return [];
+    query = query.eq("customer_id", userId);
+  }
+
+  const { data: convData, error: convError } = await query;
 
   if (convError) {
     console.warn("[services/chat] listManagedConversations failed:", convError.message);
@@ -340,6 +357,9 @@ export async function sendCustomerImage(
   localUri: string,
   lang: string,
   senderType: ChatSenderType = "customer",
+  // [2026-09-28] 투자 상담도 같은 chat-images 버킷을 쓴다(정책이 보는 것은 경로
+  // 첫 칸의 uid뿐이라 그대로 통과한다). 달라지는 것은 메시지를 넣을 테이블뿐이다.
+  table: string = MESSAGES_TABLE,
 ): Promise<boolean> {
   if (!supabase) {
     return false;
@@ -378,7 +398,7 @@ export async function sendCustomerImage(
       return false;
     }
 
-    const { error: insertError } = await supabase.from(MESSAGES_TABLE).insert({
+    const { error: insertError } = await supabase.from(table).insert({
       conversation_id: conversationId,
       sender_type: senderType,
       original_text: "",
@@ -487,7 +507,18 @@ async function callTranslateApi(
  *   쓰도록 한다(같은 언어 조합에 대해 API를 반복 호출하지 않는다).
  * API 키 미설정/호출 실패 시에도 원문을 반환해 대화가 끊기지 않게 한다.
  */
-export async function getTranslatedText(message: ChatMessage, targetLang: string): Promise<string> {
+/**
+ * [2026-09-28] table 인자가 붙은 이유: 투자 상담(investment_messages)이 같은
+ * 모양의 메시지를 쓰는데, 번역 캐시를 어느 테이블에 **되쓸지**만 다르다.
+ * 인자가 없던 때 이 함수를 투자 쪽에서 그대로 부르면, 캐시 update가 매물
+ * 테이블에서 "그 id 없음"으로 조용히 0행 갱신되고 — 에러도 안 난다 —
+ * 채팅방을 열 때마다 같은 문장을 다시 번역해 돈만 나간다.
+ */
+export async function getTranslatedText(
+  message: ChatMessage,
+  targetLang: string,
+  table: string = MESSAGES_TABLE,
+): Promise<string> {
   if (message.image_url) {
     return "";
   }
@@ -526,12 +557,12 @@ export async function getTranslatedText(message: ChatMessage, targetLang: string
 
   if (!result) {
     // 실패를 기록해 다음 조회에서 재시도 횟수를 누적한다(상한 도달 시 중단).
-    await recordTranslationFailure(message, "translate function unavailable");
+    await recordTranslationFailure(message, "translate function unavailable", table);
     return message.original_text;
   }
 
   if (result.outcome === "failed") {
-    await recordTranslationFailure(message, "translation provider failed");
+    await recordTranslationFailure(message, "translation provider failed", table);
     return message.original_text;
   }
 
@@ -539,7 +570,7 @@ export async function getTranslatedText(message: ChatMessage, targetLang: string
   if (supabase) {
     const nextTranslations = { ...(message.translations ?? {}), [targetLang]: result.text };
     const { error } = await supabase
-      .from(MESSAGES_TABLE)
+      .from(table)
       .update({
         translations: nextTranslations,
         translation_status: "translated",
@@ -619,14 +650,18 @@ export async function fetchTranslationUsage(
 }
 
 /** 번역 실패를 메시지에 기록한다 — 시도 횟수가 쌓여 상한에 도달하면 재시도를 멈춘다. */
-async function recordTranslationFailure(message: ChatMessage, reason: string): Promise<void> {
+async function recordTranslationFailure(
+  message: ChatMessage,
+  reason: string,
+  table: string = MESSAGES_TABLE,
+): Promise<void> {
   if (!supabase) {
     return;
   }
 
   const nextAttempts = (message.translation_attempts ?? 0) + 1;
   const { error } = await supabase
-    .from(MESSAGES_TABLE)
+    .from(table)
     .update({
       translation_status: "failed",
       translation_attempts: nextAttempts,

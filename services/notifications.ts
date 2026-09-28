@@ -90,6 +90,8 @@ export const NOTIFICATION_KINDS = [
   // [2026-09-27] 관리자가 직접 보내는 메시지. 이 목록에 없으면 알림 설정 화면에
   // 종류가 뜨지 않아 사용자가 끄고 켤 수 없다.
   "admin_message",
+  // [2026-09-28] 투자 상담 — 관리자와 상담 담당 직원이 받는다.
+  "investment_chat",
 ] as const;
 
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
@@ -157,6 +159,32 @@ export async function markNotificationRead(id: string): Promise<void> {
 
   if (error) {
     console.warn("[services/notifications] markNotificationRead failed:", error.message);
+  }
+}
+
+/**
+ * [2026-09-28] 이 경로로 가는 알림을 전부 읽음 처리한다.
+ *
+ * 왜 id가 아니라 경로인가: 투자 상담을 **알림함이 아닌 곳**(상담 목록, 상세의
+ * 상담 버튼)에서 열면 화면은 알림 id를 모른다. 그런데 방에 들어가 대화를 읽은
+ * 뒤에도 알림함에 "새 상담" 배지가 남아 있으면, 사용자는 읽을 것이 남은 줄 알고
+ * 다시 들어왔다가 아무것도 새로 없는 화면을 본다.
+ *
+ * 매물 상담은 user_read_marks(mark_read)로 같은 일을 하지만, 그쪽은 세는 함수
+ * (my_unread_chat_count)가 따로 있어서 성립한다. 투자 상담은 세는 쪽이
+ * user_notifications 하나뿐이라 여기서 바로 지우는 편이 맞다.
+ */
+export async function markNotificationsReadByLink(link: string): Promise<void> {
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from("user_notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("link", link)
+    .is("read_at", null);
+
+  if (error) {
+    console.warn("[services/notifications] markNotificationsReadByLink failed:", error.message);
   }
 }
 

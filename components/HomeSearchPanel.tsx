@@ -818,12 +818,17 @@ function SheetChipRow({
  * 팝업 안에 들어가므로 여기서는 테마 색을 쓴다(영상 위가 아니다).
  */
 /**
- * 금액 바 — 손잡이는 **눈금에만** 선다.
+ * 금액 바 — 눈금은 **자릿수를 펴기 위한 것**이고, 값은 그 사이 어디든 고를 수 있다.
  *
- * [2026-09-28 사용자 지시] 눈금 값과 간격은 AmountScale이 정한다. 화면에서 눈금 사이는
- * 모두 같은 폭이므로, 0 → 10,000k → 1 tỷ처럼 자릿수가 크게 벌어져도 손가락으로 고를 수
- * 있다(직선 축이면 작은 금액들이 왼쪽 몇 px에 겹친다).
+ * [2026-09-28 사용자 지시] 눈금 값과 위치는 AmountScale이 정한다. 화면에서 눈금 사이는
+ * 모두 같은 폭이라(구간별 선형), 0 → 10,000k → 1 tỷ처럼 자릿수가 크게 벌어져도 손가락으로
+ * 고를 수 있다 — 하나의 직선 축이면 작은 금액들이 바 왼쪽 몇 px에 겹친다.
+ *
+ * [2026-09-28 사용자 지시] 손잡이는 눈금에 붙지 않는다. 눈금 사이 어디에 놓아도
+ * 그 자리의 금액이 나온다(15,500k 같은 값). 다만 **50만동 단위로 끊는다** —
+ * 1동 단위로 움직이면 같은 자리를 두 번 눌러도 값이 달라져 다시 맞출 수가 없다.
  */
+const AMOUNT_SNAP = 500_000;
 function AmountSlider({
   value,
   scale,
@@ -849,14 +854,48 @@ function AmountSlider({
     setTrackWidth(w);
   }
 
-  /** 손가락 위치 → 가장 가까운 눈금 값. */
+  /**
+   * 손가락 위치 → 금액.
+   *
+   * 바 전체를 (눈금 수 - 1)개의 같은 폭 구간으로 보고, 어느 구간의 몇 %인지 구한 뒤
+   * 그 구간의 시작·끝 금액 사이를 같은 비율로 나눈다. 구간마다 금액 폭이 다르므로
+   * (0~10,000k와 1 tỷ~5 tỷ) 같은 손가락 거리라도 움직이는 금액이 다르다 — 그게 이
+   * 축의 목적이다.
+   */
   function valueFromX(x: number): number {
     const w = widthRef.current;
     const stops = stopsRef.current;
-    if (w <= 0 || stops.length === 0) return stops[0] ?? 0;
+    if (w <= 0 || stops.length < 2) return stops[0] ?? 0;
+
+    const last = stops.length - 1;
     const ratio = Math.max(0, Math.min(1, x / w));
-    const index = Math.round(ratio * (stops.length - 1));
-    return stops[index];
+    const scaled = ratio * last;
+    // 맨 오른쪽 끝에서는 segment가 last가 되어 stops[segment + 1]이 없다.
+    const segment = Math.min(last - 1, Math.floor(scaled));
+    const within = scaled - segment;
+
+    const from = stops[segment];
+    const to = stops[segment + 1];
+    const raw = from + within * (to - from);
+
+    const snapped = Math.round(raw / AMOUNT_SNAP) * AMOUNT_SNAP;
+    return Math.max(stops[0], Math.min(stops[last], snapped));
+  }
+
+  /** 금액 → 바에서의 위치(0~1). valueFromX의 역방향. */
+  function ratioFromValue(amount: number, stops: number[]): number {
+    const last = stops.length - 1;
+    if (last < 1 || amount <= stops[0]) return 0;
+    if (amount >= stops[last]) return 1;
+    for (let i = 0; i < last; i += 1) {
+      const from = stops[i];
+      const to = stops[i + 1];
+      if (amount <= to) {
+        const within = to === from ? 0 : (amount - from) / (to - from);
+        return (i + within) / last;
+      }
+    }
+    return 1;
   }
 
   const pan = useMemo(
@@ -873,9 +912,7 @@ function AmountSlider({
   );
 
   const lastIndex = Math.max(1, scale.stops.length - 1);
-  // 고른 값이 눈금에 없으면(종류를 바꾼 직후) 맨 왼쪽으로 본다.
-  const index = scale.stops.indexOf(value);
-  const filled = index > 0 ? index / lastIndex : 0;
+  const filled = value > 0 ? ratioFromValue(value, scale.stops) : 0;
   const fillWidth = Math.round(trackWidth * filled);
 
   return (
@@ -933,8 +970,9 @@ function AmountSlider({
                 // 양 끝 칸만 반 폭으로 두면 가운데 칸들의 중심이 정확히 i/(N-1)에
                 // 오고, 첫 칸의 왼쪽 끝과 마지막 칸의 오른쪽 끝이 바의 양 끝과 맞는다.
                 flex: i === 0 || i === lastIndex ? 0.5 : 1,
-                color: i === index ? theme.text : theme.secondaryText,
-                fontWeight: i === index ? typography.weight.bold : typography.weight.regular,
+                // 값이 정확히 그 눈금일 때만 굵게 — 사이 값일 때는 어느 쪽도 굵지 않다.
+                color: stop === value ? theme.text : theme.secondaryText,
+                fontWeight: stop === value ? typography.weight.bold : typography.weight.regular,
                 textAlign: i === 0 ? "left" : i === lastIndex ? "right" : "center",
               },
             ]}

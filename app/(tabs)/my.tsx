@@ -606,7 +606,7 @@ function MyScreen() {
                 <View style={styles.profileText}>
                   {agency ? (
                     <>
-                      <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                      <Text style={[textStyles.caption, { color: PROFILE_TEXT_MUTED }]}>
                         {t(`my.agencyStatus.${agency.approvalStatus}`)}
                       </Text>
                       {/* [2026-09-11 사용자 지시] 업체명 옆 수정 버튼.
@@ -614,7 +614,7 @@ function MyScreen() {
                           버튼이 있으면 실패만 반복된다. */}
                       <View style={styles.agencyNameRow}>
                         <Text
-                          style={[textStyles.cardTitle, styles.agencyName, { color: theme.text }]}
+                          style={[textStyles.cardTitle, styles.agencyName, { color: PROFILE_TEXT }]}
                           numberOfLines={2}
                         >
                           {agency.name}
@@ -627,7 +627,7 @@ function MyScreen() {
                             hitSlop={8}
                             style={({ pressed }) => [{ opacity: pressed ? opacity.pressed : 1 }]}
                           >
-                            <Ionicons name="create-outline" size={16} color={theme.secondaryText} />
+                            <Ionicons name="create-outline" size={16} color={PROFILE_TEXT_MUTED} />
                           </Pressable>
                         ) : null}
                       </View>
@@ -635,13 +635,13 @@ function MyScreen() {
                   ) : null}
                   {/* [2026-09-27 사용자 지시] 이메일은 정산이 아니라 **계정** 정보다 —
                       금액 블록에서 계정 블록으로 옮겼다. */}
-                  <Text style={[styles.balanceEmail, { color: theme.secondaryText }]} numberOfLines={1}>
+                  <Text style={[styles.balanceEmail, { color: PROFILE_TEXT_MUTED }]} numberOfLines={1}>
                     {session?.user.email ?? ""}
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.profileSplit, { borderColor: theme.border }]} />
+              <View style={[styles.profileSplit, { borderColor: "rgba(255, 255, 255, 0.3)" }]} />
 
               {/* 정산 칸 — 사용잔액 24px 주황, 그 아래 현잔액 12px 회색. 잔액이 없는
                   계정(업체가 아니거나 아직 입금 전)도 0으로 보여 준다 — 칸을 비우면
@@ -674,19 +674,64 @@ function MyScreen() {
                       hitSlop={6}
                       style={({ pressed }) => [
                         styles.currencyToggle,
-                        { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                        { borderColor: PROFILE_TEXT_MUTED, opacity: pressed ? opacity.pressed : 1 },
                       ]}
                     >
-                      <Text style={[styles.currencyToggleText, { color: theme.secondaryText }]}>
+                      <Text style={[styles.currencyToggleText, { color: PROFILE_TEXT }]}>
                         {currency === "VND" ? "USD" : "VND"}
                       </Text>
                     </Pressable>
                   ) : null}
                 </View>
-                <Text style={[styles.balanceTotal, { color: theme.secondaryText }]} numberOfLines={1}>
+                <Text style={[styles.balanceTotal, { color: PROFILE_TEXT_MUTED }]} numberOfLines={1}>
                   {formatBalance(adBilling.totalDeposited)} {currency}
                 </Text>
               </View>
+
+                    {/* [2026-10-22 사용자 지시] 프로필·금액·광고비 정산을 한 영역으로 —
+                        카드 밖에 따로 있던 버튼 줄을 카드 안으로 들여왔다. */}
+                    <View style={styles.accountActions}>
+                  {/* [2026-09-11 사용자 지시 — 5차] 로그아웃 버튼 좌측 "광고비 정산".
+                      [2026-09-11 사용자 지시 — 수정] 승인된 업체에만 보인다.
+                      앞서 canRegister(매물 등록 권한)로 넓혀 두었는데, 그러면 권한만 직접
+                      받은 계정에도 버튼이 뜨고 눌러 봐야 "승인이 필요합니다"만 나온다 —
+                      누를 수 없는 버튼을 보여 주는 셈이었다. 정산은 소속 업체의 잔액을
+                      다루는 일이라 승인 전에는 할 수 있는 것이 아예 없으므로 감춘다.
+                      payment-info.tsx의 게이트는 그대로 둔다(주소로 직접 들어오는 경우). */}
+                  {agency?.approvalStatus === "approved" ? (
+                    <Button
+                      size="small"
+                      variant="outline"
+                      style={styles.profileActionButton}
+                      textStyle={styles.profileActionButtonText}
+                      title={t("my.adSettlement")}
+                      onPress={() => router.push("/payment-info")}
+                    />
+                  ) : null}
+                  {/* [2026-09-11 사용자 지시] 등록권한 신청 — 아래 별도 섹션에 있던 메뉴를
+                      로그아웃 버튼 왼쪽으로 옮겼다. 조건은 그대로: 아직 매물 등록 권한이
+                      없는 계정에게만 보인다(이미 승인됐거나 관리자가 권한을 켜 준 계정은
+                      신청할 이유가 없다). 이미 신청했다면 상태 화면으로 간다. */}
+                  {permissionChecked && !canRegister ? (
+                    <Button
+                      size="small"
+                      variant="outline"
+                      style={styles.profileActionButton}
+                      textStyle={styles.profileActionButtonText}
+                      title={agency ? t("my.agencyStatusRow") : t("my.agencyApply")}
+                      onPress={() => router.push("/agency-apply")}
+                    />
+                  ) : null}
+                  <Button
+                    size="small"
+                    variant="outline"
+                    style={styles.profileActionButton}
+                    textStyle={styles.profileActionButtonText}
+                    title={signingOut ? t("my.signingOut") : t("my.signOut")}
+                    onPress={handleSignOut}
+                    disabled={signingOut}
+                  />
+                </View>
             </>
           ) : (
             <View style={styles.profileText}>
@@ -844,45 +889,6 @@ function MyScreen() {
                 amount: formatMoneyAmount(rejectedPayment.amount, "VND"),
               })}
             </Text>
-          </View>
-        ) : null}
-
-        {isLoggedIn ? (
-          <View style={styles.accountActions}>
-            {/* [2026-09-11 사용자 지시 — 5차] 로그아웃 버튼 좌측 "광고비 정산".
-                [2026-09-11 사용자 지시 — 수정] 승인된 업체에만 보인다.
-                앞서 canRegister(매물 등록 권한)로 넓혀 두었는데, 그러면 권한만 직접
-                받은 계정에도 버튼이 뜨고 눌러 봐야 "승인이 필요합니다"만 나온다 —
-                누를 수 없는 버튼을 보여 주는 셈이었다. 정산은 소속 업체의 잔액을
-                다루는 일이라 승인 전에는 할 수 있는 것이 아예 없으므로 감춘다.
-                payment-info.tsx의 게이트는 그대로 둔다(주소로 직접 들어오는 경우). */}
-            {agency?.approvalStatus === "approved" ? (
-              <Button
-                size="small"
-                variant="outline"
-                title={t("my.adSettlement")}
-                onPress={() => router.push("/payment-info")}
-              />
-            ) : null}
-            {/* [2026-09-11 사용자 지시] 등록권한 신청 — 아래 별도 섹션에 있던 메뉴를
-                로그아웃 버튼 왼쪽으로 옮겼다. 조건은 그대로: 아직 매물 등록 권한이
-                없는 계정에게만 보인다(이미 승인됐거나 관리자가 권한을 켜 준 계정은
-                신청할 이유가 없다). 이미 신청했다면 상태 화면으로 간다. */}
-            {permissionChecked && !canRegister ? (
-              <Button
-                size="small"
-                variant="outline"
-                title={agency ? t("my.agencyStatusRow") : t("my.agencyApply")}
-                onPress={() => router.push("/agency-apply")}
-              />
-            ) : null}
-            <Button
-              size="small"
-              variant="outline"
-              title={signingOut ? t("my.signingOut") : t("my.signOut")}
-              onPress={handleSignOut}
-              disabled={signingOut}
-            />
           </View>
         ) : null}
 
@@ -1365,6 +1371,13 @@ function SettingsRow({ icon, label, valueLabel, onPress, theme, last }: Settings
  * 안쪽 사람 아이콘도 같은 비율로 키운다(28 → 31).
  */
 const AVATAR_SIZE = 62;
+// [2026-10-22 사용자 지시] 프로필 영역 배경 rgb(32, 107, 199).
+const PROFILE_BACKGROUND = "#206BC7";
+// 파란 바탕 위 글자. 보조 정보는 흰색을 낮춰 위계를 남긴다.
+const PROFILE_TEXT = "#FFFFFF";
+const PROFILE_TEXT_MUTED = "rgba(255, 255, 255, 0.78)";
+// 아바타 아래 금액·버튼이 이메일과 같은 x에서 시작하도록 하는 들여쓰기.
+const PROFILE_TEXT_INDENT = AVATAR_SIZE + spacing.md;
 const AVATAR_ICON_SIZE = 31;
 
 const styles = createScaledStyles(() => ({
@@ -1399,10 +1412,16 @@ const styles = createScaledStyles(() => ({
     elevation: 0,
   },
   // [2026-09-27 사용자 지시] 계정/정산 세로 분리.
+  // [2026-10-22 사용자 지시] 파란 배경은 **로그인 후에만**. 이 스타일은 로그인
+  // 상태에서만 덧씌워지므로(호출부의 isLoggedIn && ...), 로그인 전 화면은 흰
+  // 배경·아래 구분선 그대로 남는다.
   profileCardStacked: {
     flexDirection: "column",
     alignItems: "stretch",
     gap: spacing.sm,
+    backgroundColor: PROFILE_BACKGROUND,
+    // 영역 자체가 색으로 구분되므로 아래 구분선은 없앤다.
+    borderBottomWidth: 0,
   },
   // 위 칸 — 아바타 + 상태/업체명/이메일.
   accountRow: {
@@ -1526,13 +1545,25 @@ const styles = createScaledStyles(() => ({
   // content가 자식 사이에 spacing.md(16)를 두므로 그만큼 빼서 10만 남긴다.
   accountActions: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    // [2026-10-22 사용자 지시] 금액과 같은 좌측 위치.
+    justifyContent: "flex-start",
+    flexWrap: "wrap",
+    paddingLeft: PROFILE_TEXT_INDENT,
     gap: spacing.sm,
     marginTop: 10 - spacing.md,
     marginBottom: 10 - spacing.md,
   },
+  // 파란 바탕 위에서는 outline 버튼의 기본색(남색 테두리·남색 글자)이 묻힌다.
+  profileActionButton: {
+    borderColor: PROFILE_TEXT,
+  },
+  profileActionButtonText: {
+    color: PROFILE_TEXT,
+  },
   balanceBox: {
-    alignItems: "flex-end",
+    // [2026-10-22 사용자 지시] 우측 정렬이던 금액을 이메일과 같은 x에서 시작하게.
+    alignItems: "flex-start",
+    paddingLeft: PROFILE_TEXT_INDENT,
     minWidth: 0,
   },
   // 세로 분리 후에도 금액은 우측 정렬 — 자리를 넓혀 잡는다.
@@ -1556,7 +1587,8 @@ const styles = createScaledStyles(() => ({
     fontWeight: typography.weight.semibold,
   },
   balanceAvailable: {
-    fontSize: scaleFont(24, FONT_FACTOR.TITLE),
+    // [2026-10-22 사용자 지시] 두 치수 크게(24 -> 28).
+    fontSize: scaleFont(28, FONT_FACTOR.TITLE),
     fontWeight: typography.weight.bold,
     // [2026-09-28] flexShrink가 없으면 금액이 길 때(VND는 자릿수가 많다) 24px
     // 숫자가 줄 너비를 다 먹고 우측 USD 버튼을 화면 밖으로 밀어낸다 — 줄이

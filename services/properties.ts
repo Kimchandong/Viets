@@ -6,6 +6,7 @@ import { formatVndAmount } from "@/utils/format";
 import { readImageBytes } from "@/utils/imageBytes";
 import {
   currentContentLang,
+  detectContentLang,
   toContentMap,
   translateTextForAllLanguages,
 } from "./contentTranslation";
@@ -437,7 +438,9 @@ export async function createProperty(input: NewPropertyInput): Promise<string | 
   // 나중에 번역을 덧붙이면, 번역이 실패했을 때 원문만 있는 매물이 남아 다른 언어
   // 사용자에게는 등록자가 쓴 언어가 그대로 보인다. 그럴 바에는 저장이 몇 초 걸리는
   // 편이 낫다(게시판과 같은 판단).
-  const descriptionLang = currentContentLang();
+  // [2026-10-22 사용자 지시] 원문 언어를 앱 UI 언어로 추정하지 않고 실제로 감지한다
+  // (감지 실패 시에만 기존 방식으로 폴백).
+  const descriptionLang = (await detectContentLang(input.description)) ?? currentContentLang();
   const descriptionI18n = await translateTextForAllLanguages(input.description, descriptionLang);
 
   const { data, error } = await supabase
@@ -482,7 +485,7 @@ export async function updateProperty(id: string, input: NewPropertyInput): Promi
 
   let translation: { description_i18n?: Record<string, string>; description_lang?: string } = {};
   if (descriptionChanged) {
-    const descriptionLang = currentContentLang();
+    const descriptionLang = (await detectContentLang(input.description)) ?? currentContentLang();
     translation = {
       description_i18n: await translateTextForAllLanguages(input.description, descriptionLang),
       description_lang: descriptionLang,

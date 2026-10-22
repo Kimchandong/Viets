@@ -5,6 +5,7 @@ import type { MockInvestmentProduct, MockInvestmentStatus } from "@/constants/mo
 import { formatVndAmount } from "@/utils/format";
 import {
   currentContentLang,
+  detectContentLang,
   toContentMap,
   translateTextForAllLanguages,
 } from "./contentTranslation";
@@ -262,7 +263,8 @@ export async function createInvestmentProduct(
   }
 
   // [2026-09-12] 설명을 나머지 5개 언어로 번역한 뒤 한 번에 넣는다(매물과 같은 규칙).
-  const descriptionLang = currentContentLang();
+  // [2026-10-22 사용자 지시] 매물과 같은 규칙 — 원문 언어를 실제로 감지한다.
+  const descriptionLang = (await detectContentLang(input.description)) ?? currentContentLang();
   const descriptionI18n = await translateTextForAllLanguages(input.description, descriptionLang);
 
   const { data, error } = await supabase
@@ -303,7 +305,7 @@ export async function updateInvestmentProduct(
 
   let translation: { description_i18n?: Record<string, string>; description_lang?: string } = {};
   if ((prev?.description ?? "") !== input.description) {
-    const descriptionLang = currentContentLang();
+    const descriptionLang = (await detectContentLang(input.description)) ?? currentContentLang();
     translation = {
       description_i18n: await translateTextForAllLanguages(input.description, descriptionLang),
       description_lang: descriptionLang,

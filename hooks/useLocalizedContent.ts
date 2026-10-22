@@ -119,8 +119,10 @@ const MEMORY_CACHE = new Map<string, string>();
  * "번역할 글이 있는가"를 판정한다.
  */
 function findSource(map: Partial<Record<string, string>>): { text: string; lang: string } | null {
-  for (const lang of ["vi", ...SUPPORTED_LANGUAGES]) {
-    const text = map[lang];
+  // [2026-10-22] 고정 목록을 돌지 않고 맵에 실제로 든 값을 본다 — 원문 언어를
+  // 모르는 글은 언어 코드가 아닌 자리(UNKNOWN_CONTENT_LANG)에 들어가므로, 예전
+  // 방식으로는 "번역할 원문이 없다"고 판정되어 번역이 아예 돌지 않았다.
+  for (const [lang, text] of Object.entries(map)) {
     if (text && text.trim().length > 0) return { text, lang };
   }
   return null;

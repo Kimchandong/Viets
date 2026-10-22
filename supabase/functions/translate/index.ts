@@ -24,6 +24,15 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 type TranslateRequest = {
+  /**
+   * [2026-10-22] "detect"면 번역하지 않고 text의 언어만 판정해 돌려준다.
+   *
+   * 왜 필요한가: 원문 언어를 그동안 **앱 UI 언어로 추정**했다(currentContentLang).
+   * 베트남어로 앱을 쓰면서 한국어로 설명을 입력하면 ko 글이 vi로 기록되고, 그 뒤
+   * 모든 번역이 "vi -> ko"처럼 틀린 방향으로 돌아 원문이 그대로 나온다.
+   * 생략하면 기존과 완전히 동일하게 번역만 한다.
+   */
+  mode?: "translate" | "detect";
   text: string;
   sourceLang: string;
   targetLang: string;
@@ -42,6 +51,21 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+/**
+ * [2026-10-22] Google의 감지 결과를 이 앱이 쓰는 6개 언어 코드로 좁힌다.
+ *
+ * Google은 중국어를 "zh-CN"/"zh-TW"처럼 지역까지 붙여 돌려준다. 그대로 저장하면
+ * description_i18n의 키("zh")와 어긋나 영원히 매칭되지 않는다. 6개 밖의 언어
+ * (예: 프랑스어)는 null — 호출부가 기존 방식으로 폴백한다.
+ */
+const DETECTABLE = ["vi", "ko", "en", "zh", "ja", "th"];
+
+function normalizeDetectedLang(raw: unknown): string | null {
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  const base = raw.toLowerCase().split("-")[0];
+  return DETECTABLE.includes(base) ? base : null;
+}
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -103,6 +127,29 @@ Deno.serve(async (req: Request) => {
   }
 
   const text = (body.text ?? "").trim();
+
+  // [2026-10-22] 언어 감지 모드 — 번역도 캐시도 사용량 로그도 타지 않는다.
+  // Google detect는 과금 문자 수에 포함되지 않는 별도 엔드포인트다.
+  if (body.mode === "detect") {
+    if (text.length === 0) return json({ language: null }, 200);
+    const key = Deno.env.get("GOOGLE_TRANSLATE_API_KEY");
+    if (!key) return json({ language: null }, 200);
+    try {
+      const res = await fetch(
+        `https://translation.googleapis.com/language/translate/v2/detect?key=${key}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: text.slice(0, 500) }),
+        },
+      );
+      const result = await res.json();
+      const raw = result?.data?.detections?.[0]?.[0]?.language;
+      return json({ language: normalizeDetectedLang(raw) }, 200);
+    } catch {
+      return json({ language: null }, 200);
+    }
+  }
   const sourceLang = body.sourceLang;
   const targetLang = body.targetLang;
 

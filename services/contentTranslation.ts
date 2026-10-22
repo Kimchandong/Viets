@@ -126,6 +126,51 @@ export function toContentMap(
 ): Record<string, string> {
   const text = original ?? "";
   const map: Record<string, string> = { ...(i18nMap ?? {}) };
-  map[sourceLang && sourceLang.length > 0 ? sourceLang : "vi"] = text;
+  // [2026-10-22 사용자 지시] 원문 언어를 모를 때 vi 자리에 넣던 것을 멈춘다.
+  //
+  // 그 폴백이 베트남어 사용자에게 번역을 **영구히 막고 있었다**: 훅은 map[lang]이
+  // 차 있으면 "이미 번역돼 있다"고 보고 서버를 부르지 않는데, 한국어 원문이 vi
+  // 자리에 들어가 있으니 베트남어 사용자는 한국어를 끝까지 보게 된다.
+  // 이제 알 수 없는 원문은 언어 코드가 아닌 자리(und)에 둔다 — localizedText가
+  // 맵의 첫 값으로 폴백하므로 화면이 비지 않고, 훅은 정상적으로 번역을 요청한다.
+  map[sourceLang && sourceLang.length > 0 ? sourceLang : UNKNOWN_CONTENT_LANG] = text;
   return map;
+}
+
+/**
+ * 원문 언어를 모르는 글이 들어가는 자리. ISO 639-2의 "미정(undetermined)" 코드라
+ * 앱이 쓰는 6개 언어 코드와 절대 겹치지 않는다.
+ */
+export const UNKNOWN_CONTENT_LANG = "und";
+
+/**
+ * [2026-10-22 사용자 지시] 글의 실제 언어를 Google에 물어본다.
+ *
+ * 그동안 원문 언어를 앱 UI 언어로 추정했는데(currentContentLang), 베트남어로 앱을
+ * 쓰면서 한국어로 입력하는 경우가 실제로 있었다. 그러면 번역이 "vi -> ko"처럼
+ * 틀린 방향으로 돌아 원문이 그대로 나온다.
+ *
+ * 실패하면 null — 호출부가 기존 방식(currentContentLang)으로 폴백한다.
+ */
+export async function detectContentLang(text: string): Promise<string | null> {
+  if (!supabase) return null;
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return null;
+  try {
+    const { data, error } = await supabase.functions.invoke("translate", {
+      body: { mode: "detect", text: trimmed, sourceLang: "", targetLang: "" },
+    });
+    if (error) {
+      console.warn("[services/contentTranslation] detect failed:", error.message);
+      return null;
+    }
+    const lang = (data as { language?: unknown })?.language;
+    return typeof lang === "string" && (SUPPORTED_LANGUAGES as readonly string[]).includes(lang)
+      ? lang
+      : null;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown-error";
+    console.warn("[services/contentTranslation] detect threw:", message);
+    return null;
+  }
 }

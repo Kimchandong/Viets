@@ -56,6 +56,31 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
+/**
+ * [2026-10-22] 원문 언어 감지. 실패하면 null — 호출부가 vi로 폴백한다.
+ * Google은 "zh-CN"처럼 지역을 붙여 주므로 앞부분만 쓴다.
+ */
+async function detectLanguage(text: string, apiKey: string | undefined): Promise<string | null> {
+  if (!apiKey) return null;
+  try {
+    const res = await fetch(
+      `https://translation.googleapis.com/language/translate/v2/detect?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ q: text.slice(0, 500) }),
+      },
+    );
+    const result = await res.json();
+    const raw = result?.data?.detections?.[0]?.[0]?.language;
+    if (typeof raw !== "string") return null;
+    const base = raw.toLowerCase().split("-")[0];
+    return SUPPORTED.includes(base) ? base : null;
+  } catch {
+    return null;
+  }
+}
+
 /** translate 함수와 **같은 규칙**이어야 한다 — 다르면 캐시를 공유하지 못한다. */
 async function buildTranslationKey(sourceLang: string, targetLang: string, text: string): Promise<string> {
   const normalized = text.trim().replace(/\s+/g, " ");
@@ -113,18 +138,40 @@ Deno.serve(async (req: Request) => {
     return json({ translatedText: stored[targetLang], outcome: "stored" });
   }
 
-  // 원문 고르기 — 원문 언어가 기록돼 있으면 그 언어의 글이 원문이다. 없으면
-  // description 칸을 쓰되 언어를 vi로 본다(기존 데이터의 규칙, toContentMap과 동일).
-  const sourceLang = (row.description_lang as string | null) || "vi";
   const sourceText = ((row.description as string | null) ?? "").trim();
 
   if (sourceText.length === 0) {
     return json({ translatedText: "", outcome: "skipped" });
   }
+
+  /**
+   * 원문 언어 정하기.
+   *
+   * [2026-10-22 사용자 지시] 예전에는 기록이 없으면 **무조건 vi로 간주**했다. 그
+   * 추정이 틀리면(한국어로 쓴 글을 vi라고 보면) Google에 "vi -> ko"를 시켜 놓고
+   * 원문을 거의 그대로 돌려받는다 — 번역은 api_call로 성공 기록되는데 화면에는
+   * 원문이 남는, 눈에 띄지 않는 실패였다.
+   *
+   * 이제 기록이 없으면 Google 언어 감지로 실제 원문 언어를 판정하고, 그 결과를
+   * description_lang에 적어 둔다. 한 행당 한 번만 일어난다.
+   */
+  let sourceLang = (row.description_lang as string | null) || "";
+  if (!SUPPORTED.includes(sourceLang)) {
+    const detected = await detectLanguage(sourceText, googleApiKey);
+    sourceLang = detected ?? "vi";
+    if (detected) {
+      const { error: langError } = await admin
+        .from(table)
+        .update({ description_lang: detected })
+        .eq("id", body.id);
+      if (langError) console.warn("[translate-content] description_lang 저장 실패:", langError.message);
+    }
+  }
+
+  // 감지 결과가 보는 사람의 언어와 같으면 번역할 것이 없다 — 원문이 곧 번역이다.
   if (sourceLang === targetLang) {
     return json({ translatedText: sourceText, outcome: "skipped" });
   }
-
   const translationKey = await buildTranslationKey(sourceLang, targetLang, sourceText);
 
   let translated: string | null = null;

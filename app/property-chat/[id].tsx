@@ -491,7 +491,7 @@ export default function PropertyChatScreen() {
             style={({ pressed }) => [
               styles.sendButton,
               {
-                backgroundColor: theme.accent,
+                backgroundColor: theme.buttonPrimary,
                 opacity: !draft.trim() || sending ? opacity.disabled : pressed ? opacity.pressed : 1,
               },
             ]}

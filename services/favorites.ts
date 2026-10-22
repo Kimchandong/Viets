@@ -12,7 +12,7 @@ import { supabase } from "./supabase";
  * boolean(또는 빈 배열)로 반환하고, 호출부(store)가 낙관적 업데이트를 되돌린다.
  */
 
-export type FavoriteTargetType = "property" | "investment_product";
+export type FavoriteTargetType = "property" | "investment_product" | "article";
 
 const FAVORITES_TABLE = "favorites";
 

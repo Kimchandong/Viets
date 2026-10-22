@@ -365,7 +365,7 @@ export default function AiScreen() {
               style={({ pressed }) => [
                 styles.roundButton,
                 {
-                  backgroundColor: theme.accent,
+                  backgroundColor: theme.buttonPrimary,
                   borderColor: theme.accent,
                   opacity: loading || query.trim().length === 0 ? opacity.disabled : pressed ? opacity.pressed : 1,
                 },

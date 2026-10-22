@@ -165,8 +165,13 @@ function MyScreen() {
 
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
+  /**
+   * [2026-10-22 사용자 지시] 환경설정의 언어·통화를 **펼쳐서** 고른다.
+   *
+   * 모달이던 것을 바꾼 이유: 두 줄뿐인 설정을 고르려고 화면을 덮을 이유가 없고,
+   * 덮으면 지금 무엇이 골라져 있는지가 가려진다. 한 번에 하나만 펼친다.
+   */
+  const [openSetting, setOpenSetting] = useState<"language" | "currency" | null>(null);
   // [2026-09-14] 계정 삭제 — 되돌릴 수 없으므로 반드시 한 번 더 묻는다.
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -836,7 +841,7 @@ function MyScreen() {
                   disabled={passwordLoading || !!loadingProvider}
                   style={[
                     styles.passwordSubmit,
-                    passwordReady ? { backgroundColor: theme.accent } : { backgroundColor: theme.border },
+                    passwordReady ? { backgroundColor: theme.buttonPrimary } : { backgroundColor: theme.border },
                   ]}
                   textStyle={{ color: passwordReady ? theme.onAccent : "#666666" }}
                 />
@@ -931,6 +936,13 @@ function MyScreen() {
               valueLabel={unreadNotifications > 0 ? String(unreadNotifications) : undefined}
               onPress={() => router.push("/notifications")}
               theme={theme}
+            />
+            {/* [2026-10-22 사용자 지시] 북마크한 부동산 정보(Ai BĐS) 목록. */}
+            <SettingsRow
+              icon="bookmark-outline"
+              label={t("my.rows.articles")}
+              onPress={() => router.push("/my-articles")}
+              theme={theme}
               last
             />
           </Card>
@@ -977,7 +989,9 @@ function MyScreen() {
                   theme={theme}
                 />
               ) : null}
-              {isAdminUser ? (
+              {/* [2026-10-22] 업체 대표에게도 보인다 — 직원관리 탭이 이 안에 있다.
+                  탭 구성은 manage-ops가 권한별로 다시 고른다. */}
+              {isAdminUser || agency?.roleInAgency === "owner" ? (
                 <SettingsRow
                   icon="settings-outline"
                   label={t("my.manage.ops")}
@@ -1001,17 +1015,57 @@ function MyScreen() {
               icon="language-outline"
               label={t("my.rows.language")}
               valueLabel={LANGUAGE_LABELS[language]}
-              onPress={() => setLanguageModalVisible(true)}
+              onPress={() => setOpenSetting((prev) => (prev === "language" ? null : "language"))}
               theme={theme}
             />
+            {openSetting === "language"
+              ? SUPPORTED_LANGUAGES.map((code) => (
+                  <Pressable
+                    key={code}
+                    onPress={() => {
+                      setLanguage(code);
+                      setOpenSetting(null);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: code === language }}
+                    style={({ pressed }) => [
+                      styles.inlineOption,
+                      { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                    ]}
+                  >
+                    <Text style={[textStyles.body, { color: theme.text }]}>{LANGUAGE_LABELS[code]}</Text>
+                    {code === language ? <Ionicons name="checkmark" size={18} color={theme.accent} /> : null}
+                  </Pressable>
+                ))
+              : null}
             <SettingsRow
               icon="cash-outline"
               label={t("my.rows.currency")}
               valueLabel={currency}
-              onPress={() => setCurrencyModalVisible(true)}
+              onPress={() => setOpenSetting((prev) => (prev === "currency" ? null : "currency"))}
               theme={theme}
-              last
+              last={openSetting !== "currency"}
             />
+            {openSetting === "currency"
+              ? SUPPORTED_CURRENCIES.map((code) => (
+                  <Pressable
+                    key={code}
+                    onPress={() => {
+                      setCurrency(code);
+                      setOpenSetting(null);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: code === currency }}
+                    style={({ pressed }) => [
+                      styles.inlineOption,
+                      { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+                    ]}
+                  >
+                    <Text style={[textStyles.body, { color: theme.text }]}>{code}</Text>
+                    {code === currency ? <Ionicons name="checkmark" size={18} color={theme.accent} /> : null}
+                  </Pressable>
+                ))
+              : null}
           </Card>
         </View>
 
@@ -1094,32 +1148,6 @@ function MyScreen() {
 
       </ScrollView>
 
-      <Modal
-        visible={languageModalVisible}
-        onClose={() => setLanguageModalVisible(false)}
-        accessibilityLabel={t("common.cancel")}
-      >
-        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
-          {t("my.languageModalTitle")}
-        </Text>
-        {SUPPORTED_LANGUAGES.map((code) => (
-          <Pressable
-            key={code}
-            onPress={() => {
-              setLanguage(code);
-              setLanguageModalVisible(false);
-            }}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.languageOption,
-              { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
-            ]}
-          >
-            <Text style={[textStyles.body, { color: theme.text }]}>{LANGUAGE_LABELS[code]}</Text>
-            {code === language ? <Ionicons name="checkmark" size={18} color={theme.accent} /> : null}
-          </Pressable>
-        ))}
-      </Modal>
 
       {/* [2026-09-14] 계정 삭제 확인 — 되돌릴 수 없는 동작이므로 무엇이 사라지고
           무엇이 남는지 먼저 보여 준다. 남는 것(상담 이력)을 함께 적는 이유: 대화가
@@ -1154,34 +1182,6 @@ function MyScreen() {
 
       {/* [STEP: 2026-09-09] 사용자 요청 — 통화 선택 Modal(베트남 동/달러), 위 언어
           선택 Modal과 동일한 패턴. */}
-      <Modal
-        visible={currencyModalVisible}
-        onClose={() => setCurrencyModalVisible(false)}
-        accessibilityLabel={t("common.cancel")}
-      >
-        <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
-          {t("my.currencyModalTitle")}
-        </Text>
-        {SUPPORTED_CURRENCIES.map((code) => (
-          <Pressable
-            key={code}
-            onPress={() => {
-              setCurrency(code);
-              setCurrencyModalVisible(false);
-            }}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.languageOption,
-              { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
-            ]}
-          >
-            <Text style={[textStyles.body, { color: theme.text }]}>
-              {t(`my.currency.${code.toLowerCase()}`)}
-            </Text>
-            {code === currency ? <Ionicons name="checkmark" size={18} color={theme.accent} /> : null}
-          </Pressable>
-        ))}
-      </Modal>
 
       {/* [2026-09-11 사용자 지시] 업체명 수정 — 이름 한 칸만 바꾼다. */}
       <Modal
@@ -1610,6 +1610,16 @@ const styles = createScaledStyles(() => ({
   },
   rowIcon: {
     width: 22,
+  },
+  // [2026-10-22 사용자 지시] 설정 카드 안에서 펼쳐지는 선택지 한 줄.
+  inlineOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingLeft: spacing.md + 22 + spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   languageOption: {
     flexDirection: "row",

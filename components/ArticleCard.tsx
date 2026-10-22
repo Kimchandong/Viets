@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useFavoritesStore } from "@/store/useFavoritesStore";
 import type { TFunction } from "i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
@@ -36,6 +38,9 @@ export type ArticleCardProps = {
 export function ArticleCard({ article, showDivider, onPress }: ArticleCardProps) {
   const theme = colors.light;
   const { t, i18n } = useTranslation();
+  // [2026-10-22 사용자 지시] 북마커 — favorites 표를 그대로 쓴다(target_type='article').
+  const bookmarked = useFavoritesStore((state) => state.isFavorite("article", article.id));
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
   // 이미지가 깨지는 경우가 실제로 있다 — 외부 CDN이고 핫링크를 막는 출처도 있다.
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -92,6 +97,21 @@ export function ArticleCard({ article, showDivider, onPress }: ArticleCardProps)
           글자는 caption(14)에서 한 치수 내린 12다.
           두 줄까지 허용한다 — 폭이 썸네일(96)에 묶여 있어 한 줄로 못 박으면
           "Thanh Niên · 3시간 전"처럼 긴 조합이 잘린다. 잘린 출처는 출처가 아니다. */}
+      {/* 북마커 — 카드 전체를 누르면 상세로 가므로, 이 버튼은 그 눌림을 삼킨다. */}
+      <Pressable
+        onPress={() => toggleFavorite("article", article.id)}
+        accessibilityRole="button"
+        accessibilityState={{ selected: bookmarked }}
+        accessibilityLabel={t("article.bookmark")}
+        hitSlop={8}
+        style={({ pressed }) => [styles.bookmark, { opacity: pressed ? opacity.pressed : 1 }]}
+      >
+        <Ionicons
+          name={bookmarked ? "bookmark" : "bookmark-outline"}
+          size={18}
+          color={bookmarked ? theme.accent : "#FFFFFF"}
+        />
+      </Pressable>
       <Text style={[styles.thumbMeta, { color: theme.secondaryText }]} numberOfLines={2}>
         {article.sourceName}
         {dateLabel ? ` · ${dateLabel}` : ""}
@@ -208,6 +228,15 @@ const styles = createScaledStyles(() => ({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   // 사진 + 그 아래 시각. 폭은 썸네일에 맞춘다.
+  bookmark: {
+    position: "absolute",
+    left: 4,
+    top: 4,
+    // 사진 위에 얹히므로 어두운 원판을 깔아 흰 아이콘이 밝은 사진에서도 보이게 한다.
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+    borderRadius: radius.full,
+    padding: 4,
+  },
   thumbColumn: {
     width: 96,
     gap: 4,

@@ -325,7 +325,8 @@
       "notices": "Thông báo",
       "deleteAccount": "Xoá tài khoản",
       "terms": "Điều khoản dịch vụ",
-      "privacy": "Chính sách bảo mật"
+      "privacy": "Chính sách bảo mật",
+      "articles": "Tin BĐS đã lưu"
     },
     "languageModalTitle": "Chọn ngôn ngữ",
     "currencyModalTitle": "Chọn đơn vị tiền tệ",
@@ -400,7 +401,8 @@
       "ops": "Vận hành",
       "preferences": "Tùy chọn",
       "info": "Thông tin"
-    }
+    },
+    "noBookmarkedArticles": "Chưa có tin đã lưu"
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",
@@ -1410,5 +1412,28 @@
     "minutesAgo": "{{count}} phút trước",
     "hoursAgo": "{{count}} giờ trước",
     "sectionSubtitle": "Tin BĐS Việt Nam thời gian thực bằng AI"
+  },
+  "agencyStaff": {
+    "title": "Nhân viên",
+    "addTitle": "Thêm nhân viên",
+    "listTitle": "Thành viên hiện tại",
+    "searchPlaceholder": "Tìm theo email hoặc tên",
+    "search": "Tìm",
+    "searchTooShort": "Nhập ít nhất 2 ký tự",
+    "noResults": "Không có kết quả",
+    "add": "Thêm",
+    "added": "Đã thêm",
+    "addFailed": "Không thể thêm",
+    "remove": "Xóa",
+    "removed": "Đã xóa",
+    "removeFailed": "Không thể xóa",
+    "empty": "Chưa có nhân viên",
+    "role": {
+      "owner": "Chủ",
+      "staff": "Nhân viên"
+    }
+  },
+  "article": {
+    "bookmark": "Lưu"
   }
 }

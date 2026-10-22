@@ -325,7 +325,8 @@
       "notices": "Notices",
       "deleteAccount": "Delete account",
       "terms": "Terms of Service",
-      "privacy": "Privacy Policy"
+      "privacy": "Privacy Policy",
+      "articles": "Saved articles"
     },
     "languageModalTitle": "Select Language",
     "currencyModalTitle": "Select Currency",
@@ -400,7 +401,8 @@
       "ops": "Operations",
       "preferences": "Preferences",
       "info": "Information"
-    }
+    },
+    "noBookmarkedArticles": "No bookmarked articles"
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",
@@ -1410,5 +1412,28 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "sectionSubtitle": "Live Vietnam property news by AI"
+  },
+  "agencyStaff": {
+    "title": "Staff",
+    "addTitle": "Add staff",
+    "listTitle": "Current members",
+    "searchPlaceholder": "Search by email or name",
+    "search": "Search",
+    "searchTooShort": "Enter at least 2 characters",
+    "noResults": "No results",
+    "add": "Add",
+    "added": "Added",
+    "addFailed": "Could not add",
+    "remove": "Remove",
+    "removed": "Removed",
+    "removeFailed": "Could not remove",
+    "empty": "No staff yet",
+    "role": {
+      "owner": "Owner",
+      "staff": "Staff"
+    }
+  },
+  "article": {
+    "bookmark": "Bookmark"
   }
 }

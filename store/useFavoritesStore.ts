@@ -21,7 +21,9 @@ import { create } from "zustand";
 import { addFavorite, fetchFavorites, removeFavorite } from "@/services/favorites";
 import { getSession, onAuthStateChange } from "@/services/auth";
 
-export type FavoriteTargetType = "property" | "investment_product";
+// [2026-10-22 사용자 지시] 부동산 정보(기사) 북마커 — favorites 표의 CHECK에
+// 'article'을 더했다(20261022110000_favorites_article.sql).
+export type FavoriteTargetType = "property" | "investment_product" | "article";
 
 function keyOf(targetType: FavoriteTargetType, targetId: string): string {
   return `${targetType}:${targetId}`;

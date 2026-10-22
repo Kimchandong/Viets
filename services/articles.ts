@@ -137,6 +137,29 @@ export type ArticlePage = {
  * `revoked`는 **클라이언트에서 한 번 더 제외한다.** 권한이 철회된 글은 게시 상태가
  * 남아 있어도 노출하지 않는 것이 맞고, 수집기가 상태를 내리기 전까지의 틈을 막는다.
  */
+/**
+ * [2026-10-22 사용자 지시] "접속시마다 노출위치가 랜덤으로 변동."
+ *
+ * `order by random()`은 쓰지 않는다 — 페이지를 넘길 때마다 서버가 다시 섞어, 같은
+ * 기사가 두 번 나오거나 아예 빠진다. 대신 앱을 켤 때 시드를 하나 정하고 그 시드로
+ * **결정적 셔플**을 한다: 접속마다 순서는 바뀌고, 그 접속 안에서는 순서가 고정된다.
+ */
+const SESSION_SHUFFLE_SEED = Math.floor(Math.random() * 2 ** 31);
+
+function seededShuffle<T>(items: T[], seed: number): T[] {
+  const copy = [...items];
+  // xorshift — 라이브러리 없이 같은 시드에서 항상 같은 순서를 만든다.
+  let state = seed || 1;
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    const j = Math.abs(state) % (i + 1);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export async function listArticles(page = 0, lang = "vi"): Promise<ArticlePage> {
   if (!supabase) return { items: [], hasMore: false };
 
@@ -159,8 +182,12 @@ export async function listArticles(page = 0, lang = "vi"): Promise<ArticlePage> 
 
   const rows = (data ?? []) as unknown as Row[];
   const hasMore = rows.length > ARTICLES_PAGE_SIZE;
+  // 셔플은 **페이지 안에서만** 한다. 페이지 경계를 넘겨 섞으면 다음 페이지를
+  // 불러올 때 이미 보여 준 기사가 다시 나온다.
   return {
-    items: rows.slice(0, ARTICLES_PAGE_SIZE).map((row) => mapRow(row, lang)),
+    items: seededShuffle(rows.slice(0, ARTICLES_PAGE_SIZE), SESSION_SHUFFLE_SEED + page).map((row) =>
+      mapRow(row, lang),
+    ),
     hasMore,
   };
 }
@@ -204,4 +231,26 @@ export async function getArticleDetail(id: string, lang = "vi"): Promise<Article
       caption: i.caption,
     })),
   };
+}
+
+/**
+ * [2026-10-22 사용자 지시] MY > 부동산정보 — 북마크한 기사 목록.
+ *
+ * 북마크는 favorites 표를 그대로 쓴다(target_type='article'). 여기서는 id 목록을
+ * 받아 기사 본문을 채워 돌려준다 — 북마크를 해제하면 favorites 행만 사라지고
+ * 기사 자체는 남는다.
+ */
+export async function getArticlesByIds(ids: string[], lang = "vi"): Promise<Article[]> {
+  if (!supabase || ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("articles")
+    .select(LIST_COLUMNS)
+    .in("id", ids)
+    .neq("content_permission", "revoked")
+    .order("source_published_at", { ascending: false, nullsFirst: false });
+  if (error) {
+    console.warn("[services/articles] 북마크 목록 조회 실패:", error.message);
+    return [];
+  }
+  return ((data ?? []) as unknown as Row[]).map((row) => mapRow(row, lang));
 }

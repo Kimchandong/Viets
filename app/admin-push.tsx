@@ -352,7 +352,7 @@ function Chip({
       style={({ pressed }) => [
         styles.chip,
         { borderColor: selected ? theme.accent : theme.border },
-        selected ? { backgroundColor: theme.accent } : null,
+        selected ? { backgroundColor: theme.buttonPrimary } : null,
         { opacity: pressed ? opacity.pressed : 1 },
       ]}
     >

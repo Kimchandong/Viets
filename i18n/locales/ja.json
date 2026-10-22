@@ -325,7 +325,8 @@
       "notices": "お知らせ",
       "deleteAccount": "アカウント削除",
       "terms": "利用規約",
-      "privacy": "プライバシーポリシー"
+      "privacy": "プライバシーポリシー",
+      "articles": "保存した情報"
     },
     "languageModalTitle": "言語を選択",
     "currencyModalTitle": "通貨を選択",
@@ -400,7 +401,8 @@
       "ops": "運用管理",
       "preferences": "環境設定",
       "info": "情報管理"
-    }
+    },
+    "noBookmarkedArticles": "保存した情報がありません"
   },
   "auth": {
     "tagline": "ベトナム不動産・投資プラットフォーム",
@@ -1410,5 +1412,28 @@
     "minutesAgo": "{{count}}分前",
     "hoursAgo": "{{count}}時間前",
     "sectionSubtitle": "AIによるベトナム不動産リアルタイム情報"
+  },
+  "agencyStaff": {
+    "title": "スタッフ管理",
+    "addTitle": "スタッフ追加",
+    "listTitle": "現在のメンバー",
+    "searchPlaceholder": "メールまたは名前で検索",
+    "search": "検索",
+    "searchTooShort": "2文字以上入力してください",
+    "noResults": "結果がありません",
+    "add": "追加",
+    "added": "追加しました",
+    "addFailed": "追加できませんでした",
+    "remove": "削除",
+    "removed": "削除しました",
+    "removeFailed": "削除できませんでした",
+    "empty": "スタッフがいません",
+    "role": {
+      "owner": "代表",
+      "staff": "スタッフ"
+    }
+  },
+  "article": {
+    "bookmark": "ブックマーク"
   }
 }

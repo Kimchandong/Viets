@@ -30,9 +30,6 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
 import { createScaledStyles, colors, FONT_FACTOR, opacity, radius, shadow, spacing, textStyles, ThemeColors, typography, scaleFont } from "@/constants/theme";
 import {
-  findSimilarPropertiesByArea,
-  findSimilarPropertiesByPrice,
-  findSimilarPropertiesByRooms,
   translateOption,
   type MockProperty,
   type MockInvestmentProduct,
@@ -43,7 +40,7 @@ import {
 } from "@/constants/propertyOptions";
 import { formatVndAmount, localizeUnits, splitYieldText } from "@/utils/format";
 import { getSession, onAuthStateChange } from "@/services/auth";
-import { getPropertyById } from "@/services/properties";
+import { findSimilarPropertiesInDb, getPropertyById } from "@/services/properties";
 import { reportProperty } from "@/services/reports";
 import {
   listInvestmentProductsByPropertyId,
@@ -119,20 +116,36 @@ export default function PropertyDetailScreen() {
   // 결과가 실제로는 무관한 매물이라(같은 데이터셋이 아님) "AI 정직성" 원칙상
   // 노출하지 않는다 — mock 매물(isMock:true)일 때만 기존 동작을 유지한다.
   const [aiTab, setAiTab] = useState<"area" | "rooms" | "price">("area");
-  const similarByArea = useMemo(
-    () => (property?.isMock ? findSimilarPropertiesByArea(property) : []),
-    [property],
-  );
-  const similarByRooms = useMemo(
-    () => (property?.isMock ? findSimilarPropertiesByRooms(property) : []),
-    [property],
-  );
-  const similarByPrice = useMemo(
-    () => (property?.isMock ? findSimilarPropertiesByPrice(property) : []),
-    [property],
-  );
-  const aiTabResults =
-    aiTab === "area" ? similarByArea : aiTab === "rooms" ? similarByRooms : similarByPrice;
+
+  /**
+   * [2026-10-22 사용자 지시] 유사 매물을 **DB에서 범위로** 찾는다.
+   *
+   * 예전에는 mock 11건 안에서 완전일치로만 찾아, 33개 조합 중 4개에서만 결과가
+   * 나왔고 실제 DB 매물은 아예 빈 배열로 막혀 있었다(services/properties.ts의
+   * findSimilarPropertiesInDb 주석 참고).
+   *
+   * 탭을 바꿀 때마다 조회한다 — 세 탭을 한꺼번에 받아 두면 보지도 않을 두 번의
+   * 조회를 매번 날린다.
+   */
+  const [aiTabResults, setAiTabResults] = useState<MockProperty[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  useEffect(() => {
+    if (!property) {
+      setAiTabResults([]);
+      return;
+    }
+    let mounted = true;
+    setAiLoading(true);
+    findSimilarPropertiesInDb(property, aiTab).then((result) => {
+      if (!mounted) return;
+      setAiTabResults(result);
+      setAiLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [property, aiTab]);
 
   const [session, setSession] = useState<Session | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -608,7 +621,11 @@ export default function PropertyDetailScreen() {
                 </Text>
               </Pressable>
             </View>
-            {aiTabResults.length > 0 ? (
+            {aiLoading ? (
+              <View style={styles.loadingBox}>
+                <ActivityIndicator color={theme.accent} />
+              </View>
+            ) : aiTabResults.length > 0 ? (
               <View style={styles.aiTabList}>
                 {aiTabResults.map((similar) => (
                   <PropertyCard

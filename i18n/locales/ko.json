@@ -325,7 +325,8 @@
       "notices": "공지사항",
       "deleteAccount": "계정 삭제",
       "terms": "이용약관",
-      "privacy": "개인정보처리방침"
+      "privacy": "개인정보처리방침",
+      "articles": "부동산정보"
     },
     "languageModalTitle": "언어 선택",
     "currencyModalTitle": "통화 선택",
@@ -400,7 +401,8 @@
       "ops": "운영 & 사용",
       "preferences": "환경설정",
       "info": "정보관리"
-    }
+    },
+    "noBookmarkedArticles": "북마크한 부동산 정보가 없습니다"
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",
@@ -1410,5 +1412,28 @@
     "minutesAgo": "{{count}}분 전",
     "hoursAgo": "{{count}}시간 전",
     "sectionSubtitle": "AI 실시간 베트남 부동산 정보"
+  },
+  "agencyStaff": {
+    "title": "직원관리",
+    "addTitle": "직원 추가",
+    "listTitle": "현재 소속",
+    "searchPlaceholder": "이메일 또는 이름으로 검색",
+    "search": "검색",
+    "searchTooShort": "2자 이상 입력하세요",
+    "noResults": "검색 결과가 없습니다",
+    "add": "추가",
+    "added": "추가했습니다",
+    "addFailed": "추가하지 못했습니다",
+    "remove": "삭제",
+    "removed": "삭제했습니다",
+    "removeFailed": "삭제하지 못했습니다",
+    "empty": "소속 직원이 없습니다",
+    "role": {
+      "owner": "대표",
+      "staff": "직원"
+    }
+  },
+  "article": {
+    "bookmark": "북마크"
   }
 }

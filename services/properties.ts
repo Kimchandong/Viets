@@ -862,6 +862,54 @@ export async function updatePropertyStatus(
   return true;
 }
 
+/**
+ * [2026-10-22 사용자 지시] 매물 상세의 "AI 매물" — 면적·방수·가격이 비슷한 매물.
+ *
+ * 왜 새로 만드는가: 기존 findSimilarProperties*(constants/mockData.ts)는 **mock 11건
+ * 안에서 완전일치(===)** 로만 찾았다. 실제로 세어 보니 11건 × 3탭 = 33개 조합 중
+ * 결과가 나오는 건 4개(12%)뿐이었다 — 면적 0/11, 가격 0/11, 방수 4/11. 게다가 실제
+ * DB 매물은 비교 대상이 mock뿐이라 아예 빈 배열로 막아 두고 있었다.
+ *
+ * 그래서 두 가지를 바꾼다.
+ *   · 완전일치 -> **범위 매칭**(면적 ±20%, 가격 ±20%, 방수 ±1). 사람이 "비슷한
+ *     매물"이라고 부르는 것은 같은 값이 아니라 가까운 값이다.
+ *   · mock 안이 아니라 **DB에서** 찾는다. 같은 데이터셋끼리 비교해야 결과가 뜻을 갖는다.
+ */
+export async function findSimilarPropertiesInDb(
+  property: MockProperty,
+  by: "area" | "rooms" | "price",
+  limit = 6,
+): Promise<MockProperty[]> {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from("properties")
+    .select(PROPERTY_SELECT)
+    .eq("status", "active")
+    .neq("id", property.id);
+
+  if (by === "area") {
+    const area = property.areaValueM2;
+    if (!area) return [];
+    query = query.gte("area", area * 0.8).lte("area", area * 1.2);
+  } else if (by === "rooms") {
+    const rooms = property.bedrooms;
+    if (rooms === undefined || rooms === null) return [];
+    query = query.gte("bedrooms", Math.max(0, rooms - 1)).lte("bedrooms", rooms + 1);
+  } else {
+    const price = property.priceValueVnd;
+    if (!price) return [];
+    query = query.gte("price", price * 0.8).lte("price", price * 1.2);
+  }
+
+  const { data, error } = await query.limit(limit);
+  if (error) {
+    console.warn("[services/properties] findSimilarPropertiesInDb failed:", error.message);
+    return [];
+  }
+  return ((data ?? []) as unknown as PropertyRow[]).map(mapRowToMockProperty);
+}
+
 export async function getPropertyById(id: string): Promise<MockProperty | undefined> {
   if (!supabase) {
     return undefined;

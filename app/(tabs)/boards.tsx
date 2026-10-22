@@ -33,15 +33,22 @@ import { supabase } from "@/services/supabase";
 
 const KIND_ORDER: BoardKind[] = ["notice", "faq", "qa"];
 
-export default function BoardsScreen() {
+/**
+ * [2026-10-22 사용자 지시] 상담 & 알림 탭 안에서는 "공지사항" 하나만 보여야 한다.
+ *
+ * 이 화면은 공지/QA/FAQ를 자기 칩으로 전환한다. 탭 안에 그대로 끼워 넣으면 바깥
+ * 탭 줄 바로 아래에 또 한 줄의 칩이 생겨 같은 일을 두 번 고르게 된다. 그래서
+ * 호출부가 종류를 지정하면 그 종류로 고정하고 칩 줄을 그리지 않는다.
+ * 라우트로 들어올 때는 prop이 없으므로 기존 동작(칩 3개) 그대로다.
+ */
+export default function BoardsScreen({ fixedKind }: { fixedKind?: BoardKind } = {}) {
   const theme = colors.light;
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ kind?: string }>();
 
-  const initialKind = KIND_ORDER.includes(params.kind as BoardKind)
-    ? (params.kind as BoardKind)
-    : "notice";
+  const initialKind = fixedKind
+    ?? (KIND_ORDER.includes(params.kind as BoardKind) ? (params.kind as BoardKind) : "notice");
 
   const [kind, setKind] = useState<BoardKind>(initialKind);
   const [posts, setPosts] = useState<BoardPost[]>([]);
@@ -114,6 +121,7 @@ export default function BoardsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={[]}>
       <Header title={t("board.title")} leftAction={<BackButton fallback="/home" />} />
 
+      {fixedKind ? null : (
       <View style={[styles.tabRow, { borderBottomColor: theme.border }]}>
         {KIND_ORDER.map((item) => {
           const active = item === kind;
@@ -146,6 +154,7 @@ export default function BoardsScreen() {
           );
         })}
       </View>
+      )}
 
       {loading ? (
         <Loading />

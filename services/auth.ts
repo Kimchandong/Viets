@@ -1,5 +1,6 @@
 import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
+import { Platform } from "react-native";
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "./supabase";
@@ -292,6 +293,38 @@ async function signInWithOAuthProvider(provider: OAuthProvider): Promise<AuthRes
     // makeRedirectUri()가 런타임 환경(Expo Go vs Development Build)에 따라
     // 자동으로 생성한다.
     const redirectTo = makeRedirectUri({ path: "login" });
+
+    /**
+     * [2026-10-22 사용자 지시] 웹에서는 팝업 방식을 쓰지 않는다.
+     *
+     * 네이티브는 openAuthSessionAsync가 시스템 브라우저를 띄우고 콜백 URL을
+     * 돌려주지만, 웹 구현은 전혀 다른 물건이다 — window.open으로 팝업을 띄우고
+     * **팝업 쪽이 maybeCompleteAuthSession()으로 postMessage를 되쏠 때만** 끝난다.
+     * 그래서 웹에서는 이런 일이 벌어졌다:
+     *   · 팝업이 차단되면 바로 throw.
+     *   · Supabase가 Site URL로 폴백하면 팝업이 다른 origin에 떨어져 메시지가
+     *     영영 오지 않고 버튼이 무한 로딩으로 멈춘다.
+     *   · 팝업이 /login?code=... 를 열면 앱이 한 번 더 부팅되고, 그 안의 Supabase
+     *     클라이언트가 detectSessionInUrl로 code를 **먼저 써 버린다**. code는
+     *     일회용이라 부모 창의 exchangeCodeForSession은 실패한다.
+     *
+     * 웹에서는 supabase-js 표준 흐름이 맞다 — 전체 페이지 리다이렉트로 보내고,
+     * 돌아왔을 때 detectSessionInUrl(웹 기본값 true)이 세션을 세운다. 팝업도,
+     * postMessage도, 수동 코드 교환도 필요 없다.
+     */
+    if (Platform.OS === "web") {
+      const { error: webError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo },
+      });
+      if (webError) {
+        console.warn(`[services/auth] OAUTH_WEB_REDIRECT_FAILED provider=${provider} message=${webError.message}`);
+        return { session: null, user: null, error: webError.message };
+      }
+      // 여기 아래 줄은 실행되지 않는다 — 브라우저가 이미 다른 주소로 떠났다.
+      console.log(`[services/auth] OAUTH_WEB_REDIRECTING provider=${provider}`);
+      return { session: null, user: null, error: null };
+    }
     // redirectTo 자체는 비밀값이 아니다(브라우저 주소창에도 그대로 노출되는 값) —
     // Supabase Dashboard의 Redirect URLs와 실제로 일치하는지 사용자가 직접 대조할 수
     // 있도록 그대로 남긴다(§3 Redirect URL 진단의 핵심 근거).

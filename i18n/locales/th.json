@@ -325,7 +325,8 @@
       "notices": "ประกาศ",
       "deleteAccount": "ลบบัญชี",
       "terms": "ข้อกำหนดการใช้งาน",
-      "privacy": "นโยบายความเป็นส่วนตัว"
+      "privacy": "นโยบายความเป็นส่วนตัว",
+      "articles": "ข่าวที่บันทึก"
     },
     "languageModalTitle": "เลือกภาษา",
     "currencyModalTitle": "เลือกสกุลเงิน",
@@ -400,7 +401,8 @@
       "ops": "การดำเนินงาน",
       "preferences": "การตั้งค่า",
       "info": "ข้อมูล"
-    }
+    },
+    "noBookmarkedArticles": "ยังไม่มีข่าวที่บันทึก"
   },
   "auth": {
     "tagline": "แพลตฟอร์มอสังหาริมทรัพย์และการลงทุนเวียดนาม",
@@ -1410,5 +1412,28 @@
     "minutesAgo": "{{count}} นาทีที่แล้ว",
     "hoursAgo": "{{count}} ชั่วโมงที่แล้ว",
     "sectionSubtitle": "ข้อมูลอสังหาฯ เวียดนามเรียลไทม์ด้วย AI"
+  },
+  "agencyStaff": {
+    "title": "จัดการพนักงาน",
+    "addTitle": "เพิ่มพนักงาน",
+    "listTitle": "สมาชิกปัจจุบัน",
+    "searchPlaceholder": "ค้นหาด้วยอีเมลหรือชื่อ",
+    "search": "ค้นหา",
+    "searchTooShort": "กรอกอย่างน้อย 2 ตัวอักษร",
+    "noResults": "ไม่พบผลลัพธ์",
+    "add": "เพิ่ม",
+    "added": "เพิ่มแล้ว",
+    "addFailed": "เพิ่มไม่สำเร็จ",
+    "remove": "ลบ",
+    "removed": "ลบแล้ว",
+    "removeFailed": "ลบไม่สำเร็จ",
+    "empty": "ยังไม่มีพนักงาน",
+    "role": {
+      "owner": "เจ้าของ",
+      "staff": "พนักงาน"
+    }
+  },
+  "article": {
+    "bookmark": "บันทึก"
   }
 }

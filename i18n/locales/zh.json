@@ -325,7 +325,8 @@
       "notices": "公告",
       "deleteAccount": "删除账号",
       "terms": "服务条款",
-      "privacy": "隐私政策"
+      "privacy": "隐私政策",
+      "articles": "已收藏资讯"
     },
     "languageModalTitle": "选择语言",
     "currencyModalTitle": "选择货币",
@@ -400,7 +401,8 @@
       "ops": "运营管理",
       "preferences": "偏好设置",
       "info": "信息管理"
-    }
+    },
+    "noBookmarkedArticles": "没有收藏的资讯"
   },
   "auth": {
     "tagline": "越南房地产与投资平台",
@@ -1410,5 +1412,28 @@
     "minutesAgo": "{{count}}分钟前",
     "hoursAgo": "{{count}}小时前",
     "sectionSubtitle": "AI 越南房地产实时资讯"
+  },
+  "agencyStaff": {
+    "title": "员工管理",
+    "addTitle": "添加员工",
+    "listTitle": "当前成员",
+    "searchPlaceholder": "按邮箱或姓名搜索",
+    "search": "搜索",
+    "searchTooShort": "请输入至少2个字符",
+    "noResults": "没有结果",
+    "add": "添加",
+    "added": "已添加",
+    "addFailed": "添加失败",
+    "remove": "删除",
+    "removed": "已删除",
+    "removeFailed": "删除失败",
+    "empty": "暂无员工",
+    "role": {
+      "owner": "负责人",
+      "staff": "员工"
+    }
+  },
+  "article": {
+    "bookmark": "收藏"
   }
 }

@@ -14,7 +14,7 @@ export default function ManageSupportScreen() {
       tabs={[
         { key: "consults", label: t("my.manage.consults"), render: () => <ChatInboxScreen /> },
         { key: "boards", label: t("my.manage.boardAdmin"), render: () => <AdminBoardsScreen /> },
-        { key: "notice", label: t("my.rows.notices"), render: () => <BoardsScreen /> },
+        { key: "notice", label: t("my.rows.notices"), render: () => <BoardsScreen fixedKind="notice" /> },
       ]}
     />
   );

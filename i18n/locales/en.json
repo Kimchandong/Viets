@@ -1372,5 +1372,24 @@
     "emptyTitle": "No inquiries yet",
     "emptyPropertyDescription": "Inquiries you start from a property page appear here.",
     "emptyInvestDescription": "Inquiries you start from an investment page appear here."
+  },
+  "articles": {
+    "sectionTitle": "Ai BĐS",
+    "detailTitle": "Ai BĐS",
+    "openOriginal": "Source",
+    "loadMore": "Load more",
+    "emptyTitle": "Nothing to show yet",
+    "emptyDescription": "New property news arrives each morning.",
+    "openFailed": "Couldn't open the original page.",
+    "notAvailableTitle": "Not viewable in the app",
+    "notAvailableDescription": "This item can only be read on the publisher's site. Use 'Open source' from the list.",
+    "sourceLabel": "Source",
+    "domainLabel": "Site",
+    "publishedLabel": "Published",
+    "lastCheckedLabel": "Last checked",
+    "disclaimer": "The above is a brief summary found and translated in real time by an AI agent.",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "sectionSubtitle": "Live Vietnam property news by AI"
   }
 }

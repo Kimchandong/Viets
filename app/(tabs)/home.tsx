@@ -7,6 +7,9 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   Animated,
   Image,
+  Linking,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -26,6 +29,7 @@ import { FadeInText } from "@/components/FadeInText";
 import { ACCENT_BY_TAB, HomeSearchPanel } from "@/components/HomeSearchPanel";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
 import { INVESTMENT_CARD_IMAGE_HEIGHT, InvestmentCard } from "@/components/InvestmentCard";
+import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { PropertyListRow } from "@/components/PropertyListRow";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -43,6 +47,8 @@ import { listInvestmentProducts } from "@/services/investments";
 import { listBoardPosts, type BoardPost } from "@/services/boards";
 import { getNewInvestmentCount, getUnreadChatCount } from "@/services/notifications";
 import { chargeAdClick, listActiveAdSlots } from "@/services/ads";
+import { listArticles, type Article } from "@/services/articles";
+import { ArticleCard } from "@/components/ArticleCard";
 import {
   applyPropertySort,
   DEFAULT_PROPERTY_SORT,
@@ -265,7 +271,17 @@ function HomeScreen() {
    */
   const [sortState, setSortState] = useState<PropertySortState>(DEFAULT_PROPERTY_SORT);
   /** 추천 캐러셀의 노출 순서 — 역시 광고비 순위다(금액 높은 매물이 앞). */
-  const [featuredIds, setFeaturedIds] = useState<string[]>([]);
+  /**
+   * [2026-10-22 사용자 지시] 홈 매물 탭의 추천(광고) 자리를 자동 수집 부동산 정보로
+   * 바꿨다. 같은 placement='featured' 광고 캐러셀이 부동산 탭(property.tsx)에
+   * 그대로 남아 있어 광고 상품 자체는 사라지지 않는다 — 노출 지점이 두 곳에서
+   * 한 곳으로 줄어든 것이다.
+   */
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [articlesPage, setArticlesPage] = useState(0);
+  const [articlesHasMore, setArticlesHasMore] = useState(false);
+  const [articlesLoading, setArticlesLoading] = useState(true);
+  const [articlesLoadingMore, setArticlesLoadingMore] = useState(false);
 
   // [2026-09-11 사용자 지시] 화면에 들어올 때마다 다시 조회한다.
   // 이전에는 useEffect(..., [])로 **마운트 시 1회만** 불러왔다. Expo Router는 탭
@@ -297,9 +313,6 @@ function HomeScreen() {
       // 노출 판정(잔액 소진·자리 수)은 DB가 한다 — 화면은 결과 순서만 받는다.
       listActiveAdSlots("top10").then((ids) => {
         if (active) setTop10Ids(ids);
-      });
-      listActiveAdSlots("featured").then((ids) => {
-        if (active) setFeaturedIds(ids);
       });
       // 위치는 포커스마다 다시 잡지 않는다 — 아래 마운트 1회 useEffect가 맡는다.
       return () => {
@@ -414,21 +427,7 @@ function HomeScreen() {
   // Supabase properties 테이블을 읽는다 — app/(tabs)/property.tsx와 동일하게
   // services/properties.ts의 listProperties()(status='active'만 조회)를 쓴다.
   // [STEP 06] 투자상품도 실제 investment_products 테이블로 전환(시장동향은 DB 없음 — Mock 유지).
-  /**
-   * [2026-09-12 사용자 지시] 추천 캐러셀은 광고 자리 다섯 개다 — 클릭 단가 순위로
-   * DB(active_ad_slots)가 정하며, 잔액이 바닥난 업체의 매물은 여기서 빠진다.
-   */
-  const featured = useMemo(() => {
-    // 광고 자리를 산 매물(잔액이 남아 실제로 노출되는 것)만, DB가 준 순위 그대로.
-    if (featuredIds.length > 0) {
-      const byId = new Map(properties.map((property) => [property.id, property]));
-      return featuredIds
-        .map((id) => byId.get(id))
-        .filter((property): property is MockProperty => !!property);
-    }
-    // 광고가 하나도 없을 때만 관리자가 수동으로 켜 둔 featured를 보여 준다.
-    return properties.filter((property) => property.featured);
-  }, [properties, featuredIds]);
+
 
   /**
    * [2026-09-12 사용자 결정] 홈의 TOP10은 **유료 광고 자리 10칸**이다.
@@ -453,14 +452,94 @@ function HomeScreen() {
   }, [properties, top10Ids, sortState, userLocation.coords]);
 
   /**
+   * [2026-10-22 사용자 지시] 자동 수집 부동산 정보 — 매물 탭 첫 섹션.
+   *
+   * 언어가 바뀌면 다시 불러온다. 제목·요약은 **조회 시점에** 보는 사람 언어로
+   * 고르기 때문이다(services/articles.ts). 언어만 바꾸고 다시 부르지 않으면
+   * 이전 언어의 글이 그대로 남는다.
+   *
+   * 첫 페이지만 불러온다 — 요구사항 §8의 "초기 로딩 시 불필요한 전체 데이터 조회를
+   * 하지 않는다".
+   */
+  useEffect(() => {
+    let active = true;
+    setArticlesLoading(true);
+    setArticlesPage(0);
+    listArticles(0, i18n.language).then((page) => {
+      if (!active) return;
+      setArticles(page.items);
+      setArticlesHasMore(page.hasMore);
+      setArticlesLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [i18n.language]);
+
+  /**
+   * 바닥 근처에 닿으면 다음 페이지. `onEndReached`가 없는 ScrollView라 직접 잰다
+   * (property.tsx의 목록도 같은 방식이다).
+   *
+   * 매물 탭에서만 동작한다 — 투자 탭에는 이 목록이 없다.
+   */
+  function handlePageScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (categoryTab !== "property") return;
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const distanceToBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+    if (distanceToBottom < 400) loadMoreArticles();
+  }
+
+  /** 다음 페이지. 이미 불러오는 중이면 아무것도 하지 않는다(중복 호출 방지). */
+  function loadMoreArticles() {
+    if (articlesLoadingMore || !articlesHasMore) return;
+    const next = articlesPage + 1;
+    setArticlesLoadingMore(true);
+    listArticles(next, i18n.language).then((page) => {
+      setArticles((prev) => {
+        // 같은 기사를 두 번 넣지 않는다 — 수집이 돌아 목록이 밀리면 페이지 경계가
+        // 겹칠 수 있다(요구사항 §8 "동일 콘텐츠를 반복 표시하지 않는다").
+        const seen = new Set(prev.map((a) => a.id));
+        return [...prev, ...page.items.filter((a) => !seen.has(a.id))];
+      });
+      setArticlesPage(next);
+      setArticlesHasMore(page.hasMore);
+      setArticlesLoadingMore(false);
+    });
+  }
+
+  /**
+   * 권한에 따라 갈린다(요구사항 §7).
+   *   internal_allowed → 앱 내부 상세페이지
+   *   그 외            → 원문을 외부 브라우저로. 앱 안에 복제하지 않는다.
+   *
+   * 웹뷰로 강제하지 않는 이유는 요구사항이 명시한다 — 사이트마다 이용 조건이
+   * 다르고, 시스템 브라우저가 사용자에게도 "외부 사이트"임이 분명하다.
+   */
+  function openArticle(article: Article) {
+    if (article.contentPermission === "internal_allowed") {
+      // expo-router의 라우트 타입은 .expo/types에 생성되는데, 새로 추가한 라우트는
+      // dev 서버를 한 번 돌려야 그 목록에 들어온다. 기존 코드도 같은 이유로
+      // 캐스팅을 쓴다(app/_layout.tsx, app/notifications.tsx의 `as "/my"`).
+      // 경로 문자열은 app/article/[id].tsx와 일치한다.
+      router.push(`/article/${article.id}` as "/my");
+      return;
+    }
+    void Linking.openURL(article.originalUrl).catch(() => {
+      setToast(t("articles.openFailed"));
+      setTimeout(() => setToast(null), 2000);
+    });
+  }
+
+  /**
    * [2026-09-12 사용자 지시] 광고로 노출된 매물을 누르면 그 매물의 클릭 단가가
    * 차감된다. 차감 결과를 기다리지 않고 바로 이동하는 이유: 과금은 광고주와
    * 플랫폼 사이의 일이고, 그것 때문에 고객의 화면 전환이 늦어지면 안 된다.
    * 광고가 아닌 매물(순위 밖·빈 자리를 채운 최신 매물)은 아무 일도 하지 않는다.
    */
-  function openProperty(propertyId: string, placement: "featured" | "top10") {
-    const adIds = placement === "featured" ? featuredIds : top10Ids;
-    if (adIds.includes(propertyId)) {
+  function openProperty(propertyId: string, placement: "top10") {
+    // [2026-10-22] 홈에 남은 광고 자리는 TOP10뿐이다(추천 자리는 자동 수집
+    // 정보로 교체됐고, featured 광고는 부동산 탭이 맡는다).
+    if (top10Ids.includes(propertyId)) {
       void chargeAdClick(propertyId, placement);
     }
     router.push(`/property-detail/${propertyId}`);
@@ -504,6 +583,9 @@ function HomeScreen() {
         ref={pageScrollRef}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        onScroll={handlePageScroll}
+        // 16ms마다 재면 과하다. 바닥 감지에는 이 정도로 충분하다.
+        scrollEventThrottle={200}
       >
         {/* [STEP: 2026-09-09-9] 사용자 요청 — 상단 배너를 정적 이미지에서 사용자가
             제공한 영상(무음 반복 재생)으로 교체. 기존 ImageBackground 대신 heroBanner
@@ -740,70 +822,99 @@ function HomeScreen() {
             섹션마다 개별 지정하지 않고 body 하나로 통일했다. */}
         <View testID="home-body-mask" style={styles.bodyMask}>
         <View testID="home-body" style={[styles.body, { backgroundColor: theme.background }]}>
-        <View testID="home-section-category-tabs" style={styles.section}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.bleedScroll}
-            contentContainerStyle={styles.categoryRow}
-          >
-            {categoryTab === "property"
-              ? HOME_CATEGORIES.map((category) => (
-                  <CategoryIconButton
-                    key={category.id}
-                    icon={category.icon}
-                    label={t(`categories.property.${category.id}`)}
-                    onPress={() =>
-                      router.push({ pathname: "/property", params: { category: category.id } })
-                    }
-                    theme={theme}
-                  />
-                ))
-              : HOME_INVEST_CATEGORIES.map((category) => (
-                  <CategoryIconButton
-                    key={category.id}
-                    icon={category.icon}
-                    label={t(`categories.invest.${category.id}`)}
-                    onPress={() =>
-                      router.push({ pathname: "/invest", params: { category: category.id } })
-                    }
-                    theme={theme}
-                  />
-                ))}
-          </ScrollView>
-        </View>
+        {/* [2026-10-22 사용자 지시] 매물 탭의 카테고리 아이콘 메뉴를 숨긴다
+            (Ai BĐS 리스트 바로 위에 있던 가로 아이콘 행).
 
+            투자 탭에는 그대로 둔다 — 지시가 "리스트 상단"이었고 그 리스트는
+            매물 탭에만 있다. 투자 탭도 지울지는 확인이 필요하다.
+
+            카테고리로 들어가는 경로가 홈에서 사라지지만, 부동산 탭 상단의
+            카테고리 칩이 같은 일을 한다. */}
+        {categoryTab === "invest" ? (
+          <View testID="home-section-category-tabs" style={styles.section}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.bleedScroll}
+              contentContainerStyle={styles.categoryRow}
+            >
+              {HOME_INVEST_CATEGORIES.map((category) => (
+                <CategoryIconButton
+                  key={category.id}
+                  icon={category.icon}
+                  label={t(`categories.invest.${category.id}`)}
+                  onPress={() =>
+                    router.push({ pathname: "/invest", params: { category: category.id } })
+                  }
+                  theme={theme}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        {/* [2026-10-22 사용자 지시] 기존 추천(광고) 자리를 자동 수집 부동산 정보로
+            교체한다. 같은 placement='featured' 광고 캐러셀이 부동산 탭에 그대로
+            남아 있어 광고 상품은 사라지지 않는다 — 노출 지점만 한 곳으로 줄었다.
+
+            두 목록이 동시에 보이지 않는다(요구사항 §8 "중복 노출 금지"). */}
         {categoryTab === "property" ? (
-          <View testID="home-section-property-featured" style={styles.section}>
+          <View testID="home-section-realty-articles" style={styles.section}>
+            {/* [2026-10-22 사용자 지시] 제목 "Ai BĐS", 앞 아이콘은 AI, 오른쪽에
+                작은 글씨로 설명. 제목은 번역하지 않는다 — 기능 이름이다. */}
             <SectionHeader
-              title={t("home.featuredTitle")}
-              icon="business-outline"
-              actionLabel={t("common.seeAll")}
-              onAction={() => router.push("/property")}
+              title={t("articles.sectionTitle")}
+              icon="sparkles-outline"
+              subtitle={t("articles.sectionSubtitle")}
+              // [2026-10-22 사용자 지시] "Ai"는 800, "BĐS"는 600.
+              // 제목은 기능 이름이라 번역하지 않으므로 여기서 조각내도 언어별로
+              // 어긋나지 않는다(articles.sectionTitle도 전 언어 "Ai BĐS"다).
+              titleNode={
+                <>
+                  <Text style={{ fontWeight: "800" }}>Ai </Text>
+                  <Text style={{ fontWeight: "600" }}>BĐS</Text>
+                </>
+              }
             />
-            {/* [2026-09-26 사용자 지시] 추천을 **"최근 TOP10"과 같은 행 목록**으로 바꾼다.
-                (앞선 시도에서 카드 썸네일의 모서리·배지만 맞췄는데, 요구는 레이아웃
-                자체였다 — 큰 가로 카드가 아니라 왼쪽 작은 썸네일 + 오른쪽 정보 행.)
-
-                가로 캐러셀을 걷어내도 광고 노출 문제는 없다. 캐러셀 자동재생은
-                "다섯 자리 중 1~2위만 보인다"를 풀려고 넣은 것인데, 세로 목록은
-                다섯 자리가 한 번에 다 보이므로 목적이 그대로 달성된다.
-
-                TOP10과 같은 컴포넌트(PropertyListRow)·같은 컨테이너(propertyList)를
-                쓴다 — 복사본을 만들면 다음 디자인 수정 때 한쪽만 바뀐다. */}
-            {featured.length === 0 ? (
-              <EmptyState title={t("property.emptyTitle")} description={t("property.emptyDescription")} />
+            {articlesLoading ? (
+              <Loading />
+            ) : articles.length === 0 ? (
+              <EmptyState
+                title={t("articles.emptyTitle")}
+                description={t("articles.emptyDescription")}
+              />
             ) : (
               <View style={styles.propertyList}>
-                {featured.map((property, index) => (
-                  <PropertyListRow
-                    key={property.id}
-                    property={property}
-                    distance={distanceLabel(property)}
+                {articles.map((article, index) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
                     showDivider={index > 0}
-                    onPress={() => openProperty(property.id, "featured")}
+                    onPress={() => openArticle(article)}
                   />
                 ))}
+                {/* 다음 페이지 — 스크롤이 바닥에 닿으면 자동으로 불러온다
+                    (handlePageScroll). 버튼도 함께 두는 이유는, 자동 로딩만 두면
+                    느린 회선에서 사용자가 "더 볼 것이 있다"는 사실 자체를 알 수
+                    없기 때문이다. */}
+                {articlesHasMore ? (
+                  <Pressable
+                    onPress={loadMoreArticles}
+                    disabled={articlesLoadingMore}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.articlesMore,
+                      {
+                        borderColor: theme.border,
+                        opacity: articlesLoadingMore ? opacity.disabled : pressed ? opacity.pressed : 1,
+                      },
+                    ]}
+                  >
+                    <Text style={[textStyles.caption, { color: theme.secondaryText }]}>
+                      {articlesLoadingMore ? t("common.loading") : t("articles.loadMore")}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             )}
           </View>
@@ -1401,9 +1512,15 @@ const styles = createScaledStyles(() => ({
     borderStyle: "dashed",
   },
   noticeThumb: {
-    // [2026-09-26 사용자 지시] 가로만 20px 넓게(64 → 84). 세로는 그대로 둔다.
-    width: 84,
-    height: 64,
+    // [2026-10-22 사용자 지시] 부동산 정보 리스트의 썸네일과 같은 크기로 맞춘다.
+    // 같은 화면에 세로로 이어지는 두 목록이 서로 다른 크기를 쓰면, 스크롤하는
+    // 동안 왼쪽 열의 폭이 어긋나 보인다.
+    // (이전: 84×64 — 2026-09-26에 가로만 넓혔던 값)
+    //
+    // 기준은 components/ArticleCard.tsx의 thumbBox(96×96)다. 한쪽을 바꾸면
+    // 다른 쪽도 함께 바꿔야 한다.
+    width: 96,
+    height: 96,
     borderRadius: radius.sm,
   },
   noticeThumbEmpty: {
@@ -1774,6 +1891,14 @@ const styles = createScaledStyles(() => ({
   // PropertyListRow의 paddingVertical이 만들고, 그 가운데에 구분선이 놓인다.
   propertyList: {
     gap: 0,
+  },
+  // [2026-10-22] 부동산 정보 "더 보기". 목록 안이라 카드와 같은 폭으로 둔다.
+  articlesMore: {
+    alignItems: "center",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.sm,
   },
   // [2026-09-12] TOP10 제목과 정렬 칩을 한 줄에. 칩이 길어지면 제목이 먼저 줄어든다.
   top10Header: {

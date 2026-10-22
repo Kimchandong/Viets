@@ -16,8 +16,10 @@ import {
 import {
   colors,
   createScaledStyles,
+  FONT_FACTOR,
   opacity,
   radius,
+  scaleFont,
   spacing,
   textStyles,
   typography,
@@ -45,6 +47,30 @@ import { formatVndAmount } from "@/utils/format";
  */
 const GLASS_BORDER = "rgba(255,255,255,0.5)";
 const GLASS_FILL = "rgba(255,255,255,0.2)";
+/**
+ * [2026-10-22 사용자 지시] 미입력 안내 문구(placeholder) 색.
+ *
+ * 전에는 GLASS_BORDER를 글자에 그대로 썼다. 테두리는 배경 위에 1px로 얹히는
+ * 선이라 0.5 불투명도로도 충분히 보이지만, **글자는 같은 값에서 훨씬 흐리게
+ * 읽힌다** — 획이 얇고 배경(영상)이 비치기 때문이다. 그래서 라벨(흰색)과
+ * 나란히 두면 두 글자가 서로 다른 체계처럼 보였다.
+ *
+ * 선과 글자는 쓰임이 다르므로 상수를 나눈다. 값은 0.5 → 0.72로 올려, 흰 라벨보다
+ * 확실히 약하되 "흐려서 안 읽히는" 상태는 벗어나게 한다.
+ */
+const GLASS_PLACEHOLDER_TEXT = "rgba(255,255,255,0.72)";
+/*
+ * [2026-10-22 사용자 지시] 아직 고를 수 없는 줄(앞 항목 미선택)도 **다른 줄과
+ * 똑같은 색**으로 둔다. 흐리게 처리하던 것을 없앴다.
+ *
+ * 경위: 처음에는 공용 토큰 opacity.disabled(0.4)를 썼는데, 그 값은 불투명한
+ * 배경을 전제로 정해진 것이라 영상이 비치는 유리 패널에서는 글자가 얼룩으로
+ * 보였다("종류를 먼저 선택"이 읽히지 않았다). 0.6으로 올렸다가, 이번 지시로
+ * 흐림 자체를 뺀다.
+ *
+ * 그래서 "지금은 누를 수 없다"는 것은 색이 아니라 **문구**("종류를 먼저 선택")가
+ * 알린다. 누를 수 없는 동작(disabled) 자체는 그대로다.
+ */
 /**
  * 검색 버튼 비활성 배경 — 유리판 값과 **따로** 둔다(사용자가 따로 지정하는 값이다).
  * [2026-09-26] 0.6 → 0.3.
@@ -513,7 +539,7 @@ function FieldButton({
       style={({ pressed }) => [
         styles.fieldButton,
         !last ? { borderBottomWidth: 1, borderBottomColor: GLASS_BORDER } : null,
-        { opacity: disabled ? opacity.disabled : pressed ? opacity.pressed : 1 },
+        { opacity: pressed ? opacity.pressed : 1 },
         // [2026-09-26 사용자 지시] 여기서는 **고른 값만 보여 준다** — 예전처럼 줄
         // 전체를 적색으로 칠하지 않는다. 이 줄은 "무엇을 골랐나"를 적어 두는 자리이고,
         // 실제로 고르는 행위는 팝업에서 일어난다. 적색은 아래 검색 버튼 한 곳에만 쓴다.
@@ -529,11 +555,18 @@ function FieldButton({
           "이 줄은 정해졌다"가 한눈에 보인다. */}
       <Text
         style={[
-          // [2026-09-26 사용자 지시] 선택값도 한 치수 크게 — bodySmall → body.
-          textStyles.body,
+          // [2026-09-26] 한 치수 크게(bodySmall → body) 했던 것을
+          // [2026-10-22 사용자 지시]로 되돌린다 — body(20) → bodySmall(18).
+          // 긴 안내 문구("종류를 먼저 선택")가 잘리던 것도 함께 완화된다.
+          textStyles.bodySmall,
           {
-            color: picked ? theme.onAccent : GLASS_BORDER,
+            color: picked ? theme.onAccent : GLASS_PLACEHOLDER_TEXT,
             fontWeight: picked ? typography.weight.bold : typography.weight.regular,
+            // [2026-10-22 사용자 지시] **안내 문구만** 한 치수 더 작게(18 → 16).
+            // 고른 값은 18 그대로 둔다 — 고르고 나면 글자가 커지고 굵어져
+            // "이 줄은 정해졌다"가 더 분명해진다. 매물·투자 양쪽에 같이 적용된다
+            // (두 탭이 이 컴포넌트 하나를 쓴다).
+            ...(picked ? null : { fontSize: scaleFont(16, FONT_FACTOR.BODY) }),
             flex: 1,
             textAlign: "right",
           },

@@ -1372,5 +1372,24 @@
     "emptyTitle": "相談履歴がありません",
     "emptyPropertyDescription": "物件詳細から問い合わせると、ここに表示されます。",
     "emptyInvestDescription": "投資商品の詳細から相談すると、ここに表示されます。"
+  },
+  "articles": {
+    "sectionTitle": "Ai BĐS",
+    "detailTitle": "Ai BĐS",
+    "openOriginal": "原文",
+    "loadMore": "もっと見る",
+    "emptyTitle": "表示する情報がありません",
+    "emptyDescription": "新しい不動産情報は毎朝更新されます。",
+    "openFailed": "元記事を開けませんでした。",
+    "notAvailableTitle": "アプリ内では表示できません",
+    "notAvailableDescription": "この情報は発行元のサイトでのみ閲覧できます。一覧から「元記事を見る」を選んでください。",
+    "sourceLabel": "出典",
+    "domainLabel": "サイト",
+    "publishedLabel": "掲載日",
+    "lastCheckedLabel": "最終確認",
+    "disclaimer": "上記はAIエージェントがリアルタイムで検索・翻訳した要約です。",
+    "minutesAgo": "{{count}}分前",
+    "hoursAgo": "{{count}}時間前",
+    "sectionSubtitle": "AIによるベトナム不動産リアルタイム情報"
   }
 }

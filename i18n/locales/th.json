@@ -1372,5 +1372,24 @@
     "emptyTitle": "ยังไม่มีประวัติการปรึกษา",
     "emptyPropertyDescription": "การปรึกษาที่คุณเริ่มจากหน้ารายละเอียดประกาศจะแสดงที่นี่",
     "emptyInvestDescription": "การปรึกษาที่คุณเริ่มจากหน้าสินค้าการลงทุนจะแสดงที่นี่"
+  },
+  "articles": {
+    "sectionTitle": "Ai BĐS",
+    "detailTitle": "Ai BĐS",
+    "openOriginal": "ต้นฉบับ",
+    "loadMore": "ดูเพิ่มเติม",
+    "emptyTitle": "ยังไม่มีข้อมูลที่จะแสดง",
+    "emptyDescription": "ข่าวอสังหาริมทรัพย์ใหม่จะอัปเดตทุกเช้า",
+    "openFailed": "เปิดหน้าต้นฉบับไม่สำเร็จ",
+    "notAvailableTitle": "ดูในแอปไม่ได้",
+    "notAvailableDescription": "เนื้อหานี้อ่านได้เฉพาะบนเว็บไซต์ของผู้เผยแพร่ กรุณาเลือก 'ดูต้นฉบับ' จากรายการ",
+    "sourceLabel": "แหล่งที่มา",
+    "domainLabel": "เว็บไซต์",
+    "publishedLabel": "วันที่เผยแพร่",
+    "lastCheckedLabel": "ตรวจสอบล่าสุด",
+    "disclaimer": "ข้อความข้างต้นเป็นบทสรุปที่ AI ค้นหาและแปลแบบเรียลไทม์",
+    "minutesAgo": "{{count}} นาทีที่แล้ว",
+    "hoursAgo": "{{count}} ชั่วโมงที่แล้ว",
+    "sectionSubtitle": "ข้อมูลอสังหาฯ เวียดนามเรียลไทม์ด้วย AI"
   }
 }

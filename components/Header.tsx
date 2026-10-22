@@ -5,6 +5,15 @@ import { createScaledStyles, colors, spacing, typography } from "@/constants/the
 
 export type HeaderProps = {
   title: string;
+  /**
+   * [2026-10-22 사용자 지시] 제목을 **조각마다 다른 굵기**로 그려야 할 때 쓴다
+   * ("Ai"는 800, "BĐS"는 600 — 홈의 섹션 제목과 같은 모양).
+   *
+   * 주면 title 대신 이것을 그린다. 바깥 Text의 크기·색은 상속되므로 조각에서는
+   * 굵기만 지정하면 된다. title은 그대로 받는다 — 접근성 라벨로 쓰인다.
+   * (components/SectionHeader.tsx의 titleNode와 같은 방식이다.)
+   */
+  titleNode?: React.ReactNode;
   // [STEP: 2026-09-08] 홈 화면 카테고리(서브메뉴) 아이콘을 탭해 부동산/투자 화면으로
   // 이동했을 때, 상단 타이틀 자리에 어떤 서브메뉴(예: "아파트")에서 왔는지 제목
   // 아래 작은 글자로 함께 보여주기 위한 선택적 prop. 없으면 기존과 동일하게
@@ -23,7 +32,7 @@ export type HeaderProps = {
  * 특정 화면에 종속되지 않는 공통 Header. Safe Area(top)를 고려한다.
  * 뒤로가기/닫기 등 실제 동작은 호출부가 leftAction/rightAction으로 주입한다.
  */
-export function Header({ title, subtitle, leftAction, rightAction, style, bordered = true }: HeaderProps) {
+export function Header({ title, titleNode, subtitle, leftAction, rightAction, style, bordered = true }: HeaderProps) {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
   const theme = colors.light;
 
@@ -45,8 +54,9 @@ export function Header({ title, subtitle, leftAction, rightAction, style, border
             style={[styles.title, { color: theme.text }]}
             numberOfLines={1}
             accessibilityRole="header"
+            accessibilityLabel={title}
           >
-            {title}
+            {titleNode ?? title}
           </Text>
           {subtitle ? (
             <Text style={[styles.subtitle, { color: theme.secondaryText }]} numberOfLines={1}>

@@ -22,10 +22,18 @@ export const TARGET_LANGUAGES = ["vi", "ko", "en", "zh", "ja", "th"] as const;
 /**
  * 번역에 보낼 문장 길이 상한.
  *
- * 카드에 보이는 분량만 번역한다. 피드 요약이 길게 오는 경우가 있는데, 화면에 두
- * 줄만 보이는 글을 전부 번역하면 과금 문자 수만 늘어난다.
+ * [2026-10-22] 400 → 1000으로 올린다. articles.summary를 저장할 때의 상한과 같게
+ * 맞춘 값이라, 저장된 요약은 이제 **끝까지** 번역된다.
+ *
+ * 비용 영향을 실제 데이터로 재고 올렸다. 게시된 20건 기준 평균 요약 길이 197자,
+ * 최대 448자, 400자를 넘는 것은 1건뿐이었다. 과금 문자 수는 27,460 → 27,700으로
+ * 하루 240자 늘어난다(상한은 고정값이 아니라 **자르는 지점**이라, 짧은 요약은
+ * 상한을 올려도 그대로다).
+ *
+ * 다만 이 값이 공짜라는 뜻은 아니다. 앞으로 긴 요약을 주는 출처가 추가되면
+ * 그만큼 늘어난다 — 관리자 > 번역 사용량 화면에서 실제 문자 수를 볼 수 있다.
  */
-export const MAX_TRANSLATE_CHARS = 400;
+export const MAX_TRANSLATE_CHARS = 1000;
 
 /** translate / translate-content와 **동일한** 키 규칙. 바꾸면 캐시가 갈라진다. */
 async function buildKey(sourceLang: string, targetLang: string, text: string): Promise<string> {

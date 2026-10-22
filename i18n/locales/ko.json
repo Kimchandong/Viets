@@ -1372,5 +1372,24 @@
     "emptyTitle": "상담 내역이 없습니다",
     "emptyPropertyDescription": "매물 상세에서 문의하기를 누르면 여기에 쌓입니다.",
     "emptyInvestDescription": "투자 상품 상세에서 상담하기를 누르면 여기에 쌓입니다."
+  },
+  "articles": {
+    "sectionTitle": "Ai BĐS",
+    "detailTitle": "Ai BĐS",
+    "openOriginal": "원문 보기",
+    "loadMore": "더 보기",
+    "emptyTitle": "표시할 정보가 없습니다",
+    "emptyDescription": "매일 오전에 새 부동산 정보가 올라옵니다.",
+    "openFailed": "원문을 열지 못했습니다.",
+    "notAvailableTitle": "앱에서 볼 수 없는 정보입니다",
+    "notAvailableDescription": "이 정보는 원문 사이트에서만 볼 수 있습니다. 목록에서 '원문 보기'를 눌러 주세요.",
+    "sourceLabel": "출처",
+    "domainLabel": "사이트",
+    "publishedLabel": "원문 게시일",
+    "lastCheckedLabel": "최종 확인",
+    "disclaimer": "위 내용은 간략한 내용을 Ai 에이전트로 실시간 서칭하여 번역한 내용입니다.",
+    "minutesAgo": "{{count}}분 전",
+    "hoursAgo": "{{count}}시간 전",
+    "sectionSubtitle": "AI 실시간 베트남 부동산 정보"
   }
 }

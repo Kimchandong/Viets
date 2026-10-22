@@ -1372,5 +1372,24 @@
     "emptyTitle": "Chưa có cuộc tư vấn nào",
     "emptyPropertyDescription": "Các cuộc tư vấn bạn bắt đầu từ trang bất động sản sẽ hiện ở đây.",
     "emptyInvestDescription": "Các cuộc tư vấn bạn bắt đầu từ trang sản phẩm đầu tư sẽ hiện ở đây."
+  },
+  "articles": {
+    "sectionTitle": "Ai BĐS",
+    "detailTitle": "Ai BĐS",
+    "openOriginal": "Bài gốc",
+    "loadMore": "Xem thêm",
+    "emptyTitle": "Chưa có tin nào",
+    "emptyDescription": "Tin bất động sản mới được cập nhật mỗi buổi sáng.",
+    "openFailed": "Không mở được bài gốc.",
+    "notAvailableTitle": "Không xem được trong ứng dụng",
+    "notAvailableDescription": "Tin này chỉ đọc được trên trang của đơn vị phát hành. Hãy chọn 'Xem bài gốc' ở danh sách.",
+    "sourceLabel": "Nguồn",
+    "domainLabel": "Trang",
+    "publishedLabel": "Ngày đăng",
+    "lastCheckedLabel": "Kiểm tra lần cuối",
+    "disclaimer": "Nội dung trên là bản tóm tắt được AI tìm kiếm và dịch theo thời gian thực.",
+    "minutesAgo": "{{count}} phút trước",
+    "hoursAgo": "{{count}} giờ trước",
+    "sectionSubtitle": "Tin BĐS Việt Nam thời gian thực bằng AI"
   }
 }

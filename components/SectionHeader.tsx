@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleProp, Text, View, ViewStyle } from "react-native";
 
-import { createScaledStyles, colors, opacity, spacing, textStyles } from "@/constants/theme";
+import { createScaledStyles, colors, FONT_FACTOR, opacity, scaleFont, spacing, textStyles } from "@/constants/theme";
 
 export type SectionHeaderProps = {
   title: string;
@@ -11,6 +11,24 @@ export type SectionHeaderProps = {
    * 공유 컴포넌트에 둔다. 주지 않으면 아이콘 없이 기존과 똑같이 그려진다.
    */
   icon?: keyof typeof Ionicons.glyphMap;
+  /**
+   * [2026-10-22 사용자 지시] 제목 오른쪽의 작은 설명. 누를 수 없는 글이다.
+   *
+   * actionLabel과 자리를 공유한다 — 둘 다 주면 설명이 먼저, 그 뒤에 "더보기"가
+   * 온다. 제목이 짧고 설명이 길 수 있어 설명만 줄어들게 둔다(제목은 안 줄어든다).
+   */
+  subtitle?: string;
+  /** 제목 굵기를 이 자리에서만 바꾼다. 주지 않으면 sectionTitle 기본 굵기. */
+  titleWeight?: "600" | "700" | "800" | "900";
+  /**
+   * [2026-10-22 사용자 지시] 제목을 **조각마다 다른 굵기**로 그려야 할 때 쓴다
+   * ("Ai"는 800, "BĐS"는 600).
+   *
+   * 주면 title 대신 이것을 그린다. 바깥 Text의 크기·색은 그대로 상속되므로
+   * 조각에서는 굵기만 지정하면 된다. title은 여전히 받는다 — 화면에 안 보여도
+   * 접근성 라벨로 쓰이고, 조각을 빼먹었을 때의 기준이 된다.
+   */
+  titleNode?: React.ReactNode;
   actionLabel?: string;
   onAction?: () => void;
   style?: StyleProp<ViewStyle>;
@@ -20,7 +38,7 @@ export type SectionHeaderProps = {
  * STEP 4-9B — 여러 화면(Home/Property/Invest/My)이 공유하는 섹션 제목 + "전체보기" 링크.
  * 화면마다 제목 스타일이 조금씩 달라지는 것을 막기 위한 최소 공유 컴포넌트 — 도메인 로직은 없다.
  */
-export function SectionHeader({ title, icon, actionLabel, onAction, style }: SectionHeaderProps) {
+export function SectionHeader({ title, icon, subtitle, titleWeight, titleNode, actionLabel, onAction, style }: SectionHeaderProps) {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
   const theme = colors.light;
 
@@ -32,8 +50,27 @@ export function SectionHeader({ title, icon, actionLabel, onAction, style }: Sec
           아이콘만 왼쪽 끝, 제목이 가운데로 벌어진다. */}
       <View style={styles.titleGroup}>
         {icon ? <Ionicons name={icon} size={18} color={theme.accent} /> : null}
-        <Text style={[textStyles.sectionTitle, { color: theme.accent }]}>{title}</Text>
+        <Text
+          style={[
+            textStyles.sectionTitle,
+            { color: theme.accent },
+            // [2026-10-22 사용자 지시] 이 섹션만 더 굵게. 공용 컴포넌트라 전역으로
+            // 바꾸지 않고 쓰는 쪽이 정한다 — 다른 화면의 섹션 제목은 그대로다.
+            titleWeight ? { fontWeight: titleWeight } : null,
+          ]}
+          accessibilityLabel={title}
+        >
+          {titleNode ?? title}
+        </Text>
       </View>
+      {subtitle ? (
+        <Text
+          style={[textStyles.caption, styles.subtitle, { color: theme.secondaryText }]}
+          numberOfLines={1}
+        >
+          {subtitle}
+        </Text>
+      ) : null}
       {actionLabel && onAction ? (
         <Pressable
           onPress={onAction}
@@ -58,6 +95,22 @@ export function SectionHeader({ title, icon, actionLabel, onAction, style }: Sec
 const TITLE_TOP_SPACE = 10;
 
 const styles = createScaledStyles(() => ({
+  // 설명은 남는 자리만 쓰고, 좁아지면 설명만 줄어든다. minWidth:0이 없으면
+  // numberOfLines가 걸려도 제목을 밀어낸다.
+  // [2026-10-22 사용자 지시] 설명을 제목 줄 중앙이 아니라 **위쪽**으로, 그리고
+  // 우측 끝에 붙인다. row가 alignItems:center라 그대로 두면 제목 가운데 높이에
+  // 맞춰진다 — alignSelf로 그 정렬만 이 요소에서 벗어난다.
+  subtitle: {
+    alignSelf: "flex-start",
+    flexShrink: 1,
+    minWidth: 0,
+    textAlign: "right",
+    marginLeft: spacing.sm,
+    // [2026-10-22 사용자 지시] 한 치수 작게(caption 14 → 12), 위로 10px.
+    // marginTop 음수로 올린다 — 행 높이는 제목이 정하므로 이 글자만 벗어난다.
+    fontSize: scaleFont(12, FONT_FACTOR.SMALL),
+    marginTop: -10,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",

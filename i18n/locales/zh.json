@@ -1372,5 +1372,24 @@
     "emptyTitle": "暂无咨询记录",
     "emptyPropertyDescription": "在房源详情页发起的咨询会显示在这里。",
     "emptyInvestDescription": "在投资产品详情页发起的咨询会显示在这里。"
+  },
+  "articles": {
+    "sectionTitle": "Ai BĐS",
+    "detailTitle": "Ai BĐS",
+    "openOriginal": "原文",
+    "loadMore": "加载更多",
+    "emptyTitle": "暂无可显示的资讯",
+    "emptyDescription": "每天上午会更新新的房地产资讯。",
+    "openFailed": "无法打开原文页面。",
+    "notAvailableTitle": "无法在应用内查看",
+    "notAvailableDescription": "此内容仅可在发布方网站阅读。请在列表中点击“查看原文”。",
+    "sourceLabel": "来源",
+    "domainLabel": "网站",
+    "publishedLabel": "发布日期",
+    "lastCheckedLabel": "最后确认",
+    "disclaimer": "以上为 AI 代理实时检索并翻译的摘要内容。",
+    "minutesAgo": "{{count}}分钟前",
+    "hoursAgo": "{{count}}小时前",
+    "sectionSubtitle": "AI 越南房地产实时资讯"
   }
 }

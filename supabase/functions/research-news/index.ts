@@ -506,10 +506,22 @@ Deno.serve(async (req: Request) => {
   // 보면 누구나 수집을 돌릴 수 있다.
   const cronSecret = Deno.env.get("RESEARCH_CRON_SECRET") ?? "";
   const providedSecret = req.headers.get("x-cron-secret") ?? "";
+  const authHeader = req.headers.get("Authorization") ?? "";
+
+  // [2026-10-22] 이 함수는 게이트웨이 JWT 검사 없이(--no-verify-jwt) 배포한다.
+  // 그래서 **아무나 요청을 보낼 수는 있다.** 자격 증명이 하나도 없는 요청은
+  // DB를 건드리기 전에 끝낸다 — 그러지 않으면 빈 요청마다 is_admin_or_above
+  // 조회가 한 번씩 돌아 DB가 스팸의 과녁이 된다.
+  if (providedSecret.length === 0 && authHeader.length === 0) {
+    return json({ error: "forbidden" }, 403);
+  }
+
+  // 1) 스케줄러 경로 — 비밀값. 비밀값이 설정되지 않은 환경에서는 이 경로를 닫는다
+  //    (빈 값과 빈 헤더가 같다고 보면 누구나 수집을 돌릴 수 있다).
   let allowed = cronSecret.length > 0 && providedSecret === cronSecret;
 
-  if (!allowed) {
-    const authHeader = req.headers.get("Authorization") ?? "";
+  // 2) 관리자 경로 — 판정은 DB가 한다. 여기서 역할을 다시 해석하지 않는다.
+  if (!allowed && authHeader.length > 0) {
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });

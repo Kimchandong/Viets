@@ -606,7 +606,7 @@ function MyScreen() {
                 <View style={styles.profileText}>
                   {agency ? (
                     <>
-                      <Text style={[textStyles.caption, { color: PROFILE_TEXT_MUTED }]}>
+                      <Text style={[textStyles.caption, styles.agencyStatusText, { color: PROFILE_TEXT_MUTED }]}>
                         {t(`my.agencyStatus.${agency.approvalStatus}`)}
                       </Text>
                       {/* [2026-09-11 사용자 지시] 업체명 옆 수정 버튼.
@@ -639,9 +639,19 @@ function MyScreen() {
                     {session?.user.email ?? ""}
                   </Text>
                 </View>
+                {/* [2026-10-22 사용자 지시] 광고비 정산을 이 영역 우측 상단으로.
+                    승인된 업체에만 보이는 조건은 그대로 둔다 — 승인 전에는 눌러도
+                    할 수 있는 것이 없다. */}
+                {agency?.approvalStatus === "approved" ? (
+                  <Button
+                    size="small"
+                    title={t("my.adSettlement")}
+                    onPress={() => router.push("/payment-info")}
+                    style={styles.settleButton}
+                    textStyle={styles.settleButtonText}
+                  />
+                ) : null}
               </View>
-
-              <View style={[styles.profileSplit, { borderColor: "rgba(255, 255, 255, 0.3)" }]} />
 
               {/* 정산 칸 — 사용잔액 24px 주황, 그 아래 현잔액 12px 회색. 잔액이 없는
                   계정(업체가 아니거나 아직 입금 전)도 0으로 보여 준다 — 칸을 비우면
@@ -662,7 +672,7 @@ function MyScreen() {
                     바뀐다. 이 버튼은 MY > 설정의 통화 선택과 같은 값을 쓴다 — 두 자리가
                     따로 놀면 "어느 쪽이 진짜인가"를 알 수 없다. */}
                 <View style={styles.balanceAmountRow}>
-                  <Text style={[styles.balanceAvailable, { color: theme.warning }]} numberOfLines={1}>
+                  <Text style={[styles.balanceAvailable, { color: PROFILE_HIGHLIGHT }]} numberOfLines={1}>
                     {formatBalance(isAdminUser ? adBilling.adSpent : adBilling.available)}
                     <Text style={styles.balanceUnit}> {currency}</Text>
                   </Text>
@@ -688,50 +698,21 @@ function MyScreen() {
                 </Text>
               </View>
 
-                    {/* [2026-10-22 사용자 지시] 프로필·금액·광고비 정산을 한 영역으로 —
-                        카드 밖에 따로 있던 버튼 줄을 카드 안으로 들여왔다. */}
-                    <View style={styles.accountActions}>
-                  {/* [2026-09-11 사용자 지시 — 5차] 로그아웃 버튼 좌측 "광고비 정산".
-                      [2026-09-11 사용자 지시 — 수정] 승인된 업체에만 보인다.
-                      앞서 canRegister(매물 등록 권한)로 넓혀 두었는데, 그러면 권한만 직접
-                      받은 계정에도 버튼이 뜨고 눌러 봐야 "승인이 필요합니다"만 나온다 —
-                      누를 수 없는 버튼을 보여 주는 셈이었다. 정산은 소속 업체의 잔액을
-                      다루는 일이라 승인 전에는 할 수 있는 것이 아예 없으므로 감춘다.
-                      payment-info.tsx의 게이트는 그대로 둔다(주소로 직접 들어오는 경우). */}
-                  {agency?.approvalStatus === "approved" ? (
-                    <Button
-                      size="small"
-                      variant="outline"
-                      style={styles.profileActionButton}
-                      textStyle={styles.profileActionButtonText}
-                      title={t("my.adSettlement")}
-                      onPress={() => router.push("/payment-info")}
-                    />
-                  ) : null}
-                  {/* [2026-09-11 사용자 지시] 등록권한 신청 — 아래 별도 섹션에 있던 메뉴를
-                      로그아웃 버튼 왼쪽으로 옮겼다. 조건은 그대로: 아직 매물 등록 권한이
-                      없는 계정에게만 보인다(이미 승인됐거나 관리자가 권한을 켜 준 계정은
-                      신청할 이유가 없다). 이미 신청했다면 상태 화면으로 간다. */}
-                  {permissionChecked && !canRegister ? (
-                    <Button
-                      size="small"
-                      variant="outline"
-                      style={styles.profileActionButton}
-                      textStyle={styles.profileActionButtonText}
-                      title={agency ? t("my.agencyStatusRow") : t("my.agencyApply")}
-                      onPress={() => router.push("/agency-apply")}
-                    />
-                  ) : null}
+                    {/* [2026-10-22 사용자 지시] 광고비 정산은 위 우측으로, 로그아웃은
+                  화면 맨 아래로 옮겼다. 이 줄에는 등록권한 신청만 남는다 —
+                  해당 없는 계정에서는 줄 자체를 그리지 않는다(빈 여백 방지). */}
+              {permissionChecked && !canRegister ? (
+                <View style={styles.accountActions}>
                   <Button
                     size="small"
                     variant="outline"
                     style={styles.profileActionButton}
                     textStyle={styles.profileActionButtonText}
-                    title={signingOut ? t("my.signingOut") : t("my.signOut")}
-                    onPress={handleSignOut}
-                    disabled={signingOut}
+                    title={agency ? t("my.agencyStatusRow") : t("my.agencyApply")}
+                    onPress={() => router.push("/agency-apply")}
                   />
                 </View>
+              ) : null}
             </>
           ) : (
             <View style={styles.profileText}>
@@ -1214,6 +1195,17 @@ function MyScreen() {
             ) : null}
           </Card>
         </View>
+
+        {/* [2026-10-22 사용자 지시] 로그아웃은 프로필 영역이 아니라 화면 맨 아래. */}
+        {isLoggedIn ? (
+          <Button
+            variant="outline"
+            title={signingOut ? t("my.signingOut") : t("my.signOut")}
+            onPress={handleSignOut}
+            disabled={signingOut}
+            style={styles.signOutButton}
+          />
+        ) : null}
       </ScrollView>
 
       <Modal
@@ -1376,6 +1368,8 @@ const PROFILE_BACKGROUND = "#206BC7";
 // 파란 바탕 위 글자. 보조 정보는 흰색을 낮춰 위계를 남긴다.
 const PROFILE_TEXT = "#FFFFFF";
 const PROFILE_TEXT_MUTED = "rgba(255, 255, 255, 0.78)";
+// [2026-10-22 사용자 지시] 사용한 금액·광고비 정산 버튼 색.
+const PROFILE_HIGHLIGHT = "#00D4FF";
 // 아바타 아래 금액·버튼이 이메일과 같은 x에서 시작하도록 하는 들여쓰기.
 const PROFILE_TEXT_INDENT = AVATAR_SIZE + spacing.md;
 const AVATAR_ICON_SIZE = 31;
@@ -1430,9 +1424,6 @@ const styles = createScaledStyles(() => ({
     gap: spacing.md,
   },
   // 계정과 정산을 끊는 가로선.
-  profileSplit: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
   // 편집 버튼(absolute)의 기준점. 아바타와 같은 크기로 둔다.
   avatarBox: {
     width: AVATAR_SIZE,
@@ -1543,6 +1534,14 @@ const styles = createScaledStyles(() => ({
   },
   // [2026-09-11 사용자 지시 — 5차] 회색 띠와 버튼 줄 사이 위아래 10px.
   // content가 자식 사이에 spacing.md(16)를 두므로 그만큼 빼서 10만 남긴다.
+  settleButton: {
+    alignSelf: "flex-start",
+    backgroundColor: PROFILE_HIGHLIGHT,
+    borderColor: PROFILE_HIGHLIGHT,
+  },
+  settleButtonText: {
+    color: "#FFFFFF",
+  },
   accountActions: {
     flexDirection: "row",
     // [2026-10-22 사용자 지시] 금액과 같은 좌측 위치.
@@ -1601,14 +1600,20 @@ const styles = createScaledStyles(() => ({
     fontWeight: typography.weight.regular,
   },
   balanceTotal: {
-    fontSize: scaleFont(12),
+    fontSize: scaleFont(13),
   },
   // [2026-09-28 사용자 지시] 14px.
+  // [2026-10-22 사용자 지시] 승인상태·이메일·전체입금액 한 치수 크게.
+  agencyStatusText: {
+    fontSize: scaleFont(15, FONT_FACTOR.SMALL),
+  },
   balanceEmail: {
-    fontSize: scaleFont(14),
+    fontSize: scaleFont(15),
   },
   signOutButton: {
     alignSelf: "flex-end",
+    // [2026-10-22 사용자 지시] 화면 맨 아래로 옮기면서 위 영역과 간격을 둔다.
+    marginTop: spacing.md,
   },
   authButtons: {
     flexDirection: "row",

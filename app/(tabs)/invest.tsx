@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Card } from "@/components/Card";
@@ -15,7 +15,7 @@ import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StatTile } from "@/components/StatTile";
-import { createScaledStyles, colors, layout, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
+import { createScaledStyles, colors, FONT_FACTOR, layout, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import { MOCK_INVEST_OVERVIEW, type MockInvestmentProduct } from "@/constants/mockData";
 import { listInvestmentProducts } from "@/services/investments";
 import { markRead } from "@/services/notifications";
@@ -154,17 +154,6 @@ function InvestScreen() {
         {/* [STEP: 2026-09-09-6] 사용자 요청 — 투자개요 카드 테두리 삭제, 카드 자체는
             회색 배경, 스탯 3개는 각각 흰색 배경 라운딩 박스로 구분한다. */}
         <Card style={styles.overviewCard}>
-          {/* [STEP: 2026-09-09-22] 사용자 요청(목표 디자인) — 투자개요 카드 배경을
-              단색 회색(#F2F2F2) 대신, 사용자가 전달한 정확한 conic-gradient(13색,
-              from 45deg, 카드 중심 기준)로. React Native는 conic-gradient를 지원하지
-              않고(expo-linear-gradient도 선형만 가능) 새 네이티브 dependency를 추가할
-              수 없어(디바이스 shell에 npm 레지스트리 접근 불가), 동일한 CSS 값으로
-              픽셀 단위로 직접 렌더링한 PNG를 배경 이미지로 대신 쓴다. */}
-          <Image
-            source={require("@/assets/images/invest/overview-gradient.png")}
-            style={styles.overviewGradientImage}
-            resizeMode="cover"
-          />
           {/* [STEP: 2026-09-09-22] 배경이 회색에서 컬러 그라데이션으로 바뀌어
               theme.secondaryText(회색)로는 대비가 부족해졌다 — 흰색으로. */}
           <Text style={[textStyles.bodySmall, { color: theme.onAccent }]}>
@@ -185,6 +174,7 @@ function InvestScreen() {
               }
               valueStyle={[styles.overviewValue, styles.overviewValueDanger]}
               labelStyle={styles.overviewLabel}
+              labelLines={2}
               style={styles.overviewStatBox}
             />
             <StatTile
@@ -192,15 +182,17 @@ function InvestScreen() {
               value={MOCK_INVEST_OVERVIEW.activeProducts}
               valueStyle={styles.overviewValue}
               labelStyle={styles.overviewLabel}
+              labelLines={2}
               style={styles.overviewStatBox}
             />
             {/* [2026-09-12 사용자 지시] 기간 단위(/năm)를 숫자 옆이 아니라 라벨 옆으로
                 옮긴다 — 숫자 칸이 좁아 "8.4% / n..."으로 잘렸다. 라벨과 같은 크기로 붙는다. */}
             <StatTile
-              label={`${t("invest.overview.avgReturn")}${splitYieldText(MOCK_INVEST_OVERVIEW.avgReturn).suffix}`}
+              label={`${t("invest.overview.avgReturn")}\n${t("units.perYear")}`}
               value={splitYieldText(MOCK_INVEST_OVERVIEW.avgReturn).rate}
               valueStyle={styles.overviewValue}
               labelStyle={styles.overviewLabel}
+              labelLines={2}
               style={styles.overviewStatBox}
             />
           </View>
@@ -242,10 +234,11 @@ function InvestScreen() {
               accessibilityRole="button"
               style={({ pressed }) => [styles.riskSelect, { opacity: pressed ? opacity.pressed : 1 }]}
             >
-              <Text style={[textStyles.bodySmall, { color: theme.text }]} numberOfLines={1}>
+              <Text style={[textStyles.bodySmall, styles.riskSelectText, { color: theme.text }]} numberOfLines={1}>
                 {risk === "all" ? t("invest.riskSelectAll") : t(`invest.risk.${risk}`)}
               </Text>
-              <Ionicons name="chevron-down" size={14} color={theme.secondaryText} />
+              {/* [2026-10-22 사용자 지시] 아래 화살표 -> 아래 삼각형, 4px 내림. */}
+              <Ionicons name="caret-down" size={12} color={theme.secondaryText} style={styles.riskCaret} />
             </Pressable>
           </View>
         </View>
@@ -361,27 +354,32 @@ const styles = createScaledStyles(() => ({
     gap: spacing.md,
   },
   // [STEP: 2026-09-09-6] 사용자 요청 — 투자개요 카드 테두리 삭제.
-  // [STEP: 2026-09-09-22] 단색 배경 대신 overviewGradientImage(아래)가 카드 배경을
-  // 채운다 — 그 이미지가 카드 라운딩 밖으로 삐져나오지 않도록 overflow:hidden,
-  // absolute 이미지의 기준점이 되도록 position:relative가 필요하다.
+  // 그라데이션 블록이 카드 밖으로 삐져나오지 않도록 overflow:hidden,
+  // absolute 레이어의 기준점이 되도록 position:relative가 필요하다.
   overviewCard: {
     gap: spacing.sm,
     borderWidth: 0,
     position: "relative",
     overflow: "hidden",
+    // [2026-10-22 사용자 지시] 투자개요 영역 배경 rgb(32, 107, 199) 단색.
+    // (앞서 요청했던 빨강 그라데이션은 이 지시로 철회되어 블록 보간 코드를 들어냈다.)
+    backgroundColor: colors.light.buttonPrimary,
+    // [2026-10-22 사용자 지시] 상단 영역 바로 아래에 붙이고, 가로 100%, 라운딩 삭제.
+    // content의 paddingHorizontal(10)·paddingTop(lg=24)을 음수 margin으로 상쇄한다.
+    marginHorizontal: -spacing.screenPaddingX,
+    marginTop: -spacing.lg,
+    borderRadius: 0,
+    // 화면 끝까지 닿는 띠라 그림자가 가로줄처럼 보인다 — Card의 기본 그림자를 끈다.
+    shadowOpacity: 0,
+    elevation: 0,
   },
-  // [STEP: 2026-09-09-22] react-native-web에서는 position:absolute 자식이 명시적
-  // width/height:100%가 없으면 부모를 꽉 채우지 못하고 원본 크기로 줄어들 수
-  // 있다(이번 세션에서 여러 번 확인된 패턴 — 홈 배너 영상과 동일한 이유).
-  overviewGradientImage:
-    Platform.OS === "web"
-      ? { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }
-      : StyleSheet.absoluteFillObject,
   // [STEP: 2026-09-09-6] 사용자 요청 — 스탯 3개를 각각 흰색 배경 라운딩 영역으로 구분.
   overviewStatBox: {
     backgroundColor: "#FFFFFF",
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
+    // [2026-10-22 사용자 지시] 라벨 아래 내부 여백을 조금 더(8 -> 12).
+    paddingBottom: spacing.sm + 4,
     paddingHorizontal: spacing.xs,
   },
   // [STEP: 2026-09-09] 사용자 요청 — 투자개요 숫자 34px→20px, 라벨 13px
@@ -398,8 +396,21 @@ const styles = createScaledStyles(() => ({
     fontWeight: typography.weight.regular,
   },
   // [STEP: 2026-09-09-6] 사용자 요청 — 누적모집/진행중/평균수 라벨 글자크기 11px
+  // [2026-10-22 사용자 지시] 한 치수 크게(11 -> 12), 색상 #444444, 두 줄 표기.
   overviewLabel: {
-    fontSize: scaleFont(11),
+    // [2026-10-22 사용자 지시] 한 치수 크게(12 -> 13).
+    fontSize: scaleFont(13),
+    color: "#444444",
+    textAlign: "center",
+  },
+  // [2026-10-22 사용자 지시] 투자위험도 글자 한 치수 작게(18 -> 16).
+  riskSelectText: {
+    fontSize: scaleFont(16, FONT_FACTOR.BODY),
+    includeFontPadding: false,
+    textAlignVertical: "center",
+  },
+  riskCaret: {
+    marginTop: 4,
   },
   overviewRow: {
     flexDirection: "row",

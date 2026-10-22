@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
+import { BACK_ICON_COLOR } from "@/components/BackButton";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Header } from "@/components/Header";
@@ -307,7 +308,7 @@ export default function AdSlotsScreen() {
           title={title}
           leftAction={
             <Pressable onPress={goBack} accessibilityRole="button" hitSlop={8}>
-              <Ionicons name="chevron-back" size={22} color={theme.text} />
+              <Ionicons name="chevron-back" size={22} color={BACK_ICON_COLOR} />
             </Pressable>
           }
         />
@@ -323,7 +324,7 @@ export default function AdSlotsScreen() {
           title={title}
           leftAction={
             <Pressable onPress={goBack} accessibilityRole="button" hitSlop={8}>
-              <Ionicons name="chevron-back" size={22} color={theme.text} />
+              <Ionicons name="chevron-back" size={22} color={BACK_ICON_COLOR} />
             </Pressable>
           }
         />
@@ -341,7 +342,7 @@ export default function AdSlotsScreen() {
         title={title}
         leftAction={
           <Pressable onPress={goBack} accessibilityRole="button" hitSlop={8}>
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
+            <Ionicons name="chevron-back" size={22} color={BACK_ICON_COLOR} />
           </Pressable>
         }
       />

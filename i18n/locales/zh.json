@@ -77,7 +77,7 @@
     "distanceAway": "距离 {{distance}} 公里",
     "sortLabel": "排序",
     "sort": {
-      "newest": "最新",
+      "newest": "按登记顺序",
       "priceLow": "价格从低到高",
       "priceHigh": "价格从高到低",
       "areaLarge": "面积从大到小"
@@ -86,7 +86,9 @@
     "mapNoCoords": "没有可在地图上显示的房源位置信息。",
     "mapMissingCoords": "{{count}} 个缺少位置信息的房源未在地图上显示。",
     "top10Title": "TOP10 房源",
-    "locationNeeded": "需允许位置权限才能按距离排序。"
+    "locationNeeded": "需允许位置权限才能按距离排序。",
+    "categoryPlaceholder": "房产类型",
+    "statusPlaceholder": "类型"
   },
   "propertyDetail": {
     "descriptionTitle": "详细描述",
@@ -124,8 +126,8 @@
     "title": "投资",
     "overviewTitle": "投资概览",
     "overview": {
-      "totalRaised": "累计募集",
-      "activeProducts": "在售产品",
+      "totalRaised": "累计\n募集",
+      "activeProducts": "在售\n产品",
       "avgReturn": "平均收益"
     },
     "risk": {
@@ -1354,8 +1356,8 @@
     "noPermission": "没有访问权限"
   },
   "units": {
-    "perMonth": "月",
-    "perYear": "年"
+    "perMonth": "month",
+    "perYear": "year"
   },
   "investChat": {
     "headerTitle": "投资咨询",

@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,14 +18,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Chip } from "@/components/Chip";
 import { EmptyState } from "@/components/EmptyState";
 import { HorizontalCardCarousel } from "@/components/HorizontalCardCarousel";
-import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
 import { PROPERTY_CARD_IMAGE_HEIGHT, PropertyCard } from "@/components/PropertyCard";
 import { PropertyListRow } from "@/components/PropertyListRow";
 import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { createScaledStyles, colors, layout, opacity, radius, spacing, textStyles, ThemeColors } from "@/constants/theme";
+import { createScaledStyles, colors, FONT_FACTOR, layout, opacity, radius, scaleFont, spacing, textStyles, typography, ThemeColors } from "@/constants/theme";
 import { type MockProperty, type MockPropertyStatus } from "@/constants/mockData";
 // [2026-09-26 사용자 지시] 지역 목록을 실제 베트남 행정구역으로 바꾼다.
 // 예전 MOCK_REGIONS는 대표 도시 6개뿐이라, 홈 검색에서 고른 성(예: Bắc Ninh)이
@@ -41,7 +41,6 @@ import {
 } from "@/components/PropertySortControls";
 import {
   distanceKm,
-  formatDistance,
   getCurrentLocation,
   type UserLocation,
 } from "@/services/location";
@@ -67,7 +66,12 @@ const LISTINGS_PAGE_SIZE = 5;
 
 /** [2026-09-11 사용자 지시] 지역 칩 내부 여백 — 4px → 6px → 상하 6 / 좌우 8. */
 const REGION_CHIP_PADDING_Y = 6;
-const REGION_CHIP_PADDING_X = 10;
+// [2026-10-22 사용자 지시] 1차(지역) 메뉴 바탕 — rgb(32, 107, 199) 단색.
+// (앞서 요청했던 가로 그라데이션은 이 지시로 철회되어 블록 보간 코드를 들어냈다.)
+const REGION_BAR_BACKGROUND = "#206BC7";
+
+// [2026-10-22 사용자 지시] 1차(지역) 메뉴 칩 좌우 padding 0.
+const REGION_CHIP_PADDING_X = 0;
 
 // STEP 4-9B — Property UI 레이아웃 기반. 지역/상태 필터는 mock 데이터(constants/mockData.ts)에
 // 대한 순수 클라이언트 필터일 뿐 실제 Supabase 쿼리는 아니다. Map 연동(Google Maps SDK)은
@@ -107,6 +111,29 @@ function PropertyScreen() {
   const theme = colors.light;
   const { t } = useTranslation();
   const router = useRouter();
+  // [2026-10-22 사용자 지시] 추천 매물 카드는 화면 가로를 100% 채운다. layout의
+  // featuredCardWidth(95%)는 홈·투자 탭이 함께 쓰므로 건드리지 않고 여기서만 쓴다.
+  const { width: windowWidth } = useWindowDimensions();
+
+  /**
+   * [2026-10-22 사용자 지시] "TOP10 매물"에서 TOP10은 700, 뒤의 말(매물/listings/
+   * 房源…)은 500. 언어마다 어순이 달라(th: "ประกาศ TOP10") 앞뒤를 가리지 않고
+   * "TOP10" 토큰만 떼어 굵기를 나눈다.
+   */
+  const top10TitleNode = useMemo(() => {
+    const label = t("property.top10Title");
+    const index = label.indexOf("TOP10");
+    if (index === -1) return undefined;
+    const before = label.slice(0, index);
+    const after = label.slice(index + "TOP10".length);
+    return (
+      <>
+        {before ? <Text style={styles.top10TitleRest}>{before}</Text> : null}
+        <Text style={styles.top10TitleStrong}>TOP10</Text>
+        {after ? <Text style={styles.top10TitleRest}>{after}</Text> : null}
+      </>
+    );
+  }, [t]);
 
   // [STEP: 2026-09-08] home.tsx의 검색창에서 검색어를 입력하고 넘어오면(search
   // 쿼리 param) 이 화면의 검색 state 초기값으로 사용한다 — category param과 동일한
@@ -136,23 +163,8 @@ function PropertyScreen() {
       : "all";
 
   const [region, setRegion] = useState<string | null>(params.region ?? null);
-  /**
-   * [2026-09-28 사용자 지시] **지역을 고르기 전에는 하위 카테고리를 띄우지 않는다.**
-   *
-   * region만으로는 판단할 수 없다 — 처음 들어온 상태와 "전체지역"을 고른 상태가
-   * 둘 다 null이기 때문이다. 그래서 "지역 바를 한 번이라도 눌렀는가"를 따로 둔다.
-   *
-   * 홈에서 조건을 들고 들어온 경우(지역 또는 카테고리)는 이미 고른 것으로 본다 —
-   * 카테고리가 골라진 채로 열렸는데 카테고리 줄이 없으면 무엇이 걸려 있는지 보이지도,
-   * 풀 수도 없다.
-   */
-  const [regionChosen, setRegionChosen] = useState(
-    params.region != null || params.category != null,
-  );
-
   function chooseRegion(next: string | null) {
     setRegion(next);
-    setRegionChosen(true);
   }
   const [status, setStatus] = useState<StatusFilter>(initialStatus);
   // [2026-09-26] 홈 검색의 금액 조건(이 금액 이하). 0/없음이면 제한 없음.
@@ -173,6 +185,7 @@ function PropertyScreen() {
   const [toast, setToast] = useState<string | null>(null);
   // [STEP: 2026-09-09] 매매/임대, 정렬 셀렉트 모달 표시 상태 — invest.tsx의
   // riskModalVisible과 동일한 패턴.
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
@@ -235,18 +248,6 @@ function PropertyScreen() {
     };
   }, []);
 
-  /** 매물까지의 거리 문구 — 기준점과 좌표가 다 있을 때만(없으면 빈 문자열). */
-  function distanceLabel(property: MockProperty): string {
-    if (!userLocation.coords || property.latitude === undefined || property.longitude === undefined) {
-      return "";
-    }
-    return formatDistance(
-      distanceKm(userLocation.coords, {
-        latitude: property.latitude,
-        longitude: property.longitude,
-      }),
-    );
-  }
 
   // [2026-09-11 사용자 지시] 화면에 들어올 때마다 다시 조회한다.
   // 이전에는 useEffect(..., [])로 **마운트 시 1회만** 불러왔다. Expo Router는 탭
@@ -457,51 +458,57 @@ function PropertyScreen() {
           들어온 경우, 타이틀을 그 카테고리명으로 바꾸고 원래 어느 서브메뉴에서
           왔는지를 작은 글자 서브타이틀로 함께 보여준다 — 카테고리 선택이 없으면
           (직접 탭에서 진입) 기존과 동일하게 "부동산" 타이틀만 보여준다. */}
-      {/* [STEP: 2026-09-09-17] 사용자 요청(목표 디자인) — 이 화면만 타이틀 아래
-          테두리 삭제. */}
-      <Header
-        title={category ? t(`categories.property.${category}`) : t("property.title")}
-        subtitle={category ? t("home.categoryTabs.property") : undefined}
-        bordered={false}
-      />
+      {/* [2026-10-22 사용자 지시] 제목은 왼쪽, 검색창은 오른쪽, 아래에 테두리.
+          공용 Header는 제목을 **가운데** 두고 좌우 슬롯 폭이 고정이라 이 배치를
+          표현할 수 없다. 그 컴포넌트는 20개 가까운 화면이 쓰므로 prop을 몇 개
+          더 붙여 억지로 맞추는 대신, 이 화면만 전용 헤더를 쓴다.
+          (이 화면은 이미 bordered={false}로 공용 Header에서 벗어나 있었다.) */}
+      <SafeAreaView
+        edges={["top"]}
+        style={[
+          styles.headerSafe,
+          { backgroundColor: theme.background, borderBottomColor: theme.border },
+        ]}
+      >
+        <View style={styles.headerRow}>
+          <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>
+            {category ? t(`categories.property.${category}`) : t("property.title")}
+          </Text>
+
+          {/* 검색창 — 제목 오른쪽, 남는 폭을 쓴다.
+              [STEP: 2026-09-09-6] 우측 검색 버튼은 배경 없이 아이콘만. */}
+          <View style={styles.searchSlot}>
+          <View style={[styles.searchBar, { backgroundColor: theme.background }]}>
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              onSubmitEditing={submitSearch}
+              returnKeyType="search"
+              autoCorrect={false}
+              // [2026-10-22 사용자 지시] 검색창 미리보기 글자 삭제.
+              placeholder=""
+              style={[styles.searchInput, { color: theme.text }]}
+            />
+            <Pressable
+              onPress={submitSearch}
+              accessibilityRole="button"
+              accessibilityLabel={t("property.searchPlaceholder")}
+              hitSlop={8}
+              style={({ pressed }) => [styles.searchButton, { opacity: pressed ? opacity.pressed : 1 }]}
+            >
+              {/* [2026-10-22 사용자 지시] 한 치수 크게(16 -> 18), 색은 더 흐리게. */}
+              <Ionicons name="search" size={18} color="#B0B0B0" />
+            </Pressable>
+          </View>
+          </View>
+        </View>
+      </SafeAreaView>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={200}
       >
-        {/* [STEP: 2026-09-09-6] 사용자 요청 — 검색창 우측에 검색 버튼 추가,
-            내부 placeholder(미리보기) 텍스트는 삭제(아이콘으로 대체). */}
-        <View style={[styles.searchBar, { borderColor: theme.border, backgroundColor: theme.background }]}>
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            onSubmitEditing={submitSearch}
-            returnKeyType="search"
-            autoCorrect={false}
-            // [STEP: 2026-09-09-15] 사용자 제보(목표 디자인 이미지) — placeholder
-            // 텍스트가 실제로는 있어야 하는데(입력 전 빈 검색창에서도 무엇을 검색하는
-            // 곳인지 안내) 빠져 있었다. 값을 입력하면 기존처럼 placeholder는 자동으로
-            // 사라진다(TextInput 기본 동작) — 그 외 로직/스타일은 변경 없음.
-            placeholder={t("property.searchPlaceholder")}
-            // [STEP: 2026-09-09-17] 사용자 요청 — placeholder 글자를 theme.secondaryText
-            // (#6B6B6B, 본문 회색)보다 더 흐리게.
-            placeholderTextColor="#B0B0B0"
-            style={[textStyles.body, styles.searchInput, { color: theme.text }]}
-          />
-          <Pressable
-            onPress={submitSearch}
-            accessibilityRole="button"
-            accessibilityLabel={t("property.searchPlaceholder")}
-            hitSlop={8}
-            // [STEP: 2026-09-09-15] 사용자 제보(목표 디자인 이미지) — 채워진 파란
-            // 원형 버튼이 아니라 배경 없이 아이콘만 회색으로 노출되어야 한다.
-            style={({ pressed }) => [styles.searchButton, { opacity: pressed ? opacity.pressed : 1 }]}
-          >
-            <Ionicons name="search" size={16} color={theme.secondaryText} />
-          </Pressable>
-        </View>
-
         {/* [STEP: 2026-09-09] 사용자 요청 — "전체지역" 메뉴바를 화면 가로 100% 폭 +
             상하 테두리가 있는 바 형태로 바꾸고, 개별 칩 버튼의 테두리는 없앤다
             (Chip bordered={false}) — 카테고리 칩(chipRow) 등 다른 칩 스타일에는
@@ -511,34 +518,16 @@ function PropertyScreen() {
         <View
           style={[
             styles.regionBar,
+            styles.regionBarFill,
             // 음수 marginBottom은 **바로 아래 카테고리 줄과의 간격을 좁히려는 것**이다.
             // 카테고리 줄이 없을 때도 걸어 두면 그 아래 필터 줄이 12px 끌려 올라온다.
-            regionChosen && styles.regionBarTight,
-            { borderColor: theme.border },
           ]}
         >
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.regionChipRow}>
             {/* [STEP: 2026-09-09-6] 사용자 요청 — 지역탭은 배경색 없이(투명),
-                비활성은 회색 글자, 활성(선택)은 검은색 글자로만 구분한다. */}
-            <Chip
-              label={t("property.allRegions")}
-              active={region === null}
-              onPress={() => chooseRegion(null)}
-              theme={theme}
-              bordered={false}
-              squared
-              activeColor="transparent"
-              activeTextColor="#111111"
-              inactiveTextColor={theme.secondaryText}
-              // [STEP: 2026-09-09-19] 사용자 요청 — 지역 메뉴 좌우 간격을 좀 더 좁게
-              // (칩 기본 내부 padding spacing.md=16 대신 spacing.xs=4).
-              // [2026-09-11 사용자 지시] 여백 상하 6 / 좌우 10, 선택 시 파란 테두리 +
-              // 아래 카테고리 칩(아파트/주택…)과 같은 라운딩(radius.full).
-              paddingHorizontal={REGION_CHIP_PADDING_X}
-              paddingVertical={REGION_CHIP_PADDING_Y}
-              activeBorderColor={theme.accent}
-              borderRadius={radius.full}
-            />
+                비활성은 회색 글자, 활성(선택)은 검은색 글자로만 구분한다.
+                [2026-10-22 사용자 지시] "전체 지역" 칩은 목록에서 뺀다. 진입 직후는
+                region === null(= 전체)이라 노출 내용은 그대로다. */}
             {VIETNAM_REGIONS.map((item) => (
               <Chip
                 key={item.name}
@@ -549,41 +538,20 @@ function PropertyScreen() {
                 bordered={false}
                 squared
                 activeColor="transparent"
-                activeTextColor="#111111"
-                inactiveTextColor={theme.secondaryText}
+                // [2026-10-22 사용자 지시] 바탕이 파란 그라데이션이라 글자는 흰색.
+                activeTextColor="#FFFFFF"
+                inactiveTextColor="#FFFFFF"
                 paddingHorizontal={REGION_CHIP_PADDING_X}
                 paddingVertical={REGION_CHIP_PADDING_Y}
-                activeBorderColor={theme.accent}
                 borderRadius={radius.full}
+                inactiveColor="transparent"
+                boldWhenActive
+                inactiveWeight="400"
               />
             ))}
           </ScrollView>
         </View>
 
-        {/* [2026-09-28 사용자 지시] 지역을 고른 뒤에만 나온다. 조건부로 **그리지
-            않는** 것이 핵심 — 숨기기만 하면 content의 세로 gap이 그대로 남아
-            빈 줄처럼 보인다. */}
-        {regionChosen ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-            <Chip
-              label={t("property.filterAll")}
-              active={category === null}
-              onPress={() => setCategory(null)}
-              theme={theme}
-              tone="accent"
-            />
-            {PROPERTY_CATEGORIES.map((item) => (
-              <Chip
-                key={item}
-                label={t(`categories.property.${item}`)}
-                active={category === item}
-                onPress={() => setCategory(item)}
-                theme={theme}
-                tone="accent"
-              />
-            ))}
-          </ScrollView>
-        ) : null}
 
         {/* [STEP: 2026-09-09] 사용자 요청 — 전체/매매/임대, 정렬(최신순 등) 칩 목록을
             각각 셀렉트(버튼+Modal, invest.tsx의 위험도 셀렉트와 동일 패턴)로 바꾸고,
@@ -591,31 +559,52 @@ function PropertyScreen() {
             남는다). 매매/임대 셀렉트 + 정렬 셀렉트 + 보기방식(리스트/지도) 토글을
             한 줄에 배치한다. */}
         <View style={styles.filterRow}>
+          {/* [2026-10-22 사용자 지시] 2차 카테고리 칩 줄을 없애고 셀렉트로 옮긴다.
+              순서: 부동산 종류 → 유형 → 등록순. */}
+          <Pressable
+            onPress={() => setCategoryModalVisible(true)}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.selectButton,
+              { opacity: pressed ? opacity.pressed : 1 },
+            ]}
+          >
+            <Text style={[textStyles.bodySmall, styles.selectButtonText, { color: "#444444" }]} numberOfLines={1}>
+              {category ? t(`categories.property.${category}`) : t("property.categoryPlaceholder")}
+            </Text>
+            {/* [2026-10-22 사용자 지시] 아래 화살표(chevron) -> 아래 삼각형(caret).
+                상하 가운데 정렬은 selectButton의 alignItems:"center"가 맡는다. */}
+            <Ionicons name="caret-down" size={12} color={theme.secondaryText} style={styles.selectCaret} />
+          </Pressable>
           <Pressable
             onPress={() => setStatusModalVisible(true)}
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.selectButton,
-              { backgroundColor: theme.card, borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+              { opacity: pressed ? opacity.pressed : 1 },
             ]}
           >
-            <Text style={[textStyles.bodySmall, { color: theme.text }]} numberOfLines={1}>
-              {status === "all" ? t("property.filterAll") : t(`property.status.${status}`)}
+            <Text style={[textStyles.bodySmall, styles.selectButtonText, { color: "#444444" }]} numberOfLines={1}>
+              {status === "all" ? t("property.statusPlaceholder") : t(`property.status.${status}`)}
             </Text>
-            <Ionicons name="chevron-down" size={14} color={theme.secondaryText} />
+            {/* [2026-10-22 사용자 지시] 아래 화살표(chevron) -> 아래 삼각형(caret).
+                상하 가운데 정렬은 selectButton의 alignItems:"center"가 맡는다. */}
+            <Ionicons name="caret-down" size={12} color={theme.secondaryText} style={styles.selectCaret} />
           </Pressable>
           <Pressable
             onPress={() => setSortModalVisible(true)}
             accessibilityRole="button"
             style={({ pressed }) => [
               styles.selectButton,
-              { backgroundColor: theme.card, borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+              { opacity: pressed ? opacity.pressed : 1 },
             ]}
           >
-            <Text style={[textStyles.bodySmall, { color: theme.text }]} numberOfLines={1}>
+            <Text style={[textStyles.bodySmall, styles.selectButtonText, { color: "#444444" }]} numberOfLines={1}>
               {t(`property.sort.${sort}`)}
             </Text>
-            <Ionicons name="chevron-down" size={14} color={theme.secondaryText} />
+            {/* [2026-10-22 사용자 지시] 아래 화살표(chevron) -> 아래 삼각형(caret).
+                상하 가운데 정렬은 selectButton의 alignItems:"center"가 맡는다. */}
+            <Ionicons name="caret-down" size={12} color={theme.secondaryText} style={styles.selectCaret} />
           </Pressable>
           <View style={styles.filterSpacer} />
           <View style={[styles.viewToggle, { borderColor: theme.border }]}>
@@ -633,6 +622,35 @@ function PropertyScreen() {
             />
           </View>
         </View>
+
+        <Modal
+          visible={categoryModalVisible}
+          onClose={() => setCategoryModalVisible(false)}
+          accessibilityLabel={t("common.cancel")}
+        >
+          <Text style={[textStyles.sectionTitle, { color: theme.text, marginBottom: spacing.sm }]}>
+            {t("property.categoryPlaceholder")}
+          </Text>
+          {[null, ...PROPERTY_CATEGORIES].map((option) => (
+            <Pressable
+              key={option ?? "all"}
+              onPress={() => {
+                setCategory(option);
+                setCategoryModalVisible(false);
+              }}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.selectOption,
+                { borderColor: theme.border, opacity: pressed ? opacity.pressed : 1 },
+              ]}
+            >
+              <Text style={[textStyles.body, { color: theme.text }]}>
+                {option === null ? t("property.filterAll") : t(`categories.property.${option}`)}
+              </Text>
+              {option === category ? <Ionicons name="checkmark" size={18} color={theme.accent} /> : null}
+            </Pressable>
+          ))}
+        </Modal>
 
         <Modal
           visible={statusModalVisible}
@@ -709,12 +727,14 @@ function PropertyScreen() {
         ) : (
           <>
             {featured.length > 0 ? (
+              /* [2026-10-22 사용자 지시] 타이틀("추천 매물") 삭제, 카드는 화면 가로를
+                 100% 채우고 라운딩 없음. 캐러셀 좌우 peek 여백(featuredCardSidePadding)과
+                 카드 사이 gap도 0이어야 한 장이 화면을 정확히 덮는다. */
               <View style={styles.section}>
-                <SectionHeader title={t("property.featuredTitle")} icon="business-outline" />
                 <HorizontalCardCarousel
                   style={styles.bleedScroll}
-                  contentContainerStyle={styles.featuredRow}
-                  step={layout.featuredCardWidth + spacing.md}
+                  contentContainerStyle={styles.featuredRowFull}
+                  step={windowWidth}
                   arrowCenterY={PROPERTY_CARD_IMAGE_HEIGHT / 2}
                   autoPlayMs={3000}
                 >
@@ -723,6 +743,8 @@ function PropertyScreen() {
                       key={property.id}
                       property={property}
                       variant="featured"
+                      squared
+                      style={{ width: windowWidth }}
                       onPress={() => goToFeaturedDetail(property)}
                     />
                   ))}
@@ -731,14 +753,14 @@ function PropertyScreen() {
             ) : null}
 
             {top10.length > 0 ? (
-              <View style={styles.section}>
-                <SectionHeader title={t("property.top10Title")} />
+              <View style={[styles.section, styles.top10Section]}>
+                {/* [2026-10-22 사용자 지시] TOP10은 700, 뒤의 말은 500. */}
+                <SectionHeader title={t("property.top10Title")} titleNode={top10TitleNode} />
                 <View style={styles.propertyList}>
                   {top10.map((property, index) => (
                     <PropertyListRow
                       key={property.id}
                       property={property}
-                      distance={distanceLabel(property)}
                       showDivider={index > 0}
                       onPress={() => goToTop10Detail(property)}
                     />
@@ -779,7 +801,6 @@ function PropertyScreen() {
                     <PropertyListRow
                       key={property.id}
                       property={property}
-                      distance={distanceLabel(property)}
                       showDivider={index > 0}
                       onPress={() => goToDetail(property)}
                     />
@@ -833,7 +854,8 @@ const styles = createScaledStyles(() => ({
     // [STEP: 2026-09-09-17] 사용자 요청(목표 디자인) — 검색창을 헤더에 20px 더
     // 가깝게(위로 20px). paddingVertical(상하 동일)이던 것을 분리해 위쪽만 줄이고
     // 아래쪽(lastSection과 맞물리는 스크롤 하단 여백)은 그대로 lg 유지.
-    paddingTop: spacing.lg - 20,
+    // [2026-10-22 사용자 지시] 헤더 밑줄과 회색 지역 바가 맞붙어야 한다 — 위 여백 0.
+    paddingTop: 0,
     paddingBottom: spacing.lg,
     // [STEP: 2026-09-09-7] 사용자 재확인 — sm(8)까지 줄이니 영역 내부(styles.section.gap
     // =sm) 간격과 완전히 같아져 "영역과 영역 사이"가 구분되지 않았다. md(16)로
@@ -842,12 +864,40 @@ const styles = createScaledStyles(() => ({
     gap: spacing.md,
   },
   // [STEP: 2026-09-09-6] 사용자 요청 — 검색창에 우측 검색 버튼, placeholder 삭제.
-  searchBar: {
+  // [2026-10-22 사용자 지시] 전용 헤더 — 제목 좌측, 검색창 우측, 하단 테두리.
+  headerSafe: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radius.sm,
+    paddingHorizontal: spacing.screenPaddingX,
+    // [2026-10-22 사용자 지시] 제목·검색창이 놓인 상단 영역 상하 padding 5px.
+    // minHeight(48)를 함께 지운다 — 남겨 두면 padding을 줄여도 높이가 그대로다.
+    paddingVertical: 5,
+  },
+  headerTitle: {
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
+  },
+  // [2026-10-22 사용자 지시] 검색창 테두리 삭제. 가로 폭은 제목이 자리를 잡고
+  // 남는 공간(searchSlot)의 80% — 이전보다 20% 줄인 크기.
+  searchSlot: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "flex-end",
+  },
+  searchBar: {
+    width: "80%",
+    // [2026-10-22 사용자 지시] 검색창 우측 여백 10px.
+    marginRight: 10,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    borderWidth: 0,
+    borderRadius: radius.full,
     paddingLeft: spacing.md,
     paddingRight: spacing.xs,
     paddingVertical: spacing.xs,
@@ -855,6 +905,8 @@ const styles = createScaledStyles(() => ({
   searchInput: {
     flex: 1,
     padding: 0,
+    // [2026-10-22 사용자 지시] 검색창 글자 한 치수 작게(bodySmall 18 -> 16).
+    fontSize: scaleFont(16, FONT_FACTOR.BODY),
   },
   searchButton: {
     width: 32,
@@ -864,10 +916,6 @@ const styles = createScaledStyles(() => ({
     // radius.full 시도는 방향이 틀렸다 — 애초에 배경 자체가 없어야 했다).
     alignItems: "center",
     justifyContent: "center",
-  },
-  chipRow: {
-    gap: spacing.xs,
-    paddingRight: spacing.md,
   },
   // [STEP: 2026-09-09] 사용자 요청 — "전체지역" 메뉴바: 화면 가로 100%(bleedScroll과
   // 동일한 negative margin 방식) + 상하 테두리만 남긴다. content의 기본 세로 gap
@@ -883,13 +931,18 @@ const styles = createScaledStyles(() => ({
     // [2026-09-11 사용자 지시] 검색창과 지역 메뉴 사이만 padding-top: 0.
     // 아래쪽(카테고리 칩과의 간격)은 그대로 둬야 하므로 paddingVertical을
     // 위/아래로 나눈다.
-    paddingTop: 0,
-    paddingBottom: spacing.xs,
+    // [2026-10-22 사용자 지시] padding: 5px 0.
+    // 아래(필터 줄)와의 간격은 filterRow.marginTop 한 곳에서만 만든다 — 양쪽에
+    // 음수 margin을 걸어 두면 16(gap) - 11 - 10 = -5가 되어 두 줄이 겹친다.
+    paddingVertical: 5,
   },
   // 카테고리 줄이 붙어 있을 때만 쓰는 간격 보정.
-  regionBarTight: {
-    marginBottom: -(spacing.md - spacing.xs),
+  // [2026-10-22 사용자 지시] 지역 카테고리 바탕 #f2f2f2.
+  // 칩 자체의 배경·테두리를 없앴으므로 선택 상태는 글자 굵기와 색으로만 보인다.
+  regionBarFill: {
+    backgroundColor: REGION_BAR_BACKGROUND,
   },
+  // 2차 카테고리는 흰 바탕 — 위의 회색 바와 구분된다.
   regionChipRow: {
     // [STEP: 2026-09-09-21] 사용자 요청 — 정확히 20px로 고정.
     gap: 20,
@@ -898,16 +951,35 @@ const styles = createScaledStyles(() => ({
   filterRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    // [2026-10-22 사용자 지시] 셀렉트 사이 간격 10px.
+    gap: 10,
+    // [2026-10-22 사용자 지시] 1차 카테고리와의 여백 10px.
+    // content의 세로 gap(16)이 이미 붙으므로 그만큼 빼서 정확히 10이 되게 한다.
+    marginTop: 10 - spacing.md,
   },
   // [STEP: 2026-09-09] 매매/임대·정렬 셀렉트 버튼 — invest.tsx의 riskSelect와 동일 패턴
+  // [2026-10-22 사용자 지시] 테두리·배경 모두 삭제하고 좌측에 붙인다.
+  selectButtonText: {
+    // [2026-10-22 사용자 지시] 14 -> 16(한 치수 크게).
+    fontSize: scaleFont(16, FONT_FACTOR.BODY),
+    // [2026-10-22 사용자 지시] 글자와 아래 화살표의 상하 정렬을 맞춘다. Android는
+    // 폰트 위아래에 여백(includeFontPadding)을 더해 alignItems:"center"로도 글자가
+    // 아이콘보다 살짝 내려간다 — 그 여백을 끄는 것이 정렬의 핵심이다.
+    includeFontPadding: false,
+    textAlignVertical: "center",
+  },
+  // [2026-10-22 사용자 지시] 아래 삼각형을 4px 내린다.
+  selectCaret: {
+    marginTop: 4,
+  },
   selectButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
+    borderWidth: 0,
+    paddingHorizontal: 0,
+    // [2026-10-22 사용자 지시] 셀렉트 우측 padding 5px.
+    paddingRight: 5,
     paddingVertical: spacing.xs,
   },
   selectOption: {
@@ -951,6 +1023,16 @@ const styles = createScaledStyles(() => ({
     // [STEP: 2026-09-09-21] 사용자 요청 — 정확히 30px로(content.gap 16 + 이 값 14).
     marginTop: 14,
   },
+  // [2026-10-22 사용자 지시] TOP10 타이틀과 매물 목록 사이 간격을 조금 더 줄인다.
+  top10Section: {
+    gap: 2,
+  },
+  top10TitleStrong: {
+    fontWeight: "700",
+  },
+  top10TitleRest: {
+    fontWeight: "500",
+  },
   lastSection: {
     paddingBottom: spacing.lg,
   },
@@ -988,6 +1070,11 @@ const styles = createScaledStyles(() => ({
   },
   featuredRow: {
     gap: spacing.md,
+  },
+  // [2026-10-22 사용자 지시] 추천 매물 전용 — 좌우 peek 여백과 카드 간격을 0으로.
+  featuredRowFull: {
+    gap: 0,
+    paddingHorizontal: 0,
   },
   // [2026-09-11 사용자 지시] 매물 목록은 행 사이 간격을 좁힌다 — 간격은
   // PropertyListRow의 paddingVertical이 만들고, 그 가운데에 구분선이 놓인다.

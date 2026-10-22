@@ -106,7 +106,13 @@ export function Button({
 function getVariantStyle(variant: ButtonVariant, theme: ThemeColors) {
   switch (variant) {
     case "primary":
-      return { backgroundColor: theme.accent, borderColor: theme.accent, borderWidth: 0, textColor: theme.onAccent };
+      // [2026-10-22 사용자 지시] 파란색 버튼 배경 rgb(32, 107, 199).
+      return {
+        backgroundColor: theme.buttonPrimary,
+        borderColor: theme.buttonPrimary,
+        borderWidth: 0,
+        textColor: theme.onAccent,
+      };
     case "secondary":
       return { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, textColor: theme.text };
     case "outline":

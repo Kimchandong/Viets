@@ -77,7 +77,7 @@
     "distanceAway": "Cách {{distance}} km",
     "sortLabel": "Sắp xếp",
     "sort": {
-      "newest": "Mới nhất",
+      "newest": "Mới đăng",
       "priceLow": "Giá thấp đến cao",
       "priceHigh": "Giá cao đến thấp",
       "areaLarge": "Diện tích lớn nhất"
@@ -86,7 +86,9 @@
     "mapNoCoords": "Không có vị trí bất động sản nào để hiển thị trên bản đồ.",
     "mapMissingCoords": "{{count}} bất động sản không có dữ liệu vị trí nên không hiển thị trên bản đồ.",
     "top10Title": "Tin TOP10",
-    "locationNeeded": "Cho phép truy cập vị trí để sắp xếp theo khoảng cách."
+    "locationNeeded": "Cho phép truy cập vị trí để sắp xếp theo khoảng cách.",
+    "categoryPlaceholder": "Loại bất động sản",
+    "statusPlaceholder": "Hình thức"
   },
   "propertyDetail": {
     "descriptionTitle": "Mô tả chi tiết",
@@ -124,8 +126,8 @@
     "title": "Đầu tư",
     "overviewTitle": "Tổng quan đầu tư",
     "overview": {
-      "totalRaised": "Tổng vốn huy động",
-      "activeProducts": "Sản phẩm đang mở",
+      "totalRaised": "Tổng vốn\nhuy động",
+      "activeProducts": "Sản phẩm\nđang mở",
       "avgReturn": "Lợi nhuận TB"
     },
     "risk": {
@@ -1354,8 +1356,8 @@
     "noPermission": "Bạn không có quyền truy cập"
   },
   "units": {
-    "perMonth": "tháng",
-    "perYear": "năm"
+    "perMonth": "month",
+    "perYear": "year"
   },
   "investChat": {
     "headerTitle": "Tư vấn đầu tư",

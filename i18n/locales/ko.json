@@ -77,7 +77,7 @@
     "distanceAway": "{{distance}}km 거리",
     "sortLabel": "정렬",
     "sort": {
-      "newest": "최신순",
+      "newest": "등록순",
       "priceLow": "낮은 가격순",
       "priceHigh": "높은 가격순",
       "areaLarge": "넓은 면적순"
@@ -86,7 +86,9 @@
     "mapNoCoords": "지도에 표시할 매물 위치 정보가 없습니다.",
     "mapMissingCoords": "위치 정보가 없는 매물 {{count}}건은 지도에 표시되지 않았습니다.",
     "top10Title": "TOP10 매물",
-    "locationNeeded": "위치 권한을 허용해야 거리순으로 정렬할 수 있습니다."
+    "locationNeeded": "위치 권한을 허용해야 거리순으로 정렬할 수 있습니다.",
+    "categoryPlaceholder": "부동산 종류",
+    "statusPlaceholder": "유형"
   },
   "propertyDetail": {
     "descriptionTitle": "상세 설명",
@@ -124,8 +126,8 @@
     "title": "투자",
     "overviewTitle": "투자 개요",
     "overview": {
-      "totalRaised": "누적 모집액",
-      "activeProducts": "진행 중인 상품",
+      "totalRaised": "누적\n모집액",
+      "activeProducts": "진행중인\n투자상품",
       "avgReturn": "평균수익"
     },
     "risk": {
@@ -1354,8 +1356,8 @@
     "noPermission": "접근 권한이 없습니다"
   },
   "units": {
-    "perMonth": "월",
-    "perYear": "년"
+    "perMonth": "month",
+    "perYear": "year"
   },
   "investChat": {
     "headerTitle": "투자 상담",

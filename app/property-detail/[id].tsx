@@ -20,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { BackButton } from "@/components/BackButton";
+import { BACK_ICON_COLOR, BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { LoginPromptModal } from "@/components/LoginPromptModal";
 import { Modal } from "@/components/Modal";
@@ -28,7 +28,7 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyMap } from "@/components/PropertyMap";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Toast } from "@/components/Toast";
-import { createScaledStyles, colors, opacity, radius, shadow, spacing, textStyles, ThemeColors, typography, scaleFont } from "@/constants/theme";
+import { createScaledStyles, colors, FONT_FACTOR, opacity, radius, shadow, spacing, textStyles, ThemeColors, typography, scaleFont } from "@/constants/theme";
 import {
   findSimilarPropertiesByArea,
   findSimilarPropertiesByPrice,
@@ -347,7 +347,7 @@ export default function PropertyDetailScreen() {
               accessibilityLabel={t("common.share")}
               style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
             >
-              <Ionicons name="share-outline" size={22} color={theme.text} />
+              <Ionicons name="share-outline" size={22} color={BACK_ICON_COLOR} />
             </Pressable>
           </View>
         }
@@ -398,7 +398,8 @@ export default function PropertyDetailScreen() {
           </View>
 
           <View style={styles.row}>
-            <Ionicons name="location-outline" size={14} color={theme.secondaryText} />
+            {/* [2026-10-22 사용자 지시] 주소 아이콘·글자 한 치수 크게. */}
+            <Ionicons name="location-outline" size={16} color={theme.secondaryText} />
             {/* [STEP: 2026-09-09-6] 사용자 요청 — 상세페이지 주소 글자크기 11px */}
             <Text style={[styles.addressText, { color: theme.secondaryText }]}>{property.location}</Text>
           </View>
@@ -417,7 +418,13 @@ export default function PropertyDetailScreen() {
             {/* [2026-09-11 사용자 지시] 단위 크기를 금액과 같게 — fontSize를 지정하지
                 않으면 바깥 heroValue 크기를 그대로 상속한다. 굵기만 다르게 둔다. */}
             {splitYieldText(localizeUnits(property.price, t)).suffix ? (
-              <Text style={{ fontWeight: typography.weight.regular }}>
+              <Text
+                style={{
+                  fontWeight: typography.weight.regular,
+                  // [2026-10-22 사용자 지시] 단위(" / month")는 금액보다 한 치수 작게.
+                  fontSize: textStyles.bodySmall.fontSize,
+                }}
+              >
                 {splitYieldText(localizeUnits(property.price, t)).suffix}
               </Text>
             ) : null}
@@ -724,6 +731,11 @@ export default function PropertyDetailScreen() {
 }
 
 
+/** [2026-10-22 사용자 지시] 면적·침실·욕실 칩의 글자·아이콘 크기(px). */
+function metaChipSize(): number {
+  return scaleFont(16, FONT_FACTOR.BODY);
+}
+
 function MetaChip({
   icon,
   label,
@@ -737,14 +749,22 @@ function MetaChip({
 }) {
   return (
     <View style={[styles.metaChip, { backgroundColor: theme.card, borderColor: theme.border }]}>
-      {/* [2026-09-26 사용자 지시] 면적·방수·욕실수 한 치수 크게 — 글자와 아이콘을
-          같이 올린다(아이콘만 두면 글자보다 작아 보인다). */}
+      {/* [2026-10-22 사용자 지시] 면적·침실·욕실 한 치수 작게(18 -> 16) — 글자와
+          아이콘을 같은 값(metaChipSize)에서 가져와 둘이 어긋나지 않게 한다. */}
       <Ionicons
         name={icon}
-        size={Math.round(textStyles.bodySmall.fontSize)}
+        size={Math.round(metaChipSize())}
         color={tone === "success" ? theme.success : theme.secondaryText}
       />
-      <Text style={[textStyles.bodySmall, { color: tone === "success" ? theme.success : theme.text }]}>{label}</Text>
+      <Text
+        style={[
+          textStyles.bodySmall,
+          styles.metaChipText,
+          { color: tone === "success" ? theme.success : theme.text },
+        ]}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -811,7 +831,8 @@ const styles = createScaledStyles(() => ({
     gap: 4,
   },
   addressText: {
-    fontSize: scaleFont(11),
+    // [2026-10-22 사용자 지시] 한 치수 크게(11 -> 12).
+    fontSize: scaleFont(12),
     fontWeight: typography.weight.regular,
     flexShrink: 1,
   },
@@ -825,6 +846,9 @@ const styles = createScaledStyles(() => ({
     flexWrap: "wrap",
     gap: spacing.xs,
     marginTop: spacing.xs,
+  },
+  metaChipText: {
+    fontSize: metaChipSize(),
   },
   metaChip: {
     flexDirection: "row",

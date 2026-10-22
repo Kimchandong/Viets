@@ -46,7 +46,10 @@ export function Header({ title, titleNode, subtitle, leftAction, rightAction, st
       ]}
     >
       <View style={[styles.row, style]}>
-        <View style={styles.slot}>{leftAction}</View>
+        {/* [2026-10-22 사용자 지시] 뒤로가기 버튼은 화면 왼쪽에서 10px.
+            슬롯 폭(40)은 그대로 둬야 제목이 가운데에 남으므로, 슬롯 안에서
+            아이콘을 가운데가 아니라 왼쪽에 붙인다. */}
+        <View style={[styles.slot, styles.leftSlot]}>{leftAction}</View>
         {/* [STEP: 2026-09-09] 사용자 요청 — 타이틀/서브타이틀을 위아래 두 줄이 아닌
             한 줄로 붙여서 보여준다("아파트 · 부동산 매물"처럼). */}
         <View style={styles.titleRow}>
@@ -64,7 +67,7 @@ export function Header({ title, titleNode, subtitle, leftAction, rightAction, st
             </Text>
           ) : null}
         </View>
-        <View style={styles.slot}>{rightAction}</View>
+        <View style={[styles.slot, styles.rightSlot]}>{rightAction}</View>
       </View>
     </SafeAreaView>
   );
@@ -80,12 +83,22 @@ const styles = createScaledStyles(() => ({
     flexDirection: "row",
     alignItems: "center",
     minHeight: 48,
-    paddingHorizontal: spacing.sm,
+    // [2026-10-22 사용자 지시] 뒤로가기(좌)·공유하기(우) 모두 화면 끝에서 10px.
+    // 슬롯 폭(40)은 그대로 둬야 제목이 가운데에 남으므로, 여백은 row가 만들고
+    // 아이콘은 각 슬롯 안에서 바깥쪽(좌/우)에 붙인다.
+    paddingLeft: 10,
+    paddingRight: 10,
   },
   slot: {
     minWidth: 40,
     alignItems: "center",
     justifyContent: "center",
+  },
+  leftSlot: {
+    alignItems: "flex-start",
+  },
+  rightSlot: {
+    alignItems: "flex-end",
   },
   // [STEP: 2026-09-09] 타이틀+서브타이틀을 한 줄에 나란히 배치(가로 방향) —
   // 이전 STEP(2026-09-08)의 세로 2줄(titleColumn) 레이아웃을 대체한다.

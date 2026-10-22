@@ -23,7 +23,10 @@
  * suffix는 regular로 그리고 있기 때문이다. 앞의 공백은 " tỷ"와 모양을 맞춘 것이다.
  */
 function detachUnitK(rate: string, suffix: string): { rate: string; suffix: string } {
-  return rate.endsWith("k") ? { rate: rate.slice(0, -1), suffix: ` k${suffix}` } : { rate, suffix };
+  // [2026-10-22 사용자 지시] 천 단위 접미사 "k"를 ",000"으로 바꾸고, 금액과 **같은
+  // 굵기**로 보여야 하므로 단위(suffix)가 아니라 금액(rate) 쪽에 붙인다
+  // ("30,000k / tháng" -> 금액 "30,000,000" + 단위 " / month").
+  return rate.endsWith("k") ? { rate: `${rate.slice(0, -1)},000`, suffix } : { rate, suffix };
 }
 
 /**

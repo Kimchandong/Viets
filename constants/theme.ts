@@ -24,6 +24,10 @@ export const colors = {
     border: "#E5E5E5",
     // placeholder — D28 확정 후 교체
     accent: "#2F3C7E",
+    // [2026-10-22 사용자 지시] 파란색 버튼(투자 신청 등)의 배경 — rgb(32, 107, 199).
+    // accent(남색)와 분리된 토큰으로 둔다: accent는 섹션 제목·금액·활성 칩 글자 등
+    // 버튼이 아닌 곳에도 쓰이므로, accent를 바꾸면 화면 전체 색이 같이 변한다.
+    buttonPrimary: "#206BC7",
     // 사용자 요청(2026-09-09): 투자상품 모집률 progress bar 그라데이션의 밝은 쪽
     // 끝(모집률 0% 지점) 색상 — accent(진한 남색)보다 밝은 하늘색.
     accentLight: "#7FB3F0",
@@ -57,6 +61,8 @@ export const colors = {
     border: "#2A2A2C",
     // placeholder — D28 확정 후 교체
     accent: "#6B7FE0",
+    // 앱이 light 테마로 고정되어 있어 실사용되지 않지만, 토큰 누락을 막기 위해 둔다.
+    buttonPrimary: "#206BC7",
     accentLight: "#9CC4F5",
     danger: "#E57373",
     success: "#66BB6A",

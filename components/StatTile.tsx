@@ -16,13 +16,18 @@ export type StatTileProps = {
   // 넘기지 않으므로 기존 크기(statValue/caption) 그대로 유지된다.
   valueStyle?: StyleProp<TextStyle>;
   labelStyle?: StyleProp<TextStyle>;
+  /**
+   * [2026-10-22 사용자 지시] 라벨을 두 줄로 끊어 보여야 하는 곳(투자개요)을 위한 옵션.
+   * 기본값 1 — 다른 호출부는 지금과 완전히 동일하다.
+   */
+  labelLines?: number;
 };
 
 /**
  * STEP 4-9B — Invest 개요 / My 활동 요약이 공유하는 큰 숫자 강조 타일.
  * 값 계산 로직은 갖지 않는다 — 호출부가 이미 계산/mock한 문자열을 그대로 넘긴다.
  */
-export function StatTile({ label, value, onPress, style, valueStyle, labelStyle }: StatTileProps) {
+export function StatTile({ label, value, onPress, style, valueStyle, labelStyle, labelLines = 1 }: StatTileProps) {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
   const theme = colors.light;
 
@@ -35,7 +40,7 @@ export function StatTile({ label, value, onPress, style, valueStyle, labelStyle 
       >
         {value}
       </Text>
-      <Text style={[textStyles.caption, { color: theme.secondaryText }, labelStyle]} numberOfLines={1}>
+      <Text style={[textStyles.caption, { color: theme.secondaryText }, labelStyle]} numberOfLines={labelLines}>
         {label}
       </Text>
     </View>

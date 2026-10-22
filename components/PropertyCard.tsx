@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image, StyleProp, Text, View, ViewStyle } from "react-native";
 
 import { Card } from "@/components/Card";
-import { createScaledStyles, colors, layout, radius, spacing, textStyles, typography, scaleFont, textColor } from "@/constants/theme";
+import { createScaledStyles, colors, FONT_FACTOR, layout, radius, spacing, textStyles, typography, scaleFont, textColor } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
 import { localizeUnits, splitYieldText } from "@/utils/format";
 
@@ -12,6 +12,12 @@ export type PropertyCardProps = {
   onPress?: () => void;
   /** "featured": 가로 스크롤용 고정폭 카드, "list": 세로 리스트용 전체폭 카드 */
   variant?: "featured" | "list";
+  /**
+   * [2026-10-22 사용자 지시] 부동산 탭 추천 매물은 화면 가로를 꽉 채우고 라운딩이
+   * 없어야 한다. 카드 바깥 모서리만 0으로 만들면 썸네일 위쪽 모서리(radius.md)가
+   * 그대로 남아 어긋나 보이므로, 둘을 함께 끄는 prop으로 둔다. 기본값 false.
+   */
+  squared?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -24,7 +30,7 @@ export type PropertyCardProps = {
  * 표시한다 — 기존 아이콘 placeholder(Ionicons "image-outline")를 대체한다. 그 외
  * props/필드/레이아웃 구조는 전혀 바꾸지 않았다(기존 기능 보존 원칙).
  */
-export function PropertyCard({ property, onPress, variant = "list", style }: PropertyCardProps) {
+export function PropertyCard({ property, onPress, variant = "list", squared = false, style }: PropertyCardProps) {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
   const theme = colors.light;
   const { t } = useTranslation();
@@ -40,9 +46,9 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
     <Card
       testID="property-card"
       onPress={onPress}
-      style={[styles.card, isFeatured && styles.cardFeatured, style]}
+      style={[styles.card, isFeatured && styles.cardFeatured, squared && styles.cardSquared, style]}
     >
-      <View style={[styles.image, { backgroundColor: theme.border }]}>
+      <View style={[styles.image, squared && styles.imageSquared, { backgroundColor: theme.border }]}>
         {thumbnail ? (
           <Image source={thumbnail} style={styles.imagePhoto} resizeMode="cover" />
         ) : null}
@@ -63,18 +69,14 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
       {/* [STEP: 2026-09-09-3] 사용자 요청 — 주소(좌측)·거리(우측 정렬, "거리" 문구
           삭제하고 위치 마커 아이콘만 앞에 표시)를 한 줄에 배치. */}
       <View testID="property-card-address-row" style={styles.row}>
-        <Ionicons name="location-outline" size={13} color={theme.secondaryText} />
-        <Text style={[styles.addressText, { color: theme.secondaryText }]} numberOfLines={1}>
+        {/* [2026-10-22 사용자 지시] 추천(featured) 카드만 주소 글자·아이콘을 한 치수 크게. */}
+        <Ionicons name="location-outline" size={isFeatured ? 17 : 15} color={theme.secondaryText} />
+        <Text
+          style={[styles.addressText, isFeatured && styles.addressTextLarge, { color: theme.secondaryText }]}
+          numberOfLines={1}
+        >
           {property.location}
         </Text>
-        {property.distanceKm !== undefined ? (
-          <View style={styles.distanceRight}>
-            <Ionicons name="navigate-outline" size={11} color={theme.secondaryText} />
-            <Text style={[styles.addressText, { color: theme.secondaryText }]} numberOfLines={1}>
-              {property.distanceKm}km
-            </Text>
-          </View>
-        ) : null}
       </View>
 
       {/* [STEP: 2026-09-09-3] 가격 줄.
@@ -85,7 +87,7 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
             (좁은 화면에서 body보다 덜 줄어든다 — theme.ts textStyles.price 주석 참조) */}
         <Text style={[textStyles.price, styles.priceText, { color: theme.accent }]} numberOfLines={1}>
           {priceParts.rate}
-          {priceParts.suffix ? <Text style={[styles.priceUnit, { color: theme.secondaryText }]}>{priceParts.suffix}</Text> : null}
+          {priceParts.suffix ? <Text style={[styles.priceUnit, { color: theme.accent }]}>{priceParts.suffix}</Text> : null}
         </Text>
 
         {/* [2026-09-11 사용자 지시] 면적/침실수/욕실수를 가격 아래 줄이 아니라
@@ -126,7 +128,8 @@ export function PropertyCard({ property, onPress, variant = "list", style }: Pro
 function metaSize(): number {
   // [2026-09-26] 모듈 상수였던 것을 함수로 바꿨다 — 상수는 모듈이 처음 읽힐 때 한 번
   // 계산되어, 앱을 켠 뒤 폭이 바뀌면(폴더블/회전) 이 글자와 아이콘만 옛 크기로 굳었다.
-  return scaleFont(12);
+  // [2026-10-22 사용자 지시] 면적·방수·화장실수 한 치수 크게(12 -> 14).
+  return scaleFont(14);
 }
 
 /**
@@ -139,6 +142,13 @@ const styles = createScaledStyles(() => ({
   card: {
     gap: spacing.xs,
     width: "100%",
+  },
+  cardSquared: {
+    borderRadius: 0,
+  },
+  imageSquared: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
   cardFeatured: {
     // [STEP: 2026-09-08] 사용자 요청 — 캐러셀 카드 1장이 화면 폭의 95%를 차지하도록
@@ -193,8 +203,13 @@ const styles = createScaledStyles(() => ({
     alignItems: "center",
     gap: 4,
   },
+  // [2026-10-22 사용자 지시] 추천 카드 전용 — 주소 한 치수 크게(10 -> 11).
+  addressTextLarge: {
+    fontSize: scaleFont(11),
+  },
   addressText: {
-    fontSize: scaleFont(9),
+    // [2026-10-22 사용자 지시] 주소 글자 한 치수 크게(9 -> 10).
+    fontSize: scaleFont(10),
     fontWeight: typography.weight.regular,
     flexShrink: 1,
   },
@@ -238,6 +253,10 @@ const styles = createScaledStyles(() => ({
   // 없애면 바깥 Text(textStyles.price)의 크기를 그대로 상속한다. 굵기만 다르게 둔다.
   priceUnit: {
     fontWeight: typography.weight.regular,
+    // [2026-10-22 사용자 지시] 단위(" / month")는 금액보다 두 치수 작게(20 -> 16).
+    // ",000"은 금액 쪽으로 옮겨 가 같은 굵기로 보인다(utils/format.ts).
+    // 색은 호출부에서 accent(파란색)로 준다.
+    fontSize: scaleFont(16, FONT_FACTOR.BODY),
   },
   // 좁은 화면에서는 가격 쪽이 먼저 줄어든다(우측 스펙은 고정).
   priceText: {

@@ -57,7 +57,6 @@ import {
 } from "@/components/PropertySortControls";
 import {
   distanceKm,
-  formatDistance,
   getCurrentLocation,
   locationFromRegion,
   selectableRegions,
@@ -545,18 +544,6 @@ function HomeScreen() {
     router.push(`/property-detail/${propertyId}`);
   }
 
-  /** 매물까지의 거리 문구 — 기준점과 좌표가 다 있을 때만. */
-  function distanceLabel(property: MockProperty): string {
-    if (!userLocation.coords || property.latitude === undefined || property.longitude === undefined) {
-      return "";
-    }
-    return formatDistance(
-      distanceKm(userLocation.coords, {
-        latitude: property.latitude,
-        longitude: property.longitude,
-      }),
-    );
-  }
 
   /**
    * 위치 표시를 눌렀을 때 / 거리순을 골랐을 때.
@@ -1013,7 +1000,6 @@ function HomeScreen() {
                   <PropertyListRow
                     key={property.id}
                     property={property}
-                    distance={distanceLabel(property)}
                     showDivider={index > 0}
                     onPress={() => openProperty(property.id, "top10")}
                   />

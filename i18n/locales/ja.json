@@ -77,7 +77,7 @@
     "distanceAway": "{{distance}} km",
     "sortLabel": "並び替え",
     "sort": {
-      "newest": "新着順",
+      "newest": "登録順",
       "priceLow": "価格が低い順",
       "priceHigh": "価格が高い順",
       "areaLarge": "面積が広い順"
@@ -86,7 +86,9 @@
     "mapNoCoords": "地図に表示できる物件の位置情報がありません。",
     "mapMissingCoords": "位置情報のない物件{{count}}件は地図に表示されていません。",
     "top10Title": "TOP10 物件",
-    "locationNeeded": "距離順に並べるには位置情報の許可が必要です。"
+    "locationNeeded": "距離順に並べるには位置情報の許可が必要です。",
+    "categoryPlaceholder": "物件種別",
+    "statusPlaceholder": "形態"
   },
   "propertyDetail": {
     "descriptionTitle": "詳細説明",
@@ -124,8 +126,8 @@
     "title": "投資",
     "overviewTitle": "投資概要",
     "overview": {
-      "totalRaised": "累計調達額",
-      "activeProducts": "募集中の商品",
+      "totalRaised": "累計\n調達額",
+      "activeProducts": "募集中の\n商品",
       "avgReturn": "平均収益"
     },
     "risk": {
@@ -1354,8 +1356,8 @@
     "noPermission": "アクセス権限がありません"
   },
   "units": {
-    "perMonth": "月",
-    "perYear": "年"
+    "perMonth": "month",
+    "perYear": "year"
   },
   "investChat": {
     "headerTitle": "投資相談",

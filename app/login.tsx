@@ -6,6 +6,7 @@ import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/Button";
+import { BACK_ICON_COLOR } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { Toast } from "@/components/Toast";
 import { createScaledStyles, colors, opacity, radius, spacing, textStyles } from "@/constants/theme";
@@ -68,7 +69,7 @@ export default function LoginScreen() {
               accessibilityLabel={t("common.cancel")}
               style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
             >
-              <Ionicons name="chevron-back" size={22} color={theme.text} />
+              <Ionicons name="chevron-back" size={22} color={BACK_ICON_COLOR} />
             </Pressable>
           ) : null
         }

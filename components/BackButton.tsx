@@ -2,7 +2,13 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable } from "react-native";
 
-import { colors, opacity } from "@/constants/theme";
+import { opacity } from "@/constants/theme";
+
+/**
+ * [2026-10-22 사용자 지시] 모든 화면의 상단 뒤로가기 아이콘 색 #666666.
+ * 사진 위에 얹는 화면(매물 상세 등)은 호출부가 color로 흰색을 넘겨 덮는다.
+ */
+export const BACK_ICON_COLOR = "#666666";
 
 /**
  * [2026-09-12 사용자 제보] "뒤로가기가 안 되는 화면이 많다."
@@ -27,7 +33,6 @@ export type BackButtonProps = {
 };
 
 export function BackButton({ fallback = "/home", color, size = 24, accessibilityLabel }: BackButtonProps) {
-  const theme = colors.light;
   const router = useRouter();
 
   function handlePress() {
@@ -48,7 +53,7 @@ export function BackButton({ fallback = "/home", color, size = 24, accessibility
       hitSlop={8}
       style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
     >
-      <Ionicons name="chevron-back" size={size} color={color ?? theme.text} />
+      <Ionicons name="chevron-back" size={size} color={color ?? BACK_ICON_COLOR} />
     </Pressable>
   );
 }

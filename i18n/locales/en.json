@@ -77,7 +77,7 @@
     "distanceAway": "{{distance}} km away",
     "sortLabel": "Sort",
     "sort": {
-      "newest": "Newest",
+      "newest": "Recently listed",
       "priceLow": "Price: Low to High",
       "priceHigh": "Price: High to Low",
       "areaLarge": "Area: Large to Small"
@@ -86,7 +86,9 @@
     "mapNoCoords": "No property locations available to show on the map.",
     "mapMissingCoords": "{{count}} listing(s) without location data are not shown on the map.",
     "top10Title": "TOP10 listings",
-    "locationNeeded": "Allow location access to sort by distance."
+    "locationNeeded": "Allow location access to sort by distance.",
+    "categoryPlaceholder": "Property type",
+    "statusPlaceholder": "Type"
   },
   "propertyDetail": {
     "descriptionTitle": "Description",
@@ -124,8 +126,8 @@
     "title": "Invest",
     "overviewTitle": "Investment overview",
     "overview": {
-      "totalRaised": "Total raised",
-      "activeProducts": "Active products",
+      "totalRaised": "Total\nraised",
+      "activeProducts": "Active\nproducts",
       "avgReturn": "Avg. return"
     },
     "risk": {
@@ -1354,8 +1356,8 @@
     "noPermission": "You don't have permission"
   },
   "units": {
-    "perMonth": "mo",
-    "perYear": "yr"
+    "perMonth": "month",
+    "perYear": "year"
   },
   "investChat": {
     "headerTitle": "Investment inquiry",

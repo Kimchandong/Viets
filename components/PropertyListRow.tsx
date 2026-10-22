@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, Text, View } from "react-native";
 
-import { createScaledStyles, colors, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
+import { createScaledStyles, colors, FONT_FACTOR, opacity, radius, spacing, textStyles, typography, scaleFont } from "@/constants/theme";
 import type { MockProperty } from "@/constants/mockData";
 import { localizeUnits, splitYieldText } from "@/utils/format";
 
@@ -17,7 +17,6 @@ import { localizeUnits, splitYieldText } from "@/utils/format";
 export type PropertyListRowProps = {
   property: MockProperty;
   /** 거리 문구. 기준 위치가 없으면 빈 문자열을 넘겨 숨긴다. */
-  distance?: string;
   /**
    * 행 위에 구분선을 그린다. 목록의 첫 행은 false로 넘긴다 — 섹션 제목 바로 아래에
    * 선이 하나 더 생기면 헤더와 붙어 보인다.
@@ -34,14 +33,12 @@ const THUMB_WIDTH = Math.round(THUMB_HEIGHT * 1.5);
 function metaSize(): number {
   // [2026-09-26] 모듈 상수였던 것을 함수로 바꿨다 — 상수는 모듈이 처음 읽힐 때 한 번
   // 계산되어, 앱을 켠 뒤 폭이 바뀌면(폴더블/회전) 이 글자와 아이콘만 옛 크기로 굳었다.
-  // [2026-09-26 사용자 지시] 면적·방수·화장실수 두 치수 크게(12 → 16).
-  // 이 함수 하나를 글자와 아이콘이 함께 쓰므로 둘이 어긋날 일이 없다.
-  return scaleFont(16);
+  // [2026-10-22 사용자 지시] 매물 카드(PropertyCard)와 같은 크기로 맞춘다(16 -> 14).
+  return scaleFont(14);
 }
 
 export function PropertyListRow({
   property,
-  distance = "",
   showDivider = false,
   onPress,
 }: PropertyListRowProps) {
@@ -100,13 +97,17 @@ export function PropertyListRow({
           <Text
             style={[
               textStyles.price,
-              { color: theme.accent, fontSize: textStyles.bodySmall.fontSize },
+              // [2026-10-22 사용자 지시] 금액 크기를 매물 카드와 동일하게 — 축소 override 삭제.
+              { color: theme.accent },
             ]}
             numberOfLines={1}
           >
             {priceParts.rate}
             {priceParts.suffix ? (
-              <Text style={{ fontWeight: typography.weight.regular }}>{priceParts.suffix}</Text>
+              // [2026-10-22 사용자 지시] 단위(" / month")는 금액보다 한 치수 작게.
+              <Text style={[styles.priceUnit, { fontWeight: typography.weight.regular }]}>
+                {priceParts.suffix}
+              </Text>
             ) : null}
           </Text>
           <View style={styles.metaRow}>
@@ -126,16 +127,6 @@ export function PropertyListRow({
                 <Ionicons name="water-outline" size={metaSize()} color={theme.secondaryText} />
                 <Text style={[textStyles.caption, styles.meta, { color: theme.secondaryText }]}>
                   {property.bathrooms}
-                </Text>
-              </View>
-            ) : null}
-            {/* [2026-09-11 사용자 지시] 거리는 이 줄(행의 맨 아랫줄) 우측 끝에
-                정렬한다. 기준 위치가 있을 때만 붙는다. */}
-            {distance ? (
-              <View style={[styles.metaItem, styles.metaDistance]}>
-                <Ionicons name="location-outline" size={metaSize()} color={theme.secondaryText} />
-                <Text style={[textStyles.caption, styles.meta, { color: theme.secondaryText }]}>
-                  {distance}
                 </Text>
               </View>
             ) : null}
@@ -202,9 +193,13 @@ const styles = createScaledStyles(() => ({
     fontSize: scaleFont(10),
     fontWeight: typography.weight.semibold,
   },
-  // [2026-09-11 사용자 지시] 매물명 굵기 600, 크기는 한 단계 위(bodySmall → body).
+  // [2026-09-11 사용자 지시] 매물명 크기는 한 단계 위(bodySmall → body).
+  // [2026-10-22 사용자 지시] 굵기 600 -> 500.
   title: {
-    fontWeight: typography.weight.semibold,
+    fontWeight: "500",
+  },
+  priceUnit: {
+    fontSize: scaleFont(16, FONT_FACTOR.BODY),
   },
   metaRow: {
     flexDirection: "row",

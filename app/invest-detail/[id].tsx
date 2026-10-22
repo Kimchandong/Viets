@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { buildGradientSteps, formatVndAmount, localizeUnits, splitYieldText } from "@/utils/format";
 import { EmptyState } from "@/components/EmptyState";
-import { BackButton } from "@/components/BackButton";
+import { BACK_ICON_COLOR, BackButton } from "@/components/BackButton";
 import { Header } from "@/components/Header";
 import { InvestmentCard } from "@/components/InvestmentCard";
 import { Loading } from "@/components/Loading";
@@ -282,7 +282,7 @@ export default function InvestDetailScreen() {
               accessibilityLabel={t("common.share")}
               style={({ pressed }) => ({ opacity: pressed ? opacity.pressed : 1 })}
             >
-              <Ionicons name="share-outline" size={22} color={theme.text} />
+              <Ionicons name="share-outline" size={22} color={BACK_ICON_COLOR} />
             </Pressable>
           </View>
         }

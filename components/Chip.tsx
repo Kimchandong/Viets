@@ -25,6 +25,27 @@ export type ChipProps = {
   // 그대로 유지된다.
   activeTextColor?: string;
   inactiveTextColor?: string;
+  /**
+   * [2026-10-22 사용자 지시] 선택되지 않았을 때의 배경색.
+   *
+   * 기본값은 theme.card(흰색)다. 회색 바(#f2f2f2) 위에 칩을 올리면 그 흰 배경이
+   * 알약 모양으로 드러난다 — "버튼 배경을 없애라"는 지시는 이 값을 transparent로
+   * 두라는 뜻이다. activeColor만 투명하게 해서는 비활성 칩의 배경이 남는다.
+   */
+  inactiveColor?: string;
+  /**
+   * [2026-10-22 사용자 지시] 선택됐을 때 글자를 굵게(700).
+   *
+   * 배경과 테두리를 모두 없애면 선택 상태를 알릴 수단이 색과 굵기뿐이다.
+   * 기본값 false — 다른 화면의 칩은 지금 그대로 medium을 쓴다.
+   */
+  boldWhenActive?: boolean;
+  /**
+   * [2026-10-22 사용자 지시] 선택되지 않았을 때의 글자 굵기(부동산 1·2차 카테고리는 300).
+   *
+   * 기본값은 기존 typography.weight.medium — 다른 화면의 칩은 그대로다.
+   */
+  inactiveWeight?: TextStyle["fontWeight"];
   // [STEP: 2026-09-09] 사용자 요청 — 투자신청 페이지 금액 빠른선택 칩처럼 라벨
   // 글자크기(11px)를 이 칩 하나만 다르게 쓰고 싶은 곳을 위한 선택적 override.
   // 미지정 시 기존 textStyles.bodySmall 그대로 유지되어 다른 호출부(카테고리
@@ -64,6 +85,9 @@ export function Chip({
   squared = false,
   activeTextColor,
   inactiveTextColor,
+  inactiveColor,
+  boldWhenActive = false,
+  inactiveWeight,
   textStyle,
   paddingHorizontal,
   paddingVertical,
@@ -80,7 +104,7 @@ export function Chip({
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: active ? resolvedActiveColor : theme.card,
+          backgroundColor: active ? resolvedActiveColor : inactiveColor ?? theme.card,
           borderColor: hasActiveBorder
             ? active
               ? activeBorderColor
@@ -103,7 +127,8 @@ export function Chip({
             color: active
               ? activeTextColor ?? theme.onAccent
               : inactiveTextColor ?? theme.text,
-            fontWeight: typography.weight.medium,
+            fontWeight:
+              active && boldWhenActive ? "700" : inactiveWeight ?? typography.weight.medium,
           },
           textStyle,
         ]}

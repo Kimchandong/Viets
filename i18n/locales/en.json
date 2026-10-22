@@ -383,7 +383,24 @@
     "adSlotDropped": "Your listing was outbid and dropped from the ad ranking.",
     "adManage": "Paid ads",
     "manageReports": "Fake listing reports",
-    "managePermissions": "Account permissions"
+    "managePermissions": "Account permissions",
+    "manage": {
+      "properties": "Listings",
+      "propertyInfo": "My listings",
+      "propertyFavorites": "Saved listings",
+      "invest": "Investments",
+      "investProducts": "Products",
+      "investFavorites": "Saved products",
+      "ads": "Ads",
+      "adSlots": "Paid placements",
+      "settlement": "Settlement",
+      "support": "Support & alerts",
+      "consults": "Consultations",
+      "boardAdmin": "Boards",
+      "ops": "Operations",
+      "preferences": "Preferences",
+      "info": "Information"
+    }
   },
   "auth": {
     "tagline": "Vietnam real estate & investment platform",

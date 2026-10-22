@@ -383,7 +383,24 @@
     "adSlotDropped": "Tin của bạn đã bị trả giá cao hơn và rớt khỏi bảng xếp hạng quảng cáo.",
     "adManage": "Quảng cáo trả phí",
     "manageReports": "Báo cáo tin giả",
-    "managePermissions": "Phân quyền tài khoản"
+    "managePermissions": "Phân quyền tài khoản",
+    "manage": {
+      "properties": "Quản lý BĐS",
+      "propertyInfo": "Tin của tôi",
+      "propertyFavorites": "BĐS đã lưu",
+      "invest": "Quản lý đầu tư",
+      "investProducts": "Sản phẩm",
+      "investFavorites": "Đã lưu",
+      "ads": "Quản lý quảng cáo",
+      "adSlots": "Quảng cáo trả phí",
+      "settlement": "Quyết toán",
+      "support": "Tư vấn & thông báo",
+      "consults": "Danh sách tư vấn",
+      "boardAdmin": "Quản lý bảng tin",
+      "ops": "Vận hành",
+      "preferences": "Tùy chọn",
+      "info": "Thông tin"
+    }
   },
   "auth": {
     "tagline": "Nền tảng bất động sản & đầu tư Việt Nam",

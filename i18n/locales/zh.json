@@ -383,7 +383,24 @@
     "adSlotDropped": "其他房源出价更高，您的房源已跌出广告排名。",
     "adManage": "付费展示广告",
     "manageReports": "虚假房源举报",
-    "managePermissions": "账号权限管理"
+    "managePermissions": "账号权限管理",
+    "manage": {
+      "properties": "房源管理",
+      "propertyInfo": "我的房源",
+      "propertyFavorites": "收藏房源",
+      "invest": "投资管理",
+      "investProducts": "投资产品",
+      "investFavorites": "收藏产品",
+      "ads": "广告管理",
+      "adSlots": "付费展示",
+      "settlement": "结算管理",
+      "support": "咨询与通知",
+      "consults": "咨询列表",
+      "boardAdmin": "版块管理",
+      "ops": "运营管理",
+      "preferences": "偏好设置",
+      "info": "信息管理"
+    }
   },
   "auth": {
     "tagline": "越南房地产与投资平台",

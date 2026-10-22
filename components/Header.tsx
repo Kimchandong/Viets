@@ -1,6 +1,7 @@
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useIsEmbedded } from "@/components/EmbeddedScreen";
 import { createScaledStyles, colors, spacing, typography } from "@/constants/theme";
 
 export type HeaderProps = {
@@ -35,6 +36,10 @@ export type HeaderProps = {
 export function Header({ title, titleNode, subtitle, leftAction, rightAction, style, bordered = true }: HeaderProps) {
   // STEP 4-12: 항상 light 테마 고정 (검은색 배경 금지)
   const theme = colors.light;
+  // [2026-10-22] 탭 화면 안에 끼워진 경우에는 그리지 않는다 — 바깥 탭 화면이
+  // 이미 제목과 뒤로가기를 갖고 있어, 그리면 헤더가 두 줄로 쌓인다.
+  const embedded = useIsEmbedded();
+  if (embedded) return null;
 
   return (
     <SafeAreaView

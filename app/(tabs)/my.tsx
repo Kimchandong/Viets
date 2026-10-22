@@ -153,7 +153,6 @@ function MyScreen() {
    * [2026-09-26 사용자 지시] 관심 매물 / 관심 투자를 **메뉴로** 만들고, 눌렀을 때만
    * 목록을 펼친다. 늘 펼쳐 두면 찜한 것이 없어도 두 개의 빈 줄이 자리를 차지한다.
    */
-  const [openFavorites, setOpenFavorites] = useState<"property" | "invest" | null>(null);
 
   /**
    * [2026-09-26 사용자 지시] "관심목록" 타일을 누르면 관심목록이 보이게 한다.
@@ -163,21 +162,7 @@ function MyScreen() {
    * 다른 화면으로 보내지 않고 그 자리로 스크롤한다.
    */
   const pageScrollRef = useRef<ScrollView>(null);
-  const favoritesSectionRef = useRef<View>(null);
 
-  function revealFavorites() {
-    const section = favoritesSectionRef.current;
-    const scroll = pageScrollRef.current;
-    const inner = scroll?.getInnerViewNode();
-    if (!section || !scroll || inner == null) return;
-    section.measureLayout(
-      inner,
-      (_x, y) => scroll.scrollTo({ y: Math.max(0, y - 16), animated: true }),
-      () => {
-        // 측정 실패는 무시 — 화면이 안 움직일 뿐이다.
-      },
-    );
-  }
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -639,6 +624,21 @@ function MyScreen() {
                     {session?.user.email ?? ""}
                   </Text>
                 </View>
+                {/* [2026-10-22 사용자 지시] 로그아웃은 프로필 우측 상단 아이콘으로.
+                    글자 없이 아이콘만이라 accessibilityLabel로 읽어 준다. */}
+                <Pressable
+                  onPress={handleSignOut}
+                  disabled={signingOut}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("my.signOut")}
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.signOutIcon,
+                    { opacity: signingOut ? opacity.disabled : pressed ? opacity.pressed : 1 },
+                  ]}
+                >
+                  <Ionicons name="log-out-outline" size={22} color={PROFILE_SIGNOUT} />
+                </Pressable>
               </View>
 
               {/* 정산 칸 — 사용잔액 24px 주황, 그 아래 현잔액 12px 회색. 잔액이 없는
@@ -879,7 +879,6 @@ function MyScreen() {
             눌러도 로그인 화면으로 튕긴다. */}
         {isLoggedIn ? (
         <View style={styles.section}>
-          <SectionHeader title={t("my.activityTitle")} />
           {/* [STEP: 2026-09-09] 사용자 요청 — "나의 활동" 숫자만 20px로. StatTile은
               invest.tsx 투자개요와 공유하는 컴포넌트라 valueStyle로 이 화면에서만
               오버라이드한다(라벨 크기는 그대로 유지 — 숫자만 지정됨). */}
@@ -906,7 +905,8 @@ function MyScreen() {
             <StatTile
               label={t("my.stats.favorites")}
               value={String(favoriteProperties.length + favoriteInvestments.length)}
-              onPress={revealFavorites}
+              // [2026-10-22 사용자 지시] 관심목록 영역을 없애고 매물관리 탭으로 옮겼다.
+              onPress={() => router.push("/manage-properties?tab=fav")}
               valueStyle={styles.activityValue}
             />
           </Card>
@@ -914,6 +914,10 @@ function MyScreen() {
               위 세 칸과 달리 숫자를 미리 세지 않는다 — 세려면 화면을 열 때마다
               두 테이블을 조회해야 하는데, 이 줄은 그 숫자를 보러 오는 자리가
               아니라 목록으로 넘어가는 자리다. */}
+          {/* [2026-10-22 사용자 지시] 채팅상담 정보·알림을 맨 위로. 설정 아래에
+              묻혀 있던 알림을, 매일 보는 두 줄끼리 한 자리에 모은다.
+              알림 수신함: 안 읽은 개수는 숫자로만 붙인다 — 점과 숫자를 같이 두면
+              같은 사실을 두 번 말하게 된다. */}
           <Card style={styles.rowsCard}>
             <SettingsRow
               icon="chatbubbles-outline"
@@ -921,134 +925,63 @@ function MyScreen() {
               onPress={() => router.push("/chat-consults")}
               theme={theme}
             />
+            <SettingsRow
+              icon="notifications-outline"
+              label={t("my.rows.notifications")}
+              valueLabel={unreadNotifications > 0 ? String(unreadNotifications) : undefined}
+              onPress={() => router.push("/notifications")}
+              theme={theme}
+              last
+            />
           </Card>
         </View>
         ) : null}
 
-        {/* [STEP 04] 매물 등록 — admin 계열 계정에만 노출되는 운영 진입점. */}
+        {/* [2026-10-22 사용자 지시] 운영 메뉴를 관련끼리 묶어 5개로 정리한다.
+            각 줄을 누르면 탭 화면이 열리고, 예전에 한 줄씩 나열돼 있던 화면들이
+            그 안의 탭으로 들어간다(app/manage-*.tsx). 기존 경로는 그대로 살려
+            뒀다 — 푸시 알림이 /chat-inbox 같은 주소로 바로 들어온다. */}
         {canRegister || canManageInvest || isAdminUser ? (
           <View style={styles.section}>
             <SectionHeader title={t("my.adminTitle")} />
             <Card style={styles.rowsCard}>
               {canRegister ? (
                 <SettingsRow
-                  icon="add-circle-outline"
-                  label={t("my.registerProperty")}
-                  onPress={() => router.push("/property-register")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-11 사용자 지시] 매물 정보 — 등록한 매물을 공개/완료/보류/추천
-                  으로 나눠 보고 상태를 바꾸는 화면. */}
-              {canRegister ? (
-                <SettingsRow
                   icon="business-outline"
-                  label={t("my.myProperties")}
-                  onPress={() => router.push("/my-properties")}
+                  label={t("my.manage.properties")}
+                  onPress={() => router.push("/manage-properties")}
                   theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-12 사용자 지시] 유료 노출광고 — 추천매물 / TOP10 순위 진입.
-                  매물 관리(상태 변경)와 목적이 달라 별도 화면으로 뒀다. */}
-              {canRegister ? (
-                <SettingsRow
-                  icon="megaphone-outline"
-                  label={t("my.adManage")}
-                  onPress={() => router.push("/ad-manage")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-11] 상담 목록 — 담당자는 매물 상세로 들어가면 자기 명의의
-                  새 대화가 생겨 고객 상담을 볼 수 없다. 목록이 유일한 진입점이다. */}
-              {canRegister ? (
-                <SettingsRow
-                  icon="chatbubbles-outline"
-                  label={t("my.chatInbox")}
-                  onPress={() => router.push("/chat-inbox")}
-                  theme={theme}
-                  last={!canManageInvest}
                 />
               ) : null}
               {canManageInvest ? (
                 <SettingsRow
                   icon="trending-up-outline"
-                  label={t("my.registerInvestment")}
-                  onPress={() => router.push("/invest-register")}
+                  label={t("my.manage.invest")}
+                  onPress={() => router.push("/manage-invest")}
                   theme={theme}
-                  last={!isAdminUser}
                 />
               ) : null}
-              {/* [2026-09-11 사용자 지시 — 4차] "계정 권한 관리"와 "등록신청 관리"는
-                  둘 다 매물 등록 권한을 주는 경로라 관리자 입장에서 겹쳤다. 등록신청
-                  심사 화면 하나로 합치고 이름을 "등록권한 계정관리"로 바꾼다.
-                  투자 등록 권한은 투자상품 등록 화면 하단에서 다룬다. */}
-              {isAdminUser ? (
+              {canRegister ? (
                 <SettingsRow
-                  icon="key-outline"
-                  label={t("my.manageRegisterPermission")}
-                  onPress={() => router.push("/admin-agencies")}
+                  icon="megaphone-outline"
+                  label={t("my.manage.ads")}
+                  onPress={() => router.push("/manage-ads")}
                   theme={theme}
                 />
               ) : null}
-              {/* [2026-09-27 사용자 지시] 푸시(알림) 메시지 — admin 전용.
-                  전체/관심 계정/실제 투자자에게 제목·본문·사진·영상·링크를 보낸다. */}
-              {isAdminUser ? (
-                <SettingsRow
-                  icon="paper-plane-outline"
-                  label={t("pushMessage.menu")}
-                  onPress={() => router.push("/admin-push")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-12 사용자 지시] 허위매물 신고 목록 — admin 전용. */}
-              {isAdminUser ? (
-                <SettingsRow
-                  icon="alert-circle-outline"
-                  label={t("my.manageReports")}
-                  onPress={() => router.push("/admin-reports")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-11] 입금 관리(요금·QR 설정 + 입금 신고 심사) — admin 전용. */}
-              {isAdminUser ? (
-                <SettingsRow
-                  icon="card-outline"
-                  label={t("my.managePayments")}
-                  onPress={() => router.push("/admin-payments")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-11 사용자 지시] 게시판 관리 — 공지사항/QA/FAQ. admin 전용. */}
-              {isAdminUser ? (
+              {canRegister || isAdminUser ? (
                 <SettingsRow
                   icon="chatbubbles-outline"
-                  label={t("my.manageBoards")}
-                  onPress={() => router.push("/admin-boards")}
+                  label={t("my.manage.support")}
+                  onPress={() => router.push("/manage-support")}
                   theme={theme}
                 />
               ) : null}
-              {/* [STEP T-2] 번역 API 사용량/비용 모니터링 — admin 전용. */}
               {isAdminUser ? (
                 <SettingsRow
-                  icon="stats-chart-outline"
-                  label={t("my.translationUsage")}
-                  onPress={() => router.push("/admin-translation-usage")}
-                  theme={theme}
-                />
-              ) : null}
-              {/* [2026-09-16 확정-결정사항 3] 계정 권한 관리(M7) 되살림.
-                  2026-09-11에 "등록신청 관리와 겹친다"며 진입을 뺐는데, 그 결과
-                  investment_manage / property_manage 권한을 **앱에서 줄 방법이
-                  사라졌다**. 위 "등록권한 계정관리"(admin-agencies)는 업체 신청
-                  심사이지, 개별 계정에 권한을 주는 화면이 아니다.
-                  지금까지는 테스트 계정 권한을 SQL로만 넣을 수 있었다 — 3개 기기
-                  테스트를 위해 되살린다. 화면(admin-permissions.tsx, 286줄)은
-                  완성돼 있어 진입만 붙이면 된다. */}
-              {isAdminUser ? (
-                <SettingsRow
-                  icon="person-add-outline"
-                  label={t("my.managePermissions")}
-                  onPress={() => router.push("/admin-permissions")}
+                  icon="settings-outline"
+                  label={t("my.manage.ops")}
+                  onPress={() => router.push("/manage-ops")}
                   theme={theme}
                   last
                 />
@@ -1057,83 +990,13 @@ function MyScreen() {
           </View>
         ) : null}
 
-        <View ref={favoritesSectionRef} style={styles.section}>
-          <SectionHeader title={t("my.favoritesTitle")} />
-          {/* [2026-09-26 사용자 지시] 두 줄을 **메뉴**로 바꾼다 — 누르면 그 아래로
-              목록이 펼쳐진다. 목록 모양은 홈의 매물 목록과 같은 PropertyListRow를
-              쓴다(가로 카드에서 바꿨다) — 같은 것을 화면마다 다른 모양으로 보여 주지
-              않기 위해서다. */}
-          <Card style={styles.rowsCard}>
-            <SettingsRow
-              icon="heart-outline"
-              label={t("my.favoritePropertiesTitle")}
-              valueLabel={String(favoriteProperties.length)}
-              onPress={() =>
-                setOpenFavorites((prev) => (prev === "property" ? null : "property"))
-              }
-              theme={theme}
-            />
-            {openFavorites === "property" ? (
-              favoriteProperties.length === 0 ? (
-                <Text style={[textStyles.caption, styles.favoritesEmpty, { color: theme.secondaryText }]}>
-                  {t("my.noFavoriteProperties")}
-                </Text>
-              ) : (
-                <View style={styles.favoritesList}>
-                  {favoriteProperties.map((property, index) => (
-                    <PropertyListRow
-                      key={property.id}
-                      property={property}
-                      showDivider={index > 0}
-                      onPress={() => router.push(`/property-detail/${property.id}`)}
-                    />
-                  ))}
-                </View>
-              )
-            ) : null}
+        {/* [2026-10-22 사용자 지시] 관심목록 독립 영역 삭제 — 매물관리·투자관리의
+            "관심목록" 탭으로 옮겼다(app/manage-properties.tsx, manage-invest.tsx). */}
 
-            <SettingsRow
-              icon="trending-up-outline"
-              label={t("my.favoriteInvestmentsTitle")}
-              valueLabel={String(favoriteInvestments.length)}
-              onPress={() => setOpenFavorites((prev) => (prev === "invest" ? null : "invest"))}
-              theme={theme}
-            />
-            {openFavorites === "invest" ? (
-              favoriteInvestments.length === 0 ? (
-                <Text style={[textStyles.caption, styles.favoritesEmpty, { color: theme.secondaryText }]}>
-                  {t("my.noFavoriteInvestments")}
-                </Text>
-              ) : (
-                <View style={styles.favoritesList}>
-                  {favoriteInvestments.map((product) => (
-                    <InvestmentCard
-                      key={product.id}
-                      product={product}
-                      variant="list"
-                      onPress={() => router.push(`/invest-detail/${product.id}`)}
-                    />
-                  ))}
-                </View>
-              )
-            ) : null}
-          </Card>
-        </View>
-
-        <View style={[styles.section, styles.lastSection]}>
-          <SectionHeader title={t("my.settingsTitle")} />
+        {/* 설정 — 환경설정(언어·통화) / 정보관리 / 운영 도구·계정 삭제 */}
+        <View style={styles.section}>
+          <SectionHeader title={t("my.manage.preferences")} />
           <Card style={styles.rowsCard}>
-            {/* [2026-09-12 사용자 지시] 알림 수신함 — 여기는 "준비 중" 토스트였다.
-                푸시는 알림창을 지우면 끝이고 MY 토스트는 몇 초 뒤 사라져, 지나간
-                알림을 다시 볼 곳이 없었다. 안 읽은 개수는 숫자로만 붙인다 —
-                점과 숫자를 같이 두면 같은 사실을 두 번 말하게 된다. */}
-            <SettingsRow
-              icon="notifications-outline"
-              label={t("my.rows.notifications")}
-              valueLabel={unreadNotifications > 0 ? String(unreadNotifications) : undefined}
-              onPress={() => router.push("/notifications")}
-              theme={theme}
-            />
             <SettingsRow
               icon="language-outline"
               label={t("my.rows.language")}
@@ -1141,34 +1004,26 @@ function MyScreen() {
               onPress={() => setLanguageModalVisible(true)}
               theme={theme}
             />
-            {/* [STEP: 2026-09-09] 사용자 요청 — 통화를 베트남/달러 중 실제로 선택
-                가능하게 한다(기존 "준비 중" 토스트 대신 언어 선택과 동일한 패턴의
-                Modal). */}
             <SettingsRow
               icon="cash-outline"
               label={t("my.rows.currency")}
               valueLabel={currency}
               onPress={() => setCurrencyModalVisible(true)}
               theme={theme}
+              last
             />
-            {/* [2026-09-11 사용자 지시] 게시판 — 공지사항 / FAQ / QA.
-                고객센터는 "준비 중" 토스트였는데, 이제 실제로 갈 곳이 생겼다.
-                질문을 하러 오는 자리이므로 QA 탭으로 바로 보낸다. */}
-            <SettingsRow
-              icon="megaphone-outline"
-              label={t("my.rows.notices")}
-              onPress={() => router.push({ pathname: "/boards", params: { kind: "notice" } })}
-              theme={theme}
-            />
+          </Card>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader title={t("my.manage.info")} />
+          <Card style={styles.rowsCard}>
             <SettingsRow
               icon="help-buoy-outline"
               label={t("my.rows.support")}
               onPress={() => router.push({ pathname: "/boards", params: { kind: "qa" } })}
               theme={theme}
             />
-            {/* [2026-09-14] 이용약관·개인정보처리방침 — 본문은 DB(board_posts)에 있다.
-                법무법인 원문이 출시 직전에 오므로, 코드에 박아 두면 그때 재빌드해야
-                한다. 비로그인 사용자도 읽을 수 있어야 한다(가입 전에 보는 문서다). */}
             <SettingsRow
               icon="document-text-outline"
               label={t("my.rows.terms")}
@@ -1180,34 +1035,63 @@ function MyScreen() {
               label={t("my.rows.privacy")}
               onPress={() => router.push({ pathname: "/legal/[kind]", params: { kind: "privacy" } })}
               theme={theme}
-              last={!isLoggedIn || isAdminUser}
+              last={!isLoggedIn}
             />
-            {/* [2026-09-14] 계정 삭제 — Apple(2022-06~)·Google(2024~) 심사 필수.
-                로그인 상태에서만, 그리고 관리자에게는 보이지 않는다(서버도 거부하지만
-                누를 수 있는 자리에 두면 눌러 보게 된다). */}
-            {isLoggedIn && !isAdminUser ? (
-              <SettingsRow
-                icon="trash-outline"
-                label={t("my.rows.deleteAccount")}
-                onPress={() => setDeleteModalVisible(true)}
-                theme={theme}
-                last
-              />
-            ) : null}
           </Card>
         </View>
 
-        {/* [2026-10-22 사용자 지시] 로그아웃은 프로필 영역이 아니라 화면 맨 아래. */}
+        {/* [2026-10-22 사용자 지시] 신고관리·번역사용량·계정삭제는 설정 하단에.
+            등록권한 계정관리·입금관리도 새 5개 메뉴에 들어갈 자리가 없어 여기 둔다 —
+            빼면 앱에서 들어갈 길이 사라진다. */}
         {isLoggedIn ? (
-          <Button
-            variant="ghost"
-            title={signingOut ? t("my.signingOut") : t("my.signOut")}
-            onPress={handleSignOut}
-            disabled={signingOut}
-            style={styles.signOutButton}
-            textStyle={styles.signOutButtonText}
-          />
+          <View style={[styles.section, styles.lastSection]}>
+            <Card style={styles.rowsCard}>
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="key-outline"
+                  label={t("my.manageRegisterPermission")}
+                  onPress={() => router.push("/admin-agencies")}
+                  theme={theme}
+                />
+              ) : null}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="card-outline"
+                  label={t("my.managePayments")}
+                  onPress={() => router.push("/admin-payments")}
+                  theme={theme}
+                />
+              ) : null}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="alert-circle-outline"
+                  label={t("my.manageReports")}
+                  onPress={() => router.push("/admin-reports")}
+                  theme={theme}
+                />
+              ) : null}
+              {isAdminUser ? (
+                <SettingsRow
+                  icon="stats-chart-outline"
+                  label={t("my.translationUsage")}
+                  onPress={() => router.push("/admin-translation-usage")}
+                  theme={theme}
+                />
+              ) : null}
+              {/* [2026-09-14] 계정 삭제 — Apple·Google 심사 필수. 관리자에게는 숨긴다. */}
+              {!isAdminUser ? (
+                <SettingsRow
+                  icon="trash-outline"
+                  label={t("my.rows.deleteAccount")}
+                  onPress={() => setDeleteModalVisible(true)}
+                  theme={theme}
+                  last
+                />
+              ) : null}
+            </Card>
+          </View>
         ) : null}
+
       </ScrollView>
 
       <Modal
@@ -1370,6 +1254,8 @@ const PROFILE_BACKGROUND = "#206BC7";
 // 파란 바탕 위 글자. 보조 정보는 흰색을 낮춰 위계를 남긴다.
 const PROFILE_TEXT = "#FFFFFF";
 const PROFILE_TEXT_MUTED = "rgba(255, 255, 255, 0.78)";
+// [2026-10-22 사용자 지시] 프로필 우측 상단 로그아웃 아이콘 색.
+const PROFILE_SIGNOUT = "rgba(255, 255, 255, 0.5)";
 // [2026-10-22 사용자 지시] 사용한 금액·광고비 정산 버튼 색.
 const PROFILE_HIGHLIGHT = "#00D4FF";
 // 아바타 아래 금액·버튼이 이메일과 같은 x에서 시작하도록 하는 들여쓰기.
@@ -1578,7 +1464,9 @@ const styles = createScaledStyles(() => ({
     // 화면 끝 기준 10px이 되도록 가로는 카드 padding에 맡기고 세로만 10을 준다.
     alignSelf: "stretch",
     marginHorizontal: 10 - spacing.screenPaddingX,
-    marginVertical: 10,
+    marginTop: 10,
+    // [2026-10-22 사용자 지시] 하단 여백 0.
+    marginBottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.2)",
     borderRadius: radius.md,
     padding: 10,
@@ -1635,15 +1523,9 @@ const styles = createScaledStyles(() => ({
   balanceEmail: {
     fontSize: scaleFont(16),
   },
-  // [2026-10-22 사용자 지시] 개인정보처리방침(설정 카드) 아래 우측.
-  // 배경·테두리 없이 글자만 남긴다 — variant="ghost"가 둘 다 비운다.
-  signOutButton: {
-    alignSelf: "flex-end",
-    marginTop: spacing.md,
-  },
-  signOutButtonText: {
-    color: "#666666",
-    fontWeight: "300",
+  // [2026-10-22 사용자 지시] 프로필 줄 우측 상단 로그아웃 아이콘.
+  signOutIcon: {
+    alignSelf: "flex-start",
   },
   authButtons: {
     flexDirection: "row",

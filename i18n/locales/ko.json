@@ -383,7 +383,24 @@
     "adSlotDropped": "다른 매물의 광고비가 더 높아 광고 순위에서 밀려났습니다.",
     "adManage": "유료 노출광고",
     "manageReports": "허위매물 신고",
-    "managePermissions": "계정 권한 관리"
+    "managePermissions": "계정 권한 관리",
+    "manage": {
+      "properties": "매물관리",
+      "propertyInfo": "매물정보",
+      "propertyFavorites": "매물 관심목록",
+      "invest": "투자관리",
+      "investProducts": "투자상품",
+      "investFavorites": "투자 관심목록",
+      "ads": "광고관리",
+      "adSlots": "유료 노출광고",
+      "settlement": "정산관리",
+      "support": "상담 & 알림",
+      "consults": "상담목록",
+      "boardAdmin": "게시판관리",
+      "ops": "운영 & 사용",
+      "preferences": "환경설정",
+      "info": "정보관리"
+    }
   },
   "auth": {
     "tagline": "베트남 부동산 투자 플랫폼",

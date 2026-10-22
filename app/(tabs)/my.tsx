@@ -1569,11 +1569,16 @@ const styles = createScaledStyles(() => ({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.sm,
-    // [2026-10-22 사용자 지시] 프로필 아래 가로 94%, 라운딩, 배경 rgba(0,0,0,0.2),
-    // 내부 여백 10px. 이메일 x에 맞추던 들여쓰기는 더 이상 쓰지 않는다 —
-    // 이제 이 블록은 프로필 줄 아래 가운데 정렬된 독립 카드다.
-    width: "94%",
-    alignSelf: "center",
+    // [2026-10-22 사용자 지시] 프로필 아래 가로 100%, 바깥 여백 10px, 라운딩,
+    // 배경 rgba(0,0,0,0.2), 내부 여백 10px.
+    //
+    // 좌우 margin을 0으로 두는 이유: 이 블록을 감싼 카드가 이미
+    // paddingHorizontal(screenPaddingX = 10)을 갖고 있다. 여기에 10을 더하면
+    // 화면 끝에서 20px이 되어 "가로 100%"가 아니라 지금(94%)과 같아진다.
+    // 화면 끝 기준 10px이 되도록 가로는 카드 padding에 맡기고 세로만 10을 준다.
+    alignSelf: "stretch",
+    marginHorizontal: 10 - spacing.screenPaddingX,
+    marginVertical: 10,
     backgroundColor: "rgba(0, 0, 0, 0.2)",
     borderRadius: radius.md,
     padding: 10,
@@ -1585,8 +1590,7 @@ const styles = createScaledStyles(() => ({
   },
   // 세로 분리 후에도 금액은 우측 정렬 — 자리를 넓혀 잡는다.
   balanceBoxStacked: {
-    // width 94% + 가운데 정렬을 유지해야 하므로 stretch로 덮지 않는다.
-    alignSelf: "center",
+    alignSelf: "stretch",
   },
   // 금액 + 통화 버튼 한 줄.
   balanceAmountRow: {

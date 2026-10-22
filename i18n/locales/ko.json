@@ -363,7 +363,7 @@
     },
     "refundNotice": "신청하신 광고비 {{amount}} 환불예정 입니다",
     "manageRegisterPermission": "직원 관리",
-    "adSettlement": "광고비 정산",
+    "adSettlement": "광고정산",
     "manageBoards": "게시판 관리",
     "avatar": {
       "edit": "프로필 사진 변경",

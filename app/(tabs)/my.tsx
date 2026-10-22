@@ -639,18 +639,6 @@ function MyScreen() {
                     {session?.user.email ?? ""}
                   </Text>
                 </View>
-                {/* [2026-10-22 사용자 지시] 광고비 정산을 이 영역 우측 상단으로.
-                    승인된 업체에만 보이는 조건은 그대로 둔다 — 승인 전에는 눌러도
-                    할 수 있는 것이 없다. */}
-                {agency?.approvalStatus === "approved" ? (
-                  <Button
-                    size="small"
-                    title={t("my.adSettlement")}
-                    onPress={() => router.push("/payment-info")}
-                    style={styles.settleButton}
-                    textStyle={styles.settleButtonText}
-                  />
-                ) : null}
               </View>
 
               {/* 정산 칸 — 사용잔액 24px 주황, 그 아래 현잔액 12px 회색. 잔액이 없는
@@ -671,6 +659,7 @@ function MyScreen() {
                 {/* [2026-09-28 사용자 지시] 금액 우측에 통화 버튼. 누르면 그때 환율로
                     바뀐다. 이 버튼은 MY > 설정의 통화 선택과 같은 값을 쓴다 — 두 자리가
                     따로 놀면 "어느 쪽이 진짜인가"를 알 수 없다. */}
+                <View style={styles.balanceTexts}>
                 <View style={styles.balanceAmountRow}>
                   <Text style={[styles.balanceAvailable, { color: PROFILE_HIGHLIGHT }]} numberOfLines={1}>
                     {formatBalance(isAdminUser ? adBilling.adSpent : adBilling.available)}
@@ -696,6 +685,18 @@ function MyScreen() {
                 <Text style={[styles.balanceTotal, { color: PROFILE_TEXT_MUTED }]} numberOfLines={1}>
                   {formatBalance(adBilling.totalDeposited)} {currency}
                 </Text>
+                </View>
+                {/* [2026-10-22 사용자 지시] 금액(좌) / 광고정산(우) 한 줄.
+                    승인된 업체에만 보이는 조건은 그대로 둔다. */}
+                {agency?.approvalStatus === "approved" ? (
+                  <Button
+                    size="small"
+                    title={t("my.adSettlement")}
+                    onPress={() => router.push("/payment-info")}
+                    style={styles.settleButton}
+                    textStyle={styles.settleButtonText}
+                  />
+                ) : null}
               </View>
 
                     {/* [2026-10-22 사용자 지시] 광고비 정산은 위 우측으로, 로그아웃은
@@ -1199,11 +1200,12 @@ function MyScreen() {
         {/* [2026-10-22 사용자 지시] 로그아웃은 프로필 영역이 아니라 화면 맨 아래. */}
         {isLoggedIn ? (
           <Button
-            variant="outline"
+            variant="ghost"
             title={signingOut ? t("my.signingOut") : t("my.signOut")}
             onPress={handleSignOut}
             disabled={signingOut}
             style={styles.signOutButton}
+            textStyle={styles.signOutButtonText}
           />
         ) : null}
       </ScrollView>
@@ -1349,7 +1351,7 @@ function SettingsRow({ icon, label, valueLabel, onPress, theme, last }: Settings
       ]}
     >
       <Ionicons name={icon} size={20} color={theme.secondaryText} style={styles.rowIcon} />
-      <Text style={[textStyles.body, { color: theme.text, flex: 1 }]}>{label}</Text>
+      <Text style={[textStyles.body, styles.rowLabel, { color: theme.text, flex: 1 }]}>{label}</Text>
       {valueLabel ? (
         <Text style={[textStyles.bodySmall, { color: theme.secondaryText }]}>{valueLabel}</Text>
       ) : null}
@@ -1534,10 +1536,11 @@ const styles = createScaledStyles(() => ({
   },
   // [2026-09-11 사용자 지시 — 5차] 회색 띠와 버튼 줄 사이 위아래 10px.
   // content가 자식 사이에 spacing.md(16)를 두므로 그만큼 빼서 10만 남긴다.
+  // [2026-10-22 사용자 지시] 버튼 배경 rgba(0, 0, 0, 0.5).
   settleButton: {
-    alignSelf: "flex-start",
-    backgroundColor: PROFILE_HIGHLIGHT,
-    borderColor: PROFILE_HIGHLIGHT,
+    flexShrink: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderColor: "rgba(0, 0, 0, 0.5)",
   },
   settleButtonText: {
     color: "#FFFFFF",
@@ -1560,9 +1563,25 @@ const styles = createScaledStyles(() => ({
     color: PROFILE_TEXT,
   },
   balanceBox: {
-    // [2026-10-22 사용자 지시] 우측 정렬이던 금액을 이메일과 같은 x에서 시작하게.
-    alignItems: "flex-start",
-    paddingLeft: PROFILE_TEXT_INDENT,
+    // [2026-10-22 사용자 지시] 금액(좌) / 광고정산 버튼(우)을 한 줄에.
+    // 금액은 이메일과 같은 x에서 시작한다.
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+    // [2026-10-22 사용자 지시] 이 영역 배경 rgba(0, 0, 0, 0.3).
+    //
+    // 들여쓰기를 padding이 아니라 margin으로 주는 이유: padding이면 배경이
+    // 아바타 아래 빈 공간까지 덮어 띠가 글자보다 78px 왼쪽에서 시작한다.
+    // margin이면 띠가 금액(=이메일)과 같은 x에서 시작해 줄이 맞는다.
+    marginLeft: PROFILE_TEXT_INDENT,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    minWidth: 0,
+  },
+  balanceTexts: {
+    flexShrink: 1,
     minWidth: 0,
   },
   // 세로 분리 후에도 금액은 우측 정렬 — 자리를 넓혀 잡는다.
@@ -1595,25 +1614,32 @@ const styles = createScaledStyles(() => ({
     flexShrink: 1,
   },
   // [2026-09-28 사용자 지시] 12px — 굵기는 상속되지 않도록 명시적으로 되돌린다.
+  // [2026-10-22 사용자 지시] 잔액 우측 통화 단위 두 치수 크게(12 -> 16).
   balanceUnit: {
-    fontSize: scaleFont(12, FONT_FACTOR.BODY),
+    fontSize: scaleFont(16, FONT_FACTOR.BODY),
     fontWeight: typography.weight.regular,
   },
+  // [2026-10-22 사용자 지시] 전체입금액 두 치수 크게(13 -> 17).
   balanceTotal: {
-    fontSize: scaleFont(13),
+    fontSize: scaleFont(17),
   },
   // [2026-09-28 사용자 지시] 14px.
   // [2026-10-22 사용자 지시] 승인상태·이메일·전체입금액 한 치수 크게.
   agencyStatusText: {
-    fontSize: scaleFont(15, FONT_FACTOR.SMALL),
+    fontSize: scaleFont(16, FONT_FACTOR.SMALL),
   },
   balanceEmail: {
-    fontSize: scaleFont(15),
+    fontSize: scaleFont(16),
   },
+  // [2026-10-22 사용자 지시] 개인정보처리방침(설정 카드) 아래 우측.
+  // 배경·테두리 없이 글자만 남긴다 — variant="ghost"가 둘 다 비운다.
   signOutButton: {
     alignSelf: "flex-end",
-    // [2026-10-22 사용자 지시] 화면 맨 아래로 옮기면서 위 영역과 간격을 둔다.
     marginTop: spacing.md,
+  },
+  signOutButtonText: {
+    color: "#666666",
+    fontWeight: "300",
   },
   authButtons: {
     flexDirection: "row",
@@ -1665,8 +1691,9 @@ const styles = createScaledStyles(() => ({
   },
   // [STEP: 2026-09-09] 사용자 요청 — "나의 활동" 숫자 20px
   // [2026-09-11 사용자 지시] 나의 활동 숫자 30px(이전 xl).
+  // [2026-10-22 사용자 지시] 한 치수 크게(30 -> 32).
   activityValue: {
-    fontSize: scaleFont(30, FONT_FACTOR.TITLE),
+    fontSize: scaleFont(32, FONT_FACTOR.TITLE),
   },
   favoritesStack: {
     gap: spacing.md,
@@ -1689,6 +1716,11 @@ const styles = createScaledStyles(() => ({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
+  },
+  // [2026-10-22 사용자 지시] 설정 메뉴명 한 치수 작게(body 20 -> 18).
+  // 섹션 타이틀은 그대로 둔다.
+  rowLabel: {
+    fontSize: scaleFont(18, FONT_FACTOR.BODY),
   },
   rowIcon: {
     width: 22,

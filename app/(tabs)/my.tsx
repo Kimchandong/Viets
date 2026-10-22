@@ -1569,15 +1569,14 @@ const styles = createScaledStyles(() => ({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.sm,
-    // [2026-10-22 사용자 지시] 이 영역 배경 rgba(0, 0, 0, 0.3).
-    //
-    // 들여쓰기를 padding이 아니라 margin으로 주는 이유: padding이면 배경이
-    // 아바타 아래 빈 공간까지 덮어 띠가 글자보다 78px 왼쪽에서 시작한다.
-    // margin이면 띠가 금액(=이메일)과 같은 x에서 시작해 줄이 맞는다.
-    marginLeft: PROFILE_TEXT_INDENT,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    // [2026-10-22 사용자 지시] 프로필 아래 가로 94%, 라운딩, 배경 rgba(0,0,0,0.2),
+    // 내부 여백 10px. 이메일 x에 맞추던 들여쓰기는 더 이상 쓰지 않는다 —
+    // 이제 이 블록은 프로필 줄 아래 가운데 정렬된 독립 카드다.
+    width: "94%",
+    alignSelf: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    borderRadius: radius.md,
+    padding: 10,
     minWidth: 0,
   },
   balanceTexts: {
@@ -1586,7 +1585,8 @@ const styles = createScaledStyles(() => ({
   },
   // 세로 분리 후에도 금액은 우측 정렬 — 자리를 넓혀 잡는다.
   balanceBoxStacked: {
-    alignSelf: "stretch",
+    // width 94% + 가운데 정렬을 유지해야 하므로 stretch로 덮지 않는다.
+    alignSelf: "center",
   },
   // 금액 + 통화 버튼 한 줄.
   balanceAmountRow: {

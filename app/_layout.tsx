@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { initI18n } from "@/i18n";
 import { getSession, onAuthStateChange } from "@/services/auth";
 import { registerPushToken, subscribeToNotificationTaps } from "@/services/push";
@@ -258,16 +259,22 @@ export default function RootLayout() {
     // 다른 화면(빈 스플래시 / 흰 배경 Loading)이어서 시작할 때 화면이 두 번 바뀌었다.
     return (
       <SafeAreaProvider>
-        <AppSplash />
+        <ErrorBoundary>
+          <AppSplash />
+        </ErrorBoundary>
       </SafeAreaProvider>
     );
   }
 
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <Stack key={typographyVersion} screenOptions={{ headerShown: false }} />
-      </QueryClientProvider>
+      {/* [2026-10-22 사용자 지시] 렌더 중 예외로 앱이 통째로 내려앉는 것을 막는다.
+          자세한 이유는 components/ErrorBoundary.tsx 주석. */}
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <Stack key={typographyVersion} screenOptions={{ headerShown: false }} />
+        </QueryClientProvider>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }
